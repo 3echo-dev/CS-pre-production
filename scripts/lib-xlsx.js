@@ -1,6 +1,6 @@
 // Read the first sheet of an .xlsx into rows of strings, with no dependency.
 //
-// An xlsx is a zip of XML. The two checks that read Sham's templates need cell text and
+// An xlsx is a zip of XML. The two checks that read the client's templates need cell text and
 // nothing else, so this walks the zip's central directory, inflates sharedStrings.xml and
 // sheet1.xml with zlib, and returns a grid. Formulas come back as their cached value, dates
 // as their serial number, merged cells as one value in the top-left cell and blanks elsewhere.

@@ -1,6 +1,6 @@
 {
   "n": 1,
-  "raisedBy": "sham",
+  "raisedBy": "creative-director",
   "at": "YYYY-MM-DD HH:MM {tz}",
   "targetStage": "1b",
   "item": "script",
@@ -14,7 +14,7 @@
   "resolved": false,
   "_reasonCodes": {
     "R-BRIEF": "the brief misread the folder, or a conflict was resolved silently",
-    "R-REF": "a reference is missing, wrong, or from a site Sham did not name",
+    "R-REF": "a reference is missing, wrong, or from a site the client did not name",
     "R-SCRIPT": "a scene, a line or the format",
     "R-BOARD": "a panel, the style, the continuity, or the sample",
     "R-SHOT": "a shot row, an id, a grouped label, an orphan",

@@ -7,7 +7,7 @@
 // things are checked, because they are the three ways a compiled table has gone wrong on
 // real jobs: a sample of rows must trace back to a shot in the shot list and to register
 // rows for the talents and locations it names; the two same-label client-input columns of
-// Sham's template must both still be there, as separate columns; and a shot must not appear
+// the client's template must both still be there, as separate columns; and a shot must not appear
 // twice, which is what a row continued across a page break turns into.
 //
 // Writes validation/breakdown-check.md. Exit 0 pass · 1 fail · 2 usage · 3 a file is missing
@@ -50,7 +50,7 @@ const cTalent = findCol(header, 'talent', 'talents', 'cast');
 const cLoc = findCol(header, 'location', 'loc');
 if (cShot < 0) problems.push('no shot column (S/s or shot_id) in the breakdown header');
 
-// The two client-input columns carry the same label in Sham's template. They are two columns,
+// The two client-input columns carry the same label in the client's template. They are two columns,
 // and a compiler that merged them on the label lost half the client's answers.
 const clientCols = header.map((h, i) => (/client/i.test(String(h)) ? i : -1)).filter(i => i >= 0);
 if (clientCols.length < 2) problems.push('the two client-input columns are not both present (found ' + clientCols.length + ')');

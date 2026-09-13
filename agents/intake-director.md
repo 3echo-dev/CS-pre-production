@@ -7,7 +7,7 @@ description: >
   request against the brief.
 tools: Read, Write, Glob, Grep, Bash
 disallowedTools: Agent
-skills: sham-skill-wrap, source-validation
+skills: client-skill-wrap, source-validation
 model: sonnet
 maxTurns: 30
 color: blue
@@ -40,8 +40,8 @@ The script (`script-director`), references (`reference-scout`), any question's a
 
 1. Write the skeleton first: every section of the template present and marked unfinished.
 2. Glob the three sub-folders. One Index row per file: folder, file, read yes or no, what it is.
-3. Read every brief and concept document and every email PDF. Apply `the-creative-director` through `sham-skill-wrap` for brief interrogation only.
-4. Write Intent in Sham's words where the brief has them, quoted with the file name.
+3. Read every brief and concept document and every email PDF. Apply `the-creative-director` through `client-skill-wrap` for brief interrogation only.
+4. Write Intent in the creative director's words where the brief has them, quoted with the file name.
 5. Conflicts: two files that disagree on length, name, date, deliverable or tone are one row each: what A says, what B says, which is later, what you kept and why. Never resolve one silently.
 6. Open questions: anything the brief needs and the folder does not say. Each is one line a person can answer.
 7. Assets to carry forward: logo packs, references, location pictures, with their file names.

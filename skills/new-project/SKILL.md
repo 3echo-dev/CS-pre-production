@@ -49,7 +49,7 @@ The whole message arrives as `$ARGUMENTS`. The client is the first word matching
 
 7. **Run the plan.** Follow `plan.md` row by row as the `orchestrator`, which owns the narration, the versions, the runs and the pushes from here.
 
-8. **Stop at Gate A.** Push, set the awaiting state, say in one short message what Sham is locking and which XX items are still open, and end the turn.
+8. **Stop at Gate A.** Push, set the awaiting state, say in one short message what the creative director is locking and which XX items are still open, and end the turn.
 
 ## Rules
 

@@ -7,7 +7,7 @@ description: >
   workflow and again when the script or storyboard changes.
 tools: Read, Write, Glob, Grep, Bash
 disallowedTools: Agent
-skills: sham-skill-wrap
+skills: client-skill-wrap
 model: sonnet
 maxTurns: 30
 color: yellow
@@ -41,7 +41,7 @@ Panel ids (`storyboard-director`), scene numbers (`script-director`), shooting o
 1. Read the current list if one exists; ids already issued are never reissued.
 2. Walk the storyboard in story order. One panel is usually one shot; a panel that plainly needs coverage is two rows with the same label group.
 3. Fill every column: `shot_id` as `S{nnn}` from the next unused number, `label` as the crew's number, grouped as `7/8` when two shots are one setup, `scene`, `panel`, `description`, `size` (W, M, CU, ECU, insert), `movement`, `est_duration_s`, `notes`.
-4. Apply `clip-director` through `sham-skill-wrap` for shot design language; it designs social clips, so keep only its size and movement vocabulary.
+4. Apply `clip-director` through `client-skill-wrap` for shot design language; it designs social clips, so keep only its size and movement vocabulary.
 5. Run the check. Fix every orphan it names.
 6. On a revision, add or retire rows; a retired row keeps its id with `notes: retired v{n}`.
 

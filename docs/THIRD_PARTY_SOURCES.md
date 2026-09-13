@@ -6,7 +6,7 @@ script came from, so anything that looks wrong can be traced back to what was ac
 - `kernel` means the file was carried over from social-media-pipeline and re-skinned for 1-22.
 - `adapted` means rules, structures or numbers rewritten for our stages and gates.
 - `vendored` means close to a copy. Exactly one file is vendored: `scripts/watch-video.py`, from `claude-video`, which keeps its MIT notice at the top.
-- `wrapped` means read in place at runtime and never copied: every one of Sham's skills.
+- `wrapped` means read in place at runtime and never copied: every one of the client's skills.
 
 ## The kernel
 
@@ -31,7 +31,7 @@ script came from, so anything that looks wrong can be traced back to what was ac
 
 ## Wrapped at runtime, never copied
 
-Sham's skills, read in place under `workspaces/{client}/client/skills/` by `skills/sham-skill-wrap`: `the-creative-director`, `no-ai-slop`, `inspiration-references`, `video-watch`, `reference-match-director`, `defuddle`, `generative-frame-craft`, `clip-director`, `htf-night-shift-frames`, `openmontage-craft`, `vo-roundtrip`, `kisah-prompt-department`. They are the client's; nothing from them is in this repository.
+the client's skills, read in place under `workspaces/{client}/client/skills/` by `skills/client-skill-wrap`: `the-creative-director`, `no-ai-slop`, `inspiration-references`, `video-watch`, `reference-match-director`, `defuddle`, `generative-frame-craft`, `clip-director`, `htf-night-shift-frames`, `openmontage-craft`, `vo-roundtrip`, `kisah-prompt-department`. They are the client's; nothing from them is in this repository.
 
 The chain-execution pattern (manifest, stage directors, checkpoints, human gates) was read from https://github.com/calesthio/OpenMontage (AGPL-3.0) as inspiration only and re-derived in our own words. No prose or code copied.
 

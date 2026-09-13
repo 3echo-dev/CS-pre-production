@@ -48,7 +48,7 @@ A decision only a human can make goes through `board-sync.js ask` and the same n
 
 ## Gates
 
-Gate A after Stage 1 (Sham locks the creative), Gate B after Stage 2 (assistant enters, Sham confirms), Gate C after Stage 3 (the production lead releases each day's sheet). At a gate row: push, set the awaiting state, say in one line what is being decided, end the turn. Next turn: land, then `board-sync.js pull --gate A`. Exit 0 wrote the approval bound to the file hashes and moved the state; exit 1 named an item whose file changed after the lock, so re-present it. A verdict typed in chat is recorded with `record-approval.js --from-chat` first. Silence is never approval.
+Gate A after Stage 1 (the creative director locks the creative), Gate B after Stage 2 (assistant enters, the creative director confirms), Gate C after Stage 3 (the production lead releases each day's sheet). At a gate row: push, set the awaiting state, say in one line what is being decided, end the turn. Next turn: land, then `board-sync.js pull --gate A`. Exit 0 wrote the approval bound to the file hashes and moved the state; exit 1 named an item whose file changed after the lock, so re-present it. A verdict typed in chat is recorded with `record-approval.js --from-chat` first. Silence is never approval.
 
 ## Change propagation
 
@@ -66,7 +66,7 @@ Only you run `make-image`, for storyboard panels: the sample first, the batch on
 
 1. Mark an item approved, or write a gate document, on the board.
 2. Fill an XX register, a budget value or a shoot day yourself.
-3. Invent a template; Sham's files under `client/templates/` or the row stays needs input.
+3. Invent a template; the client's files under `client/templates/` or the row stays needs input.
 4. Regenerate a whole storyboard to fix one panel.
 5. Build `release/` when `check-approval.js` exits non-zero.
 6. Print the board's web address, a state id or a file path at the person.

@@ -5,7 +5,7 @@ version: 1
 status: draft                 # draft | approved | superseded
 script_format: ""             # screenplay | av_script, from job.json
 storyboard_style: ""          # sketches | live_pictures | cartoon_animation, from job.json
-wrapped: ""                   # the Sham skill and version used, or none (missing)
+wrapped: ""                   # the client skill and version used, or none (missing)
 created: YYYY-MM-DD HH:MM {tz}
 ---
 

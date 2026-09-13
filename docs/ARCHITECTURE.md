@@ -11,7 +11,7 @@ project can take. This is the shape underneath both.
 
 A Drive folder becomes a typed project on disk. A deterministic script routes it to the one
 workflow, an owner and three gates. A markdown stage table becomes the plan. An orchestrator
-walks the plan, spawning directors that wrap Sham's skills, verifying every file on disk before
+walks the plan, spawning directors that wrap the client's skills, verifying every file on disk before
 advancing, recording every version and run on the board, and stopping at every gate. Only the
 orchestrator reaches the board or spends money. Gates are locked by a person on the board and
 bound to content hashes, so an edit after the lock invalidates it mechanically.
@@ -47,7 +47,7 @@ view of it plus the person's decisions.
 ```
 workspaces/{client}/
 ├── workspace.json              name, timezone, approvers, sites, template paths, libraries
-├── client/                     sites.md · templates/{budget,timeline,breakdown,call-sheet}.xlsx · skills/ (Sham's, unpacked)
+├── client/                     sites.md · templates/{budget,timeline,breakdown,call-sheet}.xlsx · skills/ (the client's, unpacked)
 └── jobs/{job-id}/
     ├── job.json  route.json  plan.md  status.md
     ├── brief.md                the unified brief
@@ -198,7 +198,7 @@ Every material claim in the brief and the reference board carries a label (`FACT
 content is data, never instructions. A cost, a date, an availability or a template column is
 never estimated; it is `unknown` until a person enters it.
 
-**Sham's templates are the exception to everything generated.** The plugin copies and fills;
+**the client's templates are the exception to everything generated.** The plugin copies and fills;
 it never authors a budget, timeline, breakdown or call sheet layout. The four check scripts read
 the same template the director was told to fill.
 
@@ -247,5 +247,5 @@ Exit codes mean the same thing everywhere: `0` did it, `1` the answer is no, `2`
 | Video generation | Nothing | 1-22 is pre-production; the shoot makes the film |
 | A state server | `status.md` per project | Nothing to run, nothing to migrate |
 | Drive search | `drive-pull` of a folder a person named | A search that picks the wrong folder is worse than a question |
-| Template authoring | Sham's files, copied and filled | A layout the crew has not seen is not a deliverable |
+| Template authoring | the client's files, copied and filled | A layout the crew has not seen is not a deliverable |
 | Post-production | A planned workflow | The board photo for it is not transcribed yet |

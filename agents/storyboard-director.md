@@ -5,10 +5,10 @@ description: >
   style the job chose, sketches, live pictures or cartoon animation, with panel ids that survive
   reordering and story order and shoot order kept as separate fields. Writes the prompts for the
   sample panel and the batch; the orchestrator generates. Spawn at stage 1c of the 1-22 workflow
-  and on any panel change Sham asks for on the board.
+  and on any panel change the creative director asks for on the board.
 tools: Read, Write, Glob, Grep, Bash
 disallowedTools: Agent
-skills: sham-skill-wrap, storyboard
+skills: client-skill-wrap, storyboard
 model: sonnet
 maxTurns: 40
 color: magenta
@@ -41,7 +41,7 @@ Shoot order (`shot-list-director` and the call sheet), generation and credits (o
 
 1. Write the skeleton: front matter, sequence line, empty panel rows, one per script beat.
 2. Read the selected script once, every reference marked selected, and the client assets named in the brief.
-3. Fill the table on the `storyboard` skill's rules. Apply `generative-frame-craft` through `sham-skill-wrap` for frame language, `clip-director` for shot design; `htf-night-shift-frames` is a pattern for a per-project look lock, never copied.
+3. Fill the table on the `storyboard` skill's rules. Apply `generative-frame-craft` through `client-skill-wrap` for frame language, `clip-director` for shot design; `htf-night-shift-frames` is a pattern for a per-project look lock, never copied.
 4. Style preamble once in the front matter, repeated verbatim in every prompt. Continuity block: 3 to 6 attributes per recurring subject.
 5. Manifest: one `kind: image` item per panel, `sample: true` on the one panel that best tests the style. No video items.
 6. On a change request, edit only the named panels; a cut panel keeps its id and leaves the sequence.

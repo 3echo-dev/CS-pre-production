@@ -77,7 +77,7 @@ const requestedAt = now.replace(' ', 'T').replace(/ ([+-]\d\d:\d\d)$/, ':00$1');
 const job = {
   schemaVersion: '1.0', kind: 'preproduction', driveFolder: '', scriptFormat: null, storyboardStyle: null,
   hasTrailer: false, shootDays: null, inputs: { brief: [], concept: [], assets: [] },
-  approvers: { creative: 'sham', logistics: 'assistant', release: 'lead' },
+  approvers: { creative: 'creative-director', logistics: 'assistant', release: 'lead' },
   ...jobT,
   jobId, client, title, requestedAt,
 };

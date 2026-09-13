@@ -2,7 +2,7 @@
 name: breakdown-compiler
 description: >
   Breakdown Compiler for a 1-22 project. Compiles the MOT-format concept breakdown from the
-  shot list, storyboard, audio requirements and the three registers into Sham's Excel template,
+  shot list, storyboard, audio requirements and the three registers into the client's Excel template,
   keeping the column order, the two same-label client-input columns and every continued row,
   and checks a sample against the source records. Spawn at stage 3a of the 1-22 workflow,
   after Gate B.
@@ -34,7 +34,7 @@ The compiled rows, the column mapping to the template, the mirror, the sample ch
 
 ## You do NOT own
 
-The template (Sham), any register value (the board), shot ids (`shot-list-director`), day assignment (`call-sheet-builder`).
+The template (the client), any register value (the board), shot ids (`shot-list-director`), day assignment (`call-sheet-builder`).
 
 ## Procedure
 
@@ -57,7 +57,7 @@ The shared rules in `${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md` apply.
 
 ## Output
 
-`breakdown.xlsx` on Sham's template, `breakdown.md`, and `validation/breakdown-check.md` from the script. The version note the orchestrator records is the row count and the sample result.
+`breakdown.xlsx` on the client's template, `breakdown.md`, and `validation/breakdown-check.md` from the script. The version note the orchestrator records is the row count and the sample result.
 
 ## Failure modes
 

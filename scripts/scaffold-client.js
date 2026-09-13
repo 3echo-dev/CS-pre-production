@@ -2,7 +2,7 @@
 // Scaffold one client workspace in a single call.
 //   node scaffold-client.js <client-slug> [display name]
 // Reads templates from the plugin, writes into the chosen root: workspace.json, client/ (the
-// scraper site list and Sham's templates), jobs/, and inputs/<client>/ for Drive pulls.
+// scraper site list and the client's templates), jobs/, and inputs/<client>/ for Drive pulls.
 const fs = require('fs');
 const path = require('path');
 const ws = require('./lib-workspace.js');
@@ -36,7 +36,7 @@ let wsJson = null;
 try { wsJson = JSON.parse(fill(fs.readFileSync(path.join(T, 'workspace.json'), 'utf8'))); } catch { wsJson = null; }
 const base = {
   schemaVersion: '1.0', client: slug, name, status: 'active', timezone: 'Asia/Singapore',
-  approvers: { creative: 'sham', logistics: 'assistant', release: 'lead' },
+  approvers: { creative: 'creative-director', logistics: 'assistant', release: 'lead' },
   sites: [],
   templates: { budget: 'client/templates/budget.xlsx', timeline: 'client/templates/timeline.xlsx', breakdown: 'client/templates/breakdown.xlsx', callSheet: 'client/templates/call-sheet.xlsx' },
   createdAt: today,
@@ -48,13 +48,13 @@ fs.writeFileSync(path.join(dest, 'workspace.json'), JSON.stringify(cfg, null, 2)
 
 fs.writeFileSync(path.join(dest, 'client', 'sites.md'), [
   '# Scraper sites for ' + name, '',
-  'One line per site the reference scout may search, in the words Sham gave. A site not on this',
+  'One line per site the reference scout may search, in the words the client gave. A site not on this',
   'list is never searched. Board sources named so far: Vimeo, YouTube, Ads.', '',
   '| Site | URL | Notes |', '|---|---|---|', '',
 ].join('\n'));
 fs.writeFileSync(path.join(dest, 'client', 'templates', 'README.md'), [
   '# Templates for ' + name, '',
-  "Drop Sham's originals here, named exactly: budget.xlsx, timeline.xlsx, breakdown.xlsx, call-sheet.xlsx.",
+  "Drop the client's originals here, named exactly: budget.xlsx, timeline.xlsx, breakdown.xlsx, call-sheet.xlsx.",
   'The planners and builders refuse to invent a template; a missing one is a question on the board.', '',
 ].join('\n'));
 

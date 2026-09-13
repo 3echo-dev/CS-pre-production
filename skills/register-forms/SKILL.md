@@ -20,7 +20,7 @@ user-invocable: false
 
 | Item | Who prepares | Who fills | Where the rows live | What they feed |
 |---|---|---|---|---|
-| Scraper | reference scout | Sham selects | `references/board.md` selected column | script, storyboard |
+| Scraper | reference scout | the creative director selects | `references/board.md` selected column | script, storyboard |
 | Budget sheet | production planner | assistant | `budget.xlsx` | spend approvals |
 | Timeline | production planner | assistant confirms | `timeline.xlsx` | call sheets |
 | Talents | logistics registrar | assistant | board `talents` then `registers/talents.json` | budget (cost, loading), call sheet (availability), breakdown |

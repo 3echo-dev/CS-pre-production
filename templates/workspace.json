@@ -7,15 +7,15 @@
   "timezone": "Asia/Singapore",
   "created": "YYYY-MM-DD",
   "approvers": {
-    "creative": "sham",
+    "creative": "creative-director",
     "logistics": "assistant",
     "release": "lead"
   },
   "approverNames": {
-    "sham": "Sham",
+    "creative-director": "Creative director",
     "assistant": "Production assistant",
     "lead": "Production lead",
-    "eugene": "Eugene"
+    "finance": "Finance approver"
   },
   "sites": [],
   "templates": {
@@ -33,8 +33,8 @@
   "skillsFolder": "client/skills",
   "_notes": {
     "brand": "kept for the kernel scripts; same value as client",
-    "sites": "Sham's scraper sites, one entry each: { \"name\", \"url\", \"notes\" }; client/sites.md mirrors this list for the scout",
-    "templates": "Sham's own files, dropped in by whoever onboarded the client; a missing one stops the row that needs it",
+    "sites": "the client's scraper sites, one entry each: { \"name\", \"url\", \"notes\" }; client/sites.md mirrors this list for the scout",
+    "templates": "the client's own files, dropped in by whoever onboarded the client; a missing one stops the row that needs it",
     "libraries": "links the audio supervisor names as sources; null is a question"
   }
 }

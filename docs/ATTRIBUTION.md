@@ -39,6 +39,6 @@ SOFTWARE.
 
 `skills/source-validation` adapts its source-ranking reference. The repo root is Apache-2.0, but `partner-built/brand-voice/` carries its own nested LICENSE. Copyright (c) 2025 Tribe AI. Same MIT terms as above.
 
-## Sham's skills
+## the client's skills
 
 Not included. They are read in place under the client workspace and remain the client's.

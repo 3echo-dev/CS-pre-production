@@ -1,10 +1,10 @@
 # One Dash 1-22
 
 A Claude Code plugin that takes a client's Drive folder, the brief, the concept deck and the
-client assets, and gives back a concept breakdown and one call sheet per shoot day, in Sham's
+client assets, and gives back a concept breakdown and one call sheet per shoot day, in the client's
 own templates.
 
-It reads the folder, finds references on the sites Sham names, writes the script in the format
+It reads the folder, finds references on the sites the client names, writes the script in the format
 he chose, draws the storyboard in one style, lists the shots, pre-fills the budget sheet and the
 timeline, **stops for Gate A**, lays out the audio and opens the three registers a person fills,
 **stops for Gate B**, compiles the breakdown and builds the day sheets, and **stops for Gate C**.
@@ -17,7 +17,7 @@ missing stays missing, a cost nobody entered stays unknown.
 ## How it works
 
 A Drive folder becomes a typed project. A script routes it. An orchestrator walks the stage
-table, spawning ten directors that wrap Sham's skills. Every gate is decided on the board.
+table, spawning ten directors that wrap the client's skills. Every gate is decided on the board.
 
 ```
       Drive folder: Brief / Concept / Client Assets
@@ -58,14 +58,14 @@ and the lock is bound to the sha256 of the exact files they saw. Editing a file 
 invalidates it, and `build-release.js` refuses to package it.
 
 **XX means a person.** Six items are prepared by a director and filled by the assistant or
-Sham on the board. No agent types a talent, a prop, a location, a cost or a date. Unknown stays
+the creative director on the board. No agent types a talent, a prop, a location, a cost or a date. Unknown stays
 unknown; not applicable is a decision a person made, with their name on it.
 
 **Skills reference each other downward, never in a loop:**
 
 ```
 source-validation  ->  intake, references
-sham-skill-wrap    ->  every director that wraps a Sham skill
+client-skill-wrap    ->  every director that wraps a client skill
 storyboard         ->  make-image (orchestrator only)
 register-forms     ->  logistics, planner, board-sync
 board-sync         ->  every gate, every resume
@@ -83,14 +83,14 @@ a credit or touch the board.
 |---|---|---|---|
 | `orchestrator` | Dispatch, disk verification, versions and runs on the board, gates, every credit spent, the release | | sonnet |
 | `intake-director` | The unified brief: index, intent, conflicts, open questions | the-creative-director, defuddle | sonnet |
-| `reference-scout` | The scraper: references from Sham's sites with URL, date and reason; gaps | inspiration-references, video-watch, defuddle | sonnet |
+| `reference-scout` | The scraper: references from the client's sites with URL, date and reason; gaps | inspiration-references, video-watch, defuddle | sonnet |
 | `script-director` | The script, screenplay or AV, one file per version | the-creative-director, no-ai-slop | **opus** |
 | `storyboard-director` | Panels in one style with permanent ids; prompts for the sample and the batch | generative-frame-craft, clip-director | sonnet |
 | `shot-list-director` | Shot rows with ids that survive reordering | clip-director | sonnet |
-| `production-planner` | Budget sheet and timeline pre-filled from Sham's templates | | sonnet |
+| `production-planner` | Budget sheet and timeline pre-filled from the client's templates | | sonnet |
 | `audio-supervisor` | VO, BGM and SFX per scene with a source per row | openmontage-craft | sonnet |
 | `logistics-registrar` | The three register skeletons and the summary of what landed | | sonnet |
-| `breakdown-compiler` | The MOT-format breakdown in Sham's template | | sonnet |
+| `breakdown-compiler` | The MOT-format breakdown in the client's template | | sonnet |
 | `call-sheet-builder` | One sheet per shoot day in the HTF layout | | sonnet |
 
 The scriptwriter keeps Opus because the script is the one file every later stage reads, and a
@@ -113,7 +113,7 @@ Claude invokes these itself. Four are for you.
 | `drive-pull` | Copying the named folder into `inputs/`, never searching for it |
 | `board-sync` | Pushing the outbox to the board; landing gates, answers and registers back |
 | `register-forms` | How an XX item is asked for and landed; unknown versus not applicable |
-| `sham-skill-wrap` | How a director uses one of Sham's skills without copying it |
+| `client-skill-wrap` | How a director uses one of the client's skills without copying it |
 | `storyboard` | Panels with stable ids in one style; text only until the sample is approved |
 | `make-image` | Panels through 3echo: quote, yes, sample, batch. Orchestrator only |
 | `watch-video` | Frames and transcript of one reference clip |
@@ -142,13 +142,13 @@ apart, one sample panel before any batch.
 **A shot list the crew can trust.** Stable ids, grouped labels preserved, every row traced to a
 scene and a panel, checked by a script.
 
-**Your templates, pre-filled and honest.** Budget and timeline from Sham's files, unknown left
+**Your templates, pre-filled and honest.** Budget and timeline from the client's files, unknown left
 unknown, sample dates removed.
 
 **Registers you fill, on the board.** Six fields per talent. Cost and loading flow into the
 budget; availability flows into the affected day sheets only.
 
-**A breakdown and day sheets in Sham's layout.** Column order preserved, continued rows never
+**A breakdown and day sheets in the client's layout.** Column order preserved, continued rows never
 duplicated, shooting order kept as selected, overnight blocks computed, conflicts flagged.
 
 ---
@@ -212,7 +212,7 @@ Or pass `--root`, or set `ONEDASH_ROOT`, or run in the folder you want. The firs
 
 ### 5. Onboard a client, once
 
-`/1-22`, then **Onboard a client**. Give it the client's name, Sham's site list, and his four
+`/1-22`, then **Onboard a client**. Give it the client's name, the client's site list, and his four
 template files: budget, timeline, breakdown, call sheet. Unpack his skills zip under
 `workspaces/{client}/client/skills/`. The plugin wraps them there and never copies them.
 
@@ -315,4 +315,4 @@ lists every borrowed file with its licence.
 ## Requirements
 
 Claude Code or Cowork with subagents · Node 18+ · Python 3.9+ with Pillow · a 3echo workspace
-for storyboard panels · Sham's templates and skills for the client · ffmpeg and yt-dlp optional.
+for storyboard panels · the client's templates and skills for the client · ffmpeg and yt-dlp optional.

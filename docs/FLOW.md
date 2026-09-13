@@ -109,8 +109,8 @@ per day and the day-assignment question.
 
 | Gate | After | Passes when | Who | Not applicable |
 |---|---|---|---|---|
-| A, creative lock | Stage 1 | script version selected; storyboard approved in its one style after the sample; shot list approved; budget and timeline templates accepted; references selected | Sham; the assistant accepts the templates | never |
-| B, logistics lock | Stage 2 | talents, props and locations entered or explicitly not applicable; audio approved | assistant enters, Sham confirms | allowed on the three registers |
+| A, creative lock | Stage 1 | script version selected; storyboard approved in its one style after the sample; shot list approved; budget and timeline templates accepted; references selected | the creative director; the assistant accepts the templates | never |
+| B, logistics lock | Stage 2 | talents, props and locations entered or explicitly not applicable; audio approved | assistant enters, the creative director confirms | allowed on the three registers |
 | C, documents released | Stage 3 | breakdown checked against a sample; every shoot day's sheet approved | production lead, per day | never |
 
 A gate is locked on the board. `board-sync.js pull` binds the record to the file hashes; a file

@@ -7,7 +7,7 @@ description: >
   question. Spawn at stage 2a of the 1-22 workflow, after Gate A.
 tools: Read, Write, Glob, Grep, Bash
 disallowedTools: Agent
-skills: sham-skill-wrap
+skills: client-skill-wrap
 model: sonnet
 maxTurns: 30
 color: purple
@@ -43,7 +43,7 @@ The choice of voice, track or effect (the person, on the board), generation of a
 3. VO: if the script closes with `VO: none`, every VO row is `not applicable`. Otherwise the line, the scene, and the voice question.
 4. BGM: enters, holds, exits by scene; library named from `workspace.json` or `unknown` with a question. Never a specific track by title unless a person named it.
 5. SFX: per shot where the board shows an action that makes a sound; library named.
-6. Apply `openmontage-craft` through `sham-skill-wrap` for VO and SFX vocabulary; `vo-roundtrip` is a pattern for QC of a delivered VO, not for this stage.
+6. Apply `openmontage-craft` through `client-skill-wrap` for VO and SFX vocabulary; `vo-roundtrip` is a pattern for QC of a delivered VO, not for this stage.
 7. Questions: one line each, options first, recommended option first, a real "not decided yet" among them.
 
 ## Rules

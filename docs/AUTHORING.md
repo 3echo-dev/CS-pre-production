@@ -22,20 +22,20 @@ When a file will not fit, the answer is almost never to cut a rule:
 | What is too long | Where it goes |
 |---|---|
 | A rule every agent repeats | `docs/SHARED-RULES.md`, referenced in one line |
-| A procedure two directors share | A skill they both preload, like `sham-skill-wrap` |
+| A procedure two directors share | A skill they both preload, like `client-skill-wrap` |
 | The exact board calls | The `board-sync` skill, referenced by name |
-| A template's column list | The template itself under `templates/`, or Sham's file under `client/templates/` |
+| A template's column list | The template itself under `templates/`, or the client's file under `client/templates/` |
 | Backend or protocol design | `docs/`, not a skill |
 
 ## Sourcing
 
 The kernel is adapted from social-media-pipeline (MIT); the rows in `docs/THIRD_PARTY_SOURCES.md` say what was kept.
-Sham's skills are never copied: a director wraps one through `sham-skill-wrap`, reading it in place under `workspaces/{client}/client/skills/`. A rule taken from one is named in the artifact's `wrapped:` front matter, not pasted into this plugin.
+the client's skills are never copied: a director wraps one through `client-skill-wrap`, reading it in place under `workspaces/{client}/client/skills/`. A rule taken from one is named in the artifact's `wrapped:` front matter, not pasted into this plugin.
 Never paste prose from an AGPL source.
 
 ## Templates and numbers
 
-Sham's templates are the only authority for a layout: the budget sheet, the timeline, the breakdown and the call sheet. No skill carries a copy of their columns; the director copies the file and fills it, and the check scripts read the same file the director was told to fill.
+the client's templates are the only authority for a layout: the budget sheet, the timeline, the breakdown and the call sheet. No skill carries a copy of their columns; the director copies the file and fills it, and the check scripts read the same file the director was told to fill.
 A number in an instruction file (a turn budget, a reference count, a credit ceiling) is a house default and says so in `CONFIG.md` or the skill's closing line.
 
 ## Agent frontmatter
@@ -48,7 +48,7 @@ description: >
   the orchestrator would match on. A folded scalar, so strict YAML accepts a colon inside.
 tools: Read, Write, Glob, Grep, Bash
 disallowedTools: Agent
-skills: sham-skill-wrap
+skills: client-skill-wrap
 model: opus
 maxTurns: 40
 color: green

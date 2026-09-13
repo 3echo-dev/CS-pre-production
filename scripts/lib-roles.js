@@ -6,14 +6,14 @@
 const ROLES = {
   orchestrator:          { label: 'Orchestrator',        action: 'Keeping the work moving and checking each file as it lands.' },
   'intake-director':     { label: 'Intake Clerk',        action: 'Reading the Drive folder and writing the unified brief.' },
-  'reference-scout':     { label: 'Reference Scout',     action: "Searching Sham's sites for references that fit the brief." },
+  'reference-scout':     { label: 'Reference Scout',     action: "Searching the client's sites for references that fit the brief." },
   'script-director':     { label: 'Scriptwriter',        action: 'Drafting the script in the chosen format.' },
   'storyboard-director': { label: 'Storyboard Artist',   action: 'Drawing the panels in the one style chosen for this job.' },
   'shot-list-director':  { label: 'Shot Lister',         action: 'Listing every shot with an id that survives reordering.' },
   'production-planner':  { label: 'Production Planner',  action: 'Pre-filling the budget sheet and the timeline from the templates.' },
   'audio-supervisor':    { label: 'Audio Supervisor',    action: 'Listing VO, music and sound needs per scene.' },
   'logistics-registrar': { label: 'Logistics Registrar', action: 'Preparing the talent, prop and location registers for you to fill.' },
-  'breakdown-compiler':  { label: 'Breakdown Compiler',  action: "Compiling the concept breakdown into Sham's template." },
+  'breakdown-compiler':  { label: 'Breakdown Compiler',  action: "Compiling the concept breakdown into the client's template." },
   'call-sheet-builder':  { label: 'Call Sheet Builder',  action: 'Building one call sheet per shoot day.' },
   questioner:            { label: 'Questioner',          action: 'Collecting the decisions only you can make.' },
 

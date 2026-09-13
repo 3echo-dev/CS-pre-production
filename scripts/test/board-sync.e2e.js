@@ -88,7 +88,7 @@ try {
     const rr = run('record-version.js', ['htf', jobId, '--item', item, '--n', '1', '--file', item === 'storyboard' ? 'storyboard/v1' : file], tmp);
     assert.strictEqual(rr.status, 0, item + ': ' + rr.stderr);
   }
-  const record = { collection: 'projects/' + jobId + '/gates', id: 'A', data: { status: 'passed', decidedBy: 'sham', decidedAt: '2026-09-13 18:00 +08:00',
+  const record = { collection: 'projects/' + jobId + '/gates', id: 'A', data: { status: 'passed', decidedBy: 'creative-director', decidedAt: '2026-09-13 18:00 +08:00',
     items: { script: { status: 'approved', version: 1 }, storyboard: { status: 'approved', version: 1 }, shot_list: { status: 'approved', version: 1 },
       budget_sheet: { status: 'approved', version: 1 }, timeline: { status: 'approved', version: 1 }, scraper: { status: 'approved', version: 1 } } } };
   fs.writeFileSync(path.join(tmp, 'gate-a.json'), JSON.stringify(record));
@@ -104,7 +104,7 @@ try {
   assert.strictEqual(r.status, 0, 'pull lands the approval: ' + r.stdout + r.stderr);
   const ap = JSON.parse(fs.readFileSync(path.join(dir, 'approvals', 'A-1.json'), 'utf8'));
   assert.strictEqual(ap.decision, 'approved');
-  assert.strictEqual(ap.decidedBy, 'sham');
+  assert.strictEqual(ap.decidedBy, 'creative-director');
   assert.strictEqual(ap.channel, 'board');
   assert.strictEqual(ap.decidedAt, '2026-09-13 18:00 +08:00', 'the board\'s own time is kept');
   const byPath = Object.fromEntries(ap.artifacts.map(a => [a.path, a.sha256]));

@@ -24,8 +24,8 @@ max_parallel_agents: 3
 credit_ceiling_per_job: 40
 timezone: Asia/Singapore
 
-require_gate_a_human_approval: true        # Creative lock: Sham, on the board
-require_gate_b_human_approval: true        # Logistics lock: assistant enters, Sham confirms
+require_gate_a_human_approval: true        # Creative lock: the creative director, on the board
+require_gate_b_human_approval: true        # Logistics lock: assistant enters, the creative director confirms
 require_gate_c_human_approval: true        # Documents released: production lead, per day sheet
 require_sample_panel_human_approval: true  # one panel before any batch is generated
 ```
@@ -93,4 +93,4 @@ With the flag on, `hooks/hooks.mjs` refuses: a generation call before the sample
 - Set `PYTHONUTF8=1` for any Python reading markdown with curly quotes.
 - Cowork: MCP calls work, HTTP egress to the 3echo asset host may be blocked. `preflight-media.js` finds out for one request.
 - 3echo images: 1 credit each, up to 16 references, `aspectRatio` from the brief.
-- Excel templates are Sham's files under `workspaces/{client}/client/templates/`; the plugin copies and fills, never authors one.
+- Excel templates are the client's files under `workspaces/{client}/client/templates/`; the plugin copies and fills, never authors one.

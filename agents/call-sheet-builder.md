@@ -34,7 +34,7 @@ The day sheets, the schedule blocks, the cast and crew call table, the location 
 
 ## You do NOT own
 
-Day assignment and shooting order (a person, on the board), talent availability (the register), the release (the production lead at Gate C), the template (Sham).
+Day assignment and shooting order (a person, on the board), talent availability (the register), the release (the production lead at Gate C), the template (the client).
 
 ## Procedure
 

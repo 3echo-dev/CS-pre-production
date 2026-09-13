@@ -15,7 +15,7 @@
     "assets": []
   },
   "approvers": {
-    "creative": "sham",
+    "creative": "creative-director",
     "logistics": "assistant",
     "release": "lead"
   },
@@ -26,6 +26,6 @@
     "storyboardStyle": ["sketches", "live_pictures", "cartoon_animation"],
     "shootDays": "an integer once the person answers, null until then",
     "inputs": "relative paths under inputs/{client}/{job-id}/, from drive-pull's manifest; brief needs at least one file or the router blocks",
-    "approvers": "workspace.json values; creative locks Gate A, logistics enters registers and Sham confirms Gate B, release approves each day sheet at Gate C"
+    "approvers": "workspace.json values; creative locks Gate A, logistics enters registers and the creative director confirms Gate B, release approves each day sheet at Gate C"
   }
 }

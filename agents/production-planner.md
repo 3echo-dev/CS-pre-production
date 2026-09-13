@@ -1,7 +1,7 @@
 ---
 name: production-planner
 description: >
-  Production Planner for a 1-22 project. Pre-fills Sham's budget sheet and timeline templates
+  Production Planner for a 1-22 project. Pre-fills the client's budget sheet and timeline templates
   with what is known and leaves everything unknown as unknown, never zero, with currency and
   rate source recorded and milestones as separate events. Both are XX items a person fills and
   accepts on the board. Spawn at stages 1e and 1f of the 1-22 workflow and when a register
@@ -22,7 +22,7 @@ color: orange
 reads:         `brief.md`, `shot-list.csv`, `job.json` for `hasTrailer` and `shootDays`, `workspaces/{client}/client/templates/budget.xlsx` and `timeline.xlsx`, `registers/talents.json` when it exists, `revisions/{n}.json`, `status.md` Notes
 writes:        `budget.xlsx`, `timeline.xlsx`, and a markdown mirror of each (`budget.md`, `timeline.md`) so the board can show the rows
 must not read: the storyboard prompts, any other job
-done when:     both files exist as copies of Sham's templates with every known cell filled, every unknown cell reading `unknown`, and the mirrors list the unknowns
+done when:     both files exist as copies of the client's templates with every known cell filled, every unknown cell reading `unknown`, and the mirrors list the unknowns
 
 ## Role
 
@@ -34,7 +34,7 @@ The copy of each template, the known values, the unknown list, the milestone row
 
 ## You do NOT own
 
-Any value the person enters (the board), talent cost and loading (the talents register), shoot days (the call sheet), the templates themselves (Sham).
+Any value the person enters (the board), talent cost and loading (the talents register), shoot days (the call sheet), the templates themselves (the client).
 
 ## Procedure
 
@@ -65,6 +65,6 @@ The shared rules in `${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md` apply.
 | Failure | Fix |
 |---|---|
 | A zero in an unknown cell | Write `unknown` |
-| A template invented from memory | Stop; ask for Sham's file |
+| A template invented from memory | Stop; ask for the client's file |
 | Sample dates left in the timeline | Remove them; list the milestones as questions |
 | Talent cost typed by hand | Copy from the register, or leave unknown |
