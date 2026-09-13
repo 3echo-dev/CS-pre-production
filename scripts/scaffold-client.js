@@ -1,0 +1,66 @@
+#!/usr/bin/env node
+// Scaffold one client workspace in a single call.
+//   node scaffold-client.js <client-slug> [display name]
+// Reads templates from the plugin, writes into the chosen root: workspace.json, client/ (the
+// scraper site list and Sham's templates), jobs/, and inputs/<client>/ for Drive pulls.
+const fs = require('fs');
+const path = require('path');
+const ws = require('./lib-workspace.js');
+const guards = require('./lib-guards.js');
+
+const argv = process.argv.slice(2);
+const pos = ws.positionals(argv);
+const slug = (pos[0] || '').trim();
+if (!slug || !/^[a-z0-9][a-z0-9-]*$/.test(slug)) {
+  console.error('usage: scaffold-client.js <client-slug> [display name]   (slug: lowercase, hyphens)');
+  process.exit(2);
+}
+const name = (pos.slice(1).join(' ') || slug).trim();
+const dest = ws.wsDir(slug, argv);
+if (fs.existsSync(dest)) {
+  console.error('REFUSED: ' + ws.fwd(dest) + ' already exists. Edit it rather than overwriting.');
+  process.exit(1);
+}
+const T = path.join(__dirname, '..', 'templates');
+const today = ws.now(slug, argv).slice(0, 10);
+
+for (const d of [ws.inputsDir(slug, argv), dest, path.join(dest, 'client'), path.join(dest, 'client', 'templates'), path.join(dest, 'jobs')]) {
+  fs.mkdirSync(d, { recursive: true });
+}
+const fill = s => s.split('{client}').join(slug).split('{brand}').join(slug)
+  .split('{Client Name}').join(name).split('{Brand Name}').join(name).split('YYYY-MM-DD').join(today);
+
+// workspace.json from the template when it parses; a complete built-in otherwise, so a
+// client can be opened while the templates are mid-edit and the file always parses.
+let wsJson = null;
+try { wsJson = JSON.parse(fill(fs.readFileSync(path.join(T, 'workspace.json'), 'utf8'))); } catch { wsJson = null; }
+const base = {
+  schemaVersion: '1.0', client: slug, name, status: 'active', timezone: 'Asia/Singapore',
+  approvers: { creative: 'sham', logistics: 'assistant', release: 'lead' },
+  sites: [],
+  templates: { budget: 'client/templates/budget.xlsx', timeline: 'client/templates/timeline.xlsx', breakdown: 'client/templates/breakdown.xlsx', callSheet: 'client/templates/call-sheet.xlsx' },
+  createdAt: today,
+};
+const cfg = { ...base, ...(wsJson || {}), client: slug, name };
+delete cfg.brand;
+if (!cfg.status) cfg.status = 'active';
+fs.writeFileSync(path.join(dest, 'workspace.json'), JSON.stringify(cfg, null, 2) + '\n');
+
+fs.writeFileSync(path.join(dest, 'client', 'sites.md'), [
+  '# Scraper sites for ' + name, '',
+  'One line per site the reference scout may search, in the words Sham gave. A site not on this',
+  'list is never searched. Board sources named so far: Vimeo, YouTube, Ads.', '',
+  '| Site | URL | Notes |', '|---|---|---|', '',
+].join('\n'));
+fs.writeFileSync(path.join(dest, 'client', 'templates', 'README.md'), [
+  '# Templates for ' + name, '',
+  "Drop Sham's originals here, named exactly: budget.xlsx, timeline.xlsx, breakdown.xlsx, call-sheet.xlsx.",
+  'The planners and builders refuse to invent a template; a missing one is a question on the board.', '',
+].join('\n'));
+
+console.log('ready: ' + ws.fwd(dest) + '/  (workspace.json, client/sites.md, client/templates/, jobs/)');
+console.log('inputs: ' + ws.fwd(ws.inputsDir(slug, argv)) + '/  Drive pulls land here, one folder per project');
+
+// A first client is the moment this folder is unambiguously the pipeline's, so it is the
+// moment to arm the guards. Somebody who never runs set-root.js still gets the refusals.
+console.log(guards.sentence(guards.arm(process.cwd()), ws.fwd));

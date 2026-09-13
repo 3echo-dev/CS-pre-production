@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0",
+  "register": "talents",
+  "jobId": "{job-id}",
+  "na": false,
+  "naBy": null,
+  "naAt": null,
+  "fields": ["name", "picture", "age", "availability", "cost", "loading"],
+  "rows": [
+    {
+      "id": "",
+      "name": "unknown",
+      "picture": "unknown",
+      "age": "unknown",
+      "availability": "unknown",
+      "cost": "unknown",
+      "loading": "unknown",
+      "unknownByDecision": false,
+      "notes": "",
+      "by": "",
+      "at": ""
+    }
+  ],
+  "_notes": {
+    "rows": "landed from the board by board-sync.js land; never typed by an agent",
+    "unknown": "a question; the cell stays a question until a person answers",
+    "unknownByDecision": "true only when a person decided the value can stay unknown for this job; gate-b-check.js accepts that and nothing else",
+    "na": "true only when a person marked the whole register not applicable on the board; naBy and naAt record who and when",
+    "cost, loading": "flow into budget.xlsx through the production planner, never typed twice",
+    "availability": "flows into the affected day sheets only",
+    "picture": "a file name under Client Assets or a link the person gave"
+  }
+}

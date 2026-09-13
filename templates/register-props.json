@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "1.0",
+  "register": "props",
+  "jobId": "{job-id}",
+  "na": false,
+  "naBy": null,
+  "naAt": null,
+  "fields": ["name", "scene", "source", "have"],
+  "rows": [
+    {
+      "id": "",
+      "name": "unknown",
+      "scene": "unknown",
+      "source": "unknown",
+      "have": "unknown",
+      "unknownByDecision": false,
+      "notes": "source text where the prop lives inside a wardrobe or request line, quoted as written",
+      "by": "",
+      "at": ""
+    }
+  ],
+  "_notes": {
+    "rows": "landed from the board by board-sync.js land; never typed by an agent",
+    "have": "yes, no, or unknown; a person's answer",
+    "source": "where it comes from: client, hire, buy, make; a person's answer",
+    "na": "true only when a person marked the register not applicable on the board"
+  }
+}

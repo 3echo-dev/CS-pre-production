@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RouteDecision v1 (1-22)",
+  "type": "object",
+  "required": ["schemaVersion", "jobId", "status", "requiredDisciplines", "riskFlags", "gates", "confidence", "missingFields", "unsupported", "rationale", "createdAt"],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "jobId": { "type": "string" },
+    "status": { "enum": ["ROUTED", "NEEDS_CLARIFICATION", "UNSUPPORTED", "BLOCKED"] },
+    "workflowId": { "type": ["string", "null"] },
+    "workflowVersion": { "type": ["string", "null"] },
+    "requiredDisciplines": {
+      "type": "array",
+      "items": { "enum": ["orchestration", "intake", "references", "script", "storyboard", "shot_list", "planning", "audio", "logistics", "breakdown", "call_sheet"] }
+    },
+    "owner": { "type": ["string", "null"] },
+    "support": { "type": "array", "items": { "type": "string" } },
+    "riskFlags": {
+      "type": "array",
+      "items": { "enum": ["missing_template", "missing_sites", "no_shoot_days", "trailer", "multi_day", "ambiguous_request"] }
+    },
+    "modelAddedRiskFlags": { "type": "array", "items": { "type": "string" } },
+    "tags": { "type": "array", "items": { "enum": ["has_trailer", "multi_day"] } },
+    "gates": { "type": "array", "items": { "enum": ["A", "B", "C"] } },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "missingFields": { "type": "array", "items": { "type": "string" } },
+    "blockers": { "type": "array", "items": { "type": "string" }, "description": "Specific things to fetch before this project can run at all: a Brief file, a template." },
+    "unsupported": { "type": "array", "items": { "type": "string" } },
+    "rationale": { "type": "array", "items": { "type": "string" } },
+    "createdAt": { "type": "string" }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "1.0",
+  "workflows": [
+    { "workflowId": "1-22", "version": "0.1.0", "status": "active", "kinds": ["preproduction"], "file": "workflows/1-22.md",
+      "conditionalTags": ["if:has_trailer", "if:multi_day", "if:gate_A", "if:gate_B", "if:gate_C"],
+      "gates": ["A", "B", "C"] },
+    { "workflowId": "1-22-post", "version": "0.0.0", "status": "planned", "kinds": ["postproduction"], "file": null, "conditionalTags": [], "gates": [] }
+  ]
+}

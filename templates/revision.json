@@ -1,0 +1,27 @@
+{
+  "n": 1,
+  "raisedBy": "sham",
+  "at": "YYYY-MM-DD HH:MM {tz}",
+  "targetStage": "1b",
+  "item": "script",
+  "scope": ["script/v3.md"],
+  "reasonCode": "R-SCRIPT",
+  "attemptOfStage": 1,
+  "finding": "what is wrong, specifically, quoting the person's own note from the board",
+  "directive": "what the re-spawned director must do differently. This is the only thing added to its inputs.",
+  "preserve": [],
+  "dependentsSentBack": [],
+  "resolved": false,
+  "_reasonCodes": {
+    "R-BRIEF": "the brief misread the folder, or a conflict was resolved silently",
+    "R-REF": "a reference is missing, wrong, or from a site Sham did not name",
+    "R-SCRIPT": "a scene, a line or the format",
+    "R-BOARD": "a panel, the style, the continuity, or the sample",
+    "R-SHOT": "a shot row, an id, a grouped label, an orphan",
+    "R-TEMPLATE": "a budget or timeline cell, a sample date carried, a template changed",
+    "R-AUDIO": "a VO, BGM or SFX row, or a source",
+    "R-REGISTER": "a register row, unknown versus not applicable, a value typed by an agent",
+    "R-BREAKDOWN": "a column, a continued row, a cell with no trace",
+    "R-CALLSHEET": "shooting order, a day's rows, a call time, an overnight block, a conflict"
+  }
+}

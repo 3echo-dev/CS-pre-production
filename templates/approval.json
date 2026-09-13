@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "1.0",
+  "approvalId": "A-1",
+  "jobId": "{job-id}",
+  "brand": "{client}",
+  "gate": "A",
+  "round": 1,
+  "decision": "approved",
+  "artifacts": [
+    { "path": "script/v3.md", "sha256": "", "bytes": 0 }
+  ],
+  "decidedBy": "",
+  "decidedAt": "YYYY-MM-DD HH:MM {tz}",
+  "channel": "board",
+  "comment": "",
+  "boardRecord": { "items": {}, "decidedAt": "" },
+  "day": null,
+  "scope": { "maxSpendCredits": null },
+  "supersedes": null,
+  "_enums": {
+    "gate": ["A", "B", "C"],
+    "decision": ["approved", "changes_requested", "rejected"],
+    "channel": ["board", "chat", "file"],
+    "day": "Gate C only: the shoot day this approval releases; one record per day sheet",
+    "boardRecord": "the gate document as landed from the board, item versions included, so the hash binding can be audited against what the person saw",
+    "brand": "kept for the kernel scripts; the client slug"
+  }
+}

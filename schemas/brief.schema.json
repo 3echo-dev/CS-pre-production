@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "UnifiedBrief front matter v1 (1-22)",
+  "type": "object",
+  "required": ["job", "client", "version", "status", "script_format", "storyboard_style", "created"],
+  "properties": {
+    "job": { "type": "string", "pattern": "^job-\\d{8}-[a-z0-9][a-z0-9-]*$" },
+    "client": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+    "version": { "type": "integer", "minimum": 1 },
+    "status": { "enum": ["draft", "approved", "superseded"] },
+    "script_format": { "enum": ["screenplay", "av_script"] },
+    "storyboard_style": { "enum": ["sketches", "live_pictures", "cartoon_animation"] },
+    "wrapped": { "type": "string" },
+    "created": { "type": "string", "minLength": 1 }
+  }
+}

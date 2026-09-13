@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "1.0",
+  "brand": "{brand}",
+  "client": "{brand}",
+  "name": "{Brand Name}",
+  "status": "active",
+  "timezone": "Asia/Singapore",
+  "created": "YYYY-MM-DD",
+  "approvers": {
+    "creative": "sham",
+    "logistics": "assistant",
+    "release": "lead"
+  },
+  "approverNames": {
+    "sham": "Sham",
+    "assistant": "Production assistant",
+    "lead": "Production lead",
+    "eugene": "Eugene"
+  },
+  "sites": [],
+  "templates": {
+    "budget": "client/templates/budget.xlsx",
+    "timeline": "client/templates/timeline.xlsx",
+    "breakdown": "client/templates/breakdown.xlsx",
+    "callSheet": "client/templates/call-sheet.xlsx"
+  },
+  "libraries": {
+    "vo": null,
+    "bgm": null,
+    "sfx": null
+  },
+  "currency": "SGD",
+  "skillsFolder": "client/skills",
+  "_notes": {
+    "brand": "kept for the kernel scripts; same value as client",
+    "sites": "Sham's scraper sites, one entry each: { \"name\", \"url\", \"notes\" }; client/sites.md mirrors this list for the scout",
+    "templates": "Sham's own files, dropped in by whoever onboarded the client; a missing one stops the row that needs it",
+    "libraries": "links the audio supervisor names as sources; null is a question"
+  }
+}

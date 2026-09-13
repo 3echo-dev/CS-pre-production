@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "1.0",
+  "jobId": "{job-id}",
+  "boardVersion": 1,
+  "style": "",
+  "continuity": "",
+  "negative": "no readable text, no logos but the client's, no other brands, no extra people",
+  "referenceAssets": [],
+  "items": [
+    {
+      "panel": "P01",
+      "kind": "image",
+      "sample": true,
+      "prompt": "",
+      "aspectRatio": "16:9",
+      "assetIds": [],
+      "status": "pending",
+      "file": "storyboard/v1/P01.png",
+      "credits": 1
+    },
+    {
+      "panel": "P02",
+      "kind": "image",
+      "sample": false,
+      "prompt": "",
+      "aspectRatio": "16:9",
+      "assetIds": [],
+      "status": "pending",
+      "file": "storyboard/v1/P02.png",
+      "credits": 1
+    }
+  ],
+  "_status": ["pending", "quoted", "approved", "generated", "downloaded", "validated", "rejected"],
+  "_notes": {
+    "sample": "exactly one item; generated first and approved on the board before any other item is sent",
+    "aspectRatio": "from the brief, never assumed; a film board is usually 16:9",
+    "credits": "images are 1 each; credit_ceiling_per_job in CONFIG.md is the hard limit",
+    "kind": "image only; 1-22 makes no video"
+  }
+}

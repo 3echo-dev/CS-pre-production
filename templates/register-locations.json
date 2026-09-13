@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "1.0",
+  "register": "locations",
+  "jobId": "{job-id}",
+  "na": false,
+  "naBy": null,
+  "naAt": null,
+  "fields": ["name", "address", "availability", "contact"],
+  "rows": [
+    {
+      "id": "",
+      "name": "unknown",
+      "address": "unknown",
+      "availability": "unknown",
+      "contact": "unknown",
+      "unknownByDecision": false,
+      "notes": "",
+      "by": "",
+      "at": ""
+    }
+  ],
+  "_notes": {
+    "rows": "landed from the board by board-sync.js land; never typed by an agent",
+    "fields": "match the HTF call sheet location block; the call sheet builder copies them as is",
+    "availability": "a human fact; a location is available on a date only when a person says so",
+    "na": "true only when a person marked the register not applicable on the board"
+  }
+}

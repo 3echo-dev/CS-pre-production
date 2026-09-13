@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "jobId": "{job-id}",
+  "client": "{client}",
+  "title": "{title}",
+  "kind": "preproduction",
+  "driveFolder": "",
+  "scriptFormat": null,
+  "storyboardStyle": null,
+  "hasTrailer": false,
+  "shootDays": null,
+  "inputs": {
+    "brief": [],
+    "concept": [],
+    "assets": []
+  },
+  "approvers": {
+    "creative": "sham",
+    "logistics": "assistant",
+    "release": "lead"
+  },
+  "requestedAt": "{timestamp}",
+  "_enums": {
+    "kind": ["preproduction", "postproduction"],
+    "scriptFormat": ["screenplay", "av_script"],
+    "storyboardStyle": ["sketches", "live_pictures", "cartoon_animation"],
+    "shootDays": "an integer once the person answers, null until then",
+    "inputs": "relative paths under inputs/{client}/{job-id}/, from drive-pull's manifest; brief needs at least one file or the router blocks",
+    "approvers": "workspace.json values; creative locks Gate A, logistics enters registers and Sham confirms Gate B, release approves each day sheet at Gate C"
+  }
+}

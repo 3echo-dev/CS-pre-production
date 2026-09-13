@@ -1,0 +1,21 @@
+# User data lives in the working directory, never in the plugin
+workspaces/
+inputs/
+.pane/
+.board/
+.onedash-1-22/
+node_modules/
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+desktop.ini
+scripts/test/.out/
+
+# Internal planning documents stay local. Everything else under docs/ ships, because
+# something depends on it: agents read SHARED-RULES.md at runtime, the README links the
+# architecture and flow files, and AUTHORING.md is how the next person adds a skill.
+docs/BUILD-BRIEF.md
+GATES.md
+.claude/settings.json
+.claude/settings.local.json

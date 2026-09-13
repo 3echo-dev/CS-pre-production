@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "1.0",
+  "jobId": "{job-id}",
+  "item": "script",
+  "seat": "script-director",
+  "version": 1,
+  "status": "running",
+  "model": "sonnet",
+  "turns": null,
+  "tokens": null,
+  "skills": [],
+  "prompt": "",
+  "output": "",
+  "trace": [
+    { "t": "HH:MM", "tool": "Read", "note": "" }
+  ],
+  "artifactPath": "",
+  "startedAt": "",
+  "finishedAt": "",
+  "_enums": {
+    "status": ["running", "done", "failed"],
+    "item": ["intake", "scraper", "script", "storyboard", "shot_list", "budget_sheet", "timeline", "audio", "talents", "props", "locations", "concept_breakdown", "call_sheet"],
+    "prompt": "the exact spawn prompt the orchestrator gave the director, saved before the spawn",
+    "output": "the delivered markdown; empty for a binary file, which the board then points at by artifactPath",
+    "trace": "one row per tool call worth reading, in order; the board shows it on the Trace tab"
+  }
+}
