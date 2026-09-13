@@ -42,7 +42,7 @@ The shared rules in `${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md` apply.
 8. A real place must look like the client's picture, not a guess.
 9. `assetIds` takes 16 references per job. `aspectRatio` is one of `1:1 2:3 3:2 3:4 4:3 9:16 16:9 21:9`, from the brief, never assumed.
 10. A redo is one panel, one credit: only the ids the person named, archived as `P{id}-r{k}.png`, the person's note verbatim as the last line of the prompt, and a yes to the redo's own quote.
-11. Cutting a panel is a storyboard version, not a generation.
+11. Cutting a panel is a storyboard version, not generation.
 
 ## Output contract
 
