@@ -42,3 +42,7 @@ SOFTWARE.
 ## the client's skills
 
 Not included. They are read in place under the client workspace and remain the client's.
+
+## Creative Discovery (3echo, internal)
+
+The storyboard skill is a third-generation cut of Creative Discovery's: stable panel ids, the text-only gate, aspect ratio confirmed not inferred, the shared style preamble. The client scaffold's shape (one workspace folder per client with a config file, an inputs folder and a jobs folder) and the one-level agent depth rule (`max_agent_depth: 1`, every leaf agent sets `disallowedTools: Agent`) also come from Creative Discovery, through social-media-pipeline. Internal to 3echo; no licence notice required.

@@ -12,16 +12,41 @@
   "prompt": "",
   "output": "",
   "trace": [
-    { "t": "HH:MM", "tool": "Read", "note": "" }
+    {
+      "t": "HH:MM",
+      "tool": "Read",
+      "note": ""
+    }
   ],
   "artifactPath": "",
   "startedAt": "",
   "finishedAt": "",
   "_enums": {
-    "status": ["running", "done", "failed"],
-    "item": ["intake", "scraper", "script", "storyboard", "shot_list", "budget_sheet", "timeline", "audio", "talents", "props", "locations", "concept_breakdown", "call_sheet"],
+    "status": [
+      "running",
+      "done",
+      "failed"
+    ],
+    "item": [
+      "intake",
+      "scraper",
+      "script",
+      "storyboard",
+      "shot_list",
+      "budget_sheet",
+      "timeline",
+      "audio",
+      "talents",
+      "props",
+      "locations",
+      "concept_breakdown",
+      "call_sheet"
+    ],
     "prompt": "the exact spawn prompt the orchestrator gave the director, saved before the spawn",
     "output": "the delivered markdown; empty for a binary file, which the board then points at by artifactPath",
     "trace": "one row per tool call worth reading, in order; the board shows it on the Trace tab"
+  },
+  "_notes": {
+    "tokens": "filled by record-run.js --tokens when the orchestrator knows the spawn cost; null is honest when it does not"
   }
 }

@@ -40,6 +40,8 @@ metadata:
 
 7. **Verify.** If the last batch was never checked, run `collect-artifacts.js` now.
 
+8. **Mirror.** When a connected folder is in use, `sync-manifest.js {client} {job-id}` lists what changed since the last copy; copy that and nothing else.
+
 ## The states you cannot resume past
 
 Every state whose row in `scripts/lib-states.js` names a gate.

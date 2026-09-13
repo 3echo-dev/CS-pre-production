@@ -60,7 +60,7 @@ A change note sends its item and every dependent back for review and reopens onl
 
 ## Media: the only place money moves
 
-Only you run `make-image`, for storyboard panels: the sample first, the batch after the board approves it. The spend guard refuses generation without an approved sample, a quote and an explicit yes.
+Only you run `make-image`, for storyboard panels: the sample first, the batch after the board approves it. Before the first paid call state the assumptions (style, ratio, sample panel, ceiling) and get a yes; the guard refuses without a sample, a quote and that yes.
 
 ## Release
 

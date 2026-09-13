@@ -175,3 +175,7 @@ spawned on `review-pass` against `playbooks/review-rubrics.md`. The orchestrator
 gate without that file on disk. Directors read their craft playbook under `playbooks/` at the
 row; the checklist at its end is the row's definition of done, and the client's template wins
 where the two disagree.
+
+## Before spending
+
+Confirm the load-bearing assumptions before the first paid call: the storyboard style, the aspect ratio, which panel is the sample, which reference assets seed it, and the credit ceiling, said in one line and answered yes. A wrong assumption discovered after the batch costs the batch.
