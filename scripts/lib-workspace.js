@@ -88,7 +88,7 @@ function listJobs(brand, argv) {
 }
 
 // Flags that take a value. Filtering only on the leading `--` leaves the value behind as a
-// positional, which is how `scaffold-brand.js acme --root C:/tmp/x` came to write the flag
+// positional, which is how `scaffold-client.js acme --root C:/tmp/x` came to write the flag
 // and its path into the brand's display name, producing a workspace.json that would not parse.
 const VALUE_FLAGS = ['--root', '--out', '--job', '--by', '--comment', '--note', '--credits',
   '--max-credits', '--captions', '--state', '--since', '--until', '--rating', '--ack',

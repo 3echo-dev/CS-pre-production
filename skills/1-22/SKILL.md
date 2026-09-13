@@ -54,7 +54,7 @@ Never drop an option for looking unlikely. The client slug can come with the ans
 |---|---|
 | Resume | `resume-project` with that client and job id. It continues; it does not reintroduce it. |
 | New project | `new-project` with the client, which scaffolds, pulls the Drive folder and runs intake. |
-| Onboard | Ask for the client name, the client's site list and the four template files, then scaffold with `scaffold-brand.js`, drop the templates under `client/templates/` and the sites in `client/sites.md`. |
+| Onboard | Ask for the client name, the client's site list and the four template files, then scaffold with `scaffold-client.js`, drop the templates under `client/templates/` and the sites in `client/sites.md`. |
 
 What runs next must not repeat the table or the question.
 

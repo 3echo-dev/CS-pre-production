@@ -83,7 +83,7 @@ In the desktop app's Code tab the board opens in the pane beside the chat: `pane
 
 ## Function hooks
 
-Most of what this plugin promises is a rule the model is asked to follow. Function hooks are the first thing that can refuse a step outright, and they are off unless you turn them on. `set-root.js` and `scaffold-brand.js` arm them; `check-deps.js` says at the start of every session whether they are on.
+Most of what this plugin promises is a rule the model is asked to follow. Function hooks are the first thing that can refuse a step outright, and they are off unless you turn them on. `set-root.js` and `scaffold-client.js` arm them; `check-deps.js` says at the start of every session whether they are on.
 
 With the flag on, `hooks/hooks.mjs` refuses: a generation call before the sample panel is approved, any spend past the ceiling or without a yes on record, a `status.md` or approval record written by hand, a register JSON written by anything but `board-sync.js land`, a `# Decision` section, a write inside the plugin folder or `CONFIG.md`, and a shell heredoc. Every refusal is one plain sentence with no path and no state id in it.
 

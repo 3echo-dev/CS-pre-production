@@ -225,7 +225,7 @@ All dependency-free Node or Python with Pillow. No `package.json`.
 |---|---|
 | Where things live | `lib-workspace` · `set-root` · `sync-manifest` |
 | Routing | `route-job` · `plan-job` · `validate-schema` |
-| Scaffolding | `scaffold-brand` · `scaffold-job` · `list-jobs` |
+| Scaffolding | `scaffold-client` · `scaffold-job` · `list-jobs` |
 | State | `lib-states` · `lib-stages` · `lib-wording` · `set-state` · `stage` |
 | Approval | `hash-artifact` · `record-approval` · `check-approval` |
 | Board | `lib-board` · `board-sync` · `record-version` · `record-run` · `pane` · `pane-file` |

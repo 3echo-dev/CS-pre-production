@@ -155,8 +155,9 @@ export function statusLine(ctx) {
 
 export function classifyVerdict(text) {
   const said = String(text || '').trim().toLowerCase().replace(/[.!]+$/, '');
+  const joined = said.replace(/\s+/g, '-');
   const first = said.split(/\s+/)[0] || '';
-  return SYNONYMS[said] || SYNONYMS[first] || null;
+  return SYNONYMS[said] || SYNONYMS[joined] || SYNONYMS[first] || null;
 }
 
 export const PLUGIN_NAME = 'One Dash 1-22';
