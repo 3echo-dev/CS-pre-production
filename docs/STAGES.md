@@ -9,13 +9,13 @@ The orchestrator reports a stage with `stage.js {job-id} <stage-id> running|done
 | Stage id | What the person reads | Sub-steps while it is current | Workflow rows and states it covers |
 |---|---|---|---|
 | `opening` | Opening | Waiting for the Drive folder, Reading the brief | Open, Intake; `INTAKE_PENDING`, `PLANNED` |
-| `stage-1-creative` | Stage 1, creative | Scraper, Script, Storyboard, Shot list, Budget sheet and timeline | rows 1a to 1f; `BRIEF_READY` through `PLANNING_DRAFTED` |
+| `stage-1-creative` | Stage 1, creative | Scraper, Script, Storyboard, Shot list, Budget sheet and timeline, Review | rows 1a to 1h; `BRIEF_READY` through `PLANNING_DRAFTED` |
 | `gate-a` | Gate A, creative lock | | `AWAITING_GATE_A`, `GATE_A_PASSED` |
-| `stage-2-logistics` | Stage 2, logistics | Audio, talents, props, locations | rows 2a to 2d; `LOGISTICS_OPEN` |
+| `stage-2-logistics` | Stage 2, logistics | Audio, talents, props, locations, Review | rows 2a to 2f; `LOGISTICS_OPEN` |
 | `gate-b` | Gate B, logistics lock | | `AWAITING_GATE_B`, `GATE_B_PASSED` |
-| `stage-3-documents` | Stage 3, documents | Concept breakdown, Call sheets | rows 3a, 3b; `BREAKDOWN_DRAFTED`, `CALL_SHEETS_DRAFTED` |
+| `stage-3-documents` | Stage 3, documents | Concept breakdown, Call sheets, Review | rows 3a to 3c; `BREAKDOWN_DRAFTED`, `CALL_SHEETS_DRAFTED` |
 | `gate-c` | Gate C, documents released | | `AWAITING_GATE_C` |
-| `released` | Released | | row 3d; `RELEASED`, `COMPLETE` |
+| `released` | Released | | row 3e; `RELEASED`, `COMPLETE` |
 
 Short spellings the board also accepts: `intake`, `stage1`, `gate_a`, `stage2`, `gate_b`, `stage3`, `gate_c`, `released`. These are also the values of `projects/{id}.status` on the board.
 

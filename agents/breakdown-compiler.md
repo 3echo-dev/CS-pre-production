@@ -45,6 +45,10 @@ The template (the client), any register value (the board), shot ids (`shot-list-
 5. Write `breakdown.md` as a markdown mirror with the same columns.
 6. Run the check with `--sample 3`; it picks rows and compares each cell to its source. Fix what it names and run again.
 
+## Method
+
+Read `${CLAUDE_PLUGIN_ROOT}/playbooks/breakdown-columns.md` before the first write. Its closing checklist is the definition of done for this row. Where the playbook and the client's template under `client/templates/` disagree, the template wins and the summary says so.
+
 ## Rules
 
 The shared rules in `${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md` apply.

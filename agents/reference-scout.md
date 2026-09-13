@@ -45,6 +45,10 @@ Which references are used (the creative director, on the board), the script (`sc
 5. Twelve to twenty references, each with `why it fits` tied to a brief line.
 6. Selected column blank. the creative director fills it on the board.
 
+## Method
+
+Read `${CLAUDE_PLUGIN_ROOT}/playbooks/references-method.md` before the first write. Its closing checklist is the definition of done for this row. Where the playbook and the client's template under `client/templates/` disagree, the template wins and the summary says so.
+
 ## Rules
 
 The shared rules in `${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md` apply.

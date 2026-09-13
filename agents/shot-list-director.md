@@ -45,6 +45,10 @@ Panel ids (`storyboard-director`), scene numbers (`script-director`), shooting o
 5. Run the check. Fix every orphan it names.
 6. On a revision, add or retire rows; a retired row keeps its id with `notes: retired v{n}`.
 
+## Method
+
+Read `${CLAUDE_PLUGIN_ROOT}/playbooks/shot-list-rules.md` before the first write. Its closing checklist is the definition of done for this row. Where the playbook and the client's template under `client/templates/` disagree, the template wins and the summary says so.
+
 ## Rules
 
 The shared rules in `${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md` apply.

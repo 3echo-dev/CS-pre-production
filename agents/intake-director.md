@@ -47,6 +47,10 @@ The script (`script-director`), references (`reference-scout`), any question's a
 7. Assets to carry forward: logo packs, references, location pictures, with their file names.
 8. End with the fifteen-line summary the orchestrator asked for.
 
+## Method
+
+Read `${CLAUDE_PLUGIN_ROOT}/playbooks/brief-method.md` before the first write. Its closing checklist is the definition of done for this row. Where the playbook and the client's template under `client/templates/` disagree, the template wins and the summary says so.
+
 ## Rules
 
 The shared rules in `${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md` apply.

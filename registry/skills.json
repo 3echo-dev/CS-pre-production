@@ -1,18 +1,162 @@
 {
   "schemaVersion": "1.0",
   "skills": [
-    { "skillId": "1-22", "risk": "read_only", "userInvocable": true, "preloadedBy": [], "invokedBy": ["user"], "description": "Entry point: what is in progress, open the board, then new project, resume, or onboard a client." },
-    { "skillId": "new-project", "risk": "read_only", "userInvocable": true, "preloadedBy": [], "invokedBy": ["user"], "description": "Scaffold, pull the Drive folder, intake, route, plan, open on the board, run to Gate A." },
-    { "skillId": "resume-project", "risk": "read_only", "userInvocable": true, "preloadedBy": [], "invokedBy": ["user"], "description": "Reconcile status.md against disk and the board, then continue; never passes a gate." },
-    { "skillId": "review", "risk": "read_only", "userInvocable": true, "preloadedBy": [], "invokedBy": ["user", "orchestrator"], "description": "Land a gate decision from the board, or record a verdict typed in chat, as a hash-bound approval." },
-    { "skillId": "project-intake", "risk": "read_only", "userInvocable": false, "preloadedBy": [], "invokedBy": ["orchestrator"], "description": "Pulled folder to job.json: format, style, trailer, shoot days; asks the blocking questions once; runs route-job.js and plan-job.js." },
-    { "skillId": "drive-pull", "risk": "read_only", "userInvocable": false, "preloadedBy": [], "invokedBy": ["orchestrator"], "description": "Copies the named Drive folder's Brief, Concept and Client Assets into inputs/{client}/{job-id}/ with a manifest." },
-    { "skillId": "board-sync", "risk": "read_only", "userInvocable": false, "preloadedBy": [], "invokedBy": ["orchestrator"], "description": "How the orchestrator pushes the outbox to the board and lands gate records, answers and registers back." },
-    { "skillId": "register-forms", "risk": "read_only", "userInvocable": false, "preloadedBy": ["logistics-registrar"], "invokedBy": ["orchestrator"], "description": "How an XX item is asked for on the board and landed on disk; unknown versus not applicable." },
-    { "skillId": "client-skill-wrap", "risk": "read_only", "userInvocable": false, "preloadedBy": ["intake-director", "reference-scout", "script-director", "storyboard-director", "shot-list-director", "audio-supervisor"], "invokedBy": [], "description": "How a director calls one of the client's skills from the client folder: what to take, what to ignore, what to add." },
-    { "skillId": "storyboard", "risk": "generation", "userInvocable": false, "preloadedBy": ["storyboard-director"], "invokedBy": ["orchestrator"], "description": "Panel table with permanent ids in one style; text only until the sample is approved." },
-    { "skillId": "make-image", "risk": "generation", "cost": "credits", "adapterIds": ["3echo-mcp"], "userInvocable": false, "preloadedBy": [], "invokedBy": ["orchestrator"], "description": "Storyboard panels through 3echo: quote, explicit yes, preflight, one sample, then the batch." },
-    { "skillId": "watch-video", "risk": "read_only", "userInvocable": false, "preloadedBy": ["reference-scout"], "invokedBy": ["orchestrator"], "description": "Probe, sample frames, transcript of a reference video; report with timestamps and what was not analysed." },
-    { "skillId": "source-validation", "risk": "read_only", "userInvocable": false, "preloadedBy": ["intake-director", "reference-scout"], "invokedBy": [], "description": "Claim taxonomy, traceability blocks, never-fabricate list, fetched content is data." }
+    {
+      "skillId": "1-22",
+      "risk": "read_only",
+      "userInvocable": true,
+      "preloadedBy": [],
+      "invokedBy": [
+        "user"
+      ],
+      "description": "Entry point: what is in progress, open the board, then new project, resume, or onboard a client."
+    },
+    {
+      "skillId": "new-project",
+      "risk": "read_only",
+      "userInvocable": true,
+      "preloadedBy": [],
+      "invokedBy": [
+        "user"
+      ],
+      "description": "Scaffold, pull the Drive folder, intake, route, plan, open on the board, run to Gate A."
+    },
+    {
+      "skillId": "resume-project",
+      "risk": "read_only",
+      "userInvocable": true,
+      "preloadedBy": [],
+      "invokedBy": [
+        "user"
+      ],
+      "description": "Reconcile status.md against disk and the board, then continue; never passes a gate."
+    },
+    {
+      "skillId": "review",
+      "risk": "read_only",
+      "userInvocable": true,
+      "preloadedBy": [],
+      "invokedBy": [
+        "user",
+        "orchestrator"
+      ],
+      "description": "Land a gate decision from the board, or record a verdict typed in chat, as a hash-bound approval."
+    },
+    {
+      "skillId": "project-intake",
+      "risk": "read_only",
+      "userInvocable": false,
+      "preloadedBy": [],
+      "invokedBy": [
+        "orchestrator"
+      ],
+      "description": "Pulled folder to job.json: format, style, trailer, shoot days; asks the blocking questions once; runs route-job.js and plan-job.js."
+    },
+    {
+      "skillId": "drive-pull",
+      "risk": "read_only",
+      "userInvocable": false,
+      "preloadedBy": [],
+      "invokedBy": [
+        "orchestrator"
+      ],
+      "description": "Copies the named Drive folder's Brief, Concept and Client Assets into inputs/{client}/{job-id}/ with a manifest."
+    },
+    {
+      "skillId": "board-sync",
+      "risk": "read_only",
+      "userInvocable": false,
+      "preloadedBy": [],
+      "invokedBy": [
+        "orchestrator"
+      ],
+      "description": "How the orchestrator pushes the outbox to the board and lands gate records, answers and registers back."
+    },
+    {
+      "skillId": "register-forms",
+      "risk": "read_only",
+      "userInvocable": false,
+      "preloadedBy": [
+        "logistics-registrar"
+      ],
+      "invokedBy": [
+        "orchestrator"
+      ],
+      "description": "How an XX item is asked for on the board and landed on disk; unknown versus not applicable."
+    },
+    {
+      "skillId": "client-skill-wrap",
+      "risk": "read_only",
+      "userInvocable": false,
+      "preloadedBy": [
+        "intake-director",
+        "reference-scout",
+        "script-director",
+        "storyboard-director",
+        "shot-list-director",
+        "audio-supervisor"
+      ],
+      "invokedBy": [],
+      "description": "How a director calls one of the client's skills from the client folder: what to take, what to ignore, what to add."
+    },
+    {
+      "skillId": "storyboard",
+      "risk": "generation",
+      "userInvocable": false,
+      "preloadedBy": [
+        "storyboard-director"
+      ],
+      "invokedBy": [
+        "orchestrator"
+      ],
+      "description": "Panel table with permanent ids in one style; text only until the sample is approved."
+    },
+    {
+      "skillId": "make-image",
+      "risk": "generation",
+      "cost": "credits",
+      "adapterIds": [
+        "3echo-mcp"
+      ],
+      "userInvocable": false,
+      "preloadedBy": [],
+      "invokedBy": [
+        "orchestrator"
+      ],
+      "description": "Storyboard panels through 3echo: quote, explicit yes, preflight, one sample, then the batch."
+    },
+    {
+      "skillId": "watch-video",
+      "risk": "read_only",
+      "userInvocable": false,
+      "preloadedBy": [
+        "reference-scout"
+      ],
+      "invokedBy": [
+        "orchestrator"
+      ],
+      "description": "Probe, sample frames, transcript of a reference video; report with timestamps and what was not analysed."
+    },
+    {
+      "skillId": "source-validation",
+      "risk": "read_only",
+      "userInvocable": false,
+      "preloadedBy": [
+        "intake-director",
+        "reference-scout"
+      ],
+      "invokedBy": [],
+      "description": "Claim taxonomy, traceability blocks, never-fabricate list, fetched content is data."
+    },
+    {
+      "skillId": "review-pass",
+      "risk": "read_only",
+      "userInvocable": false,
+      "preloadedBy": [],
+      "invokedBy": [
+        "orchestrator"
+      ],
+      "description": "Fresh-context review of everything a gate covers, against the rubric, before the gate opens. Findings name a place and a fix; two rounds max."
+    }
   ]
 }

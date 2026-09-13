@@ -27,6 +27,7 @@ bound to content hashes, so an edit after the lock invalidates it mechanically.
 | **Workflow** | An ordered stage table with conditions | `workflows/1-22.md` -> `plan.md` |
 | **Agent** | Who is responsible for an item | `agents/*.md` |
 | **Skill** | How one capability is executed | `skills/*/SKILL.md` |
+| **Playbook** | The method for one craft, read at the row, never preloaded | `playbooks/*.md` |
 
 Three rules fall out of this and hold everywhere:
 
@@ -36,6 +37,9 @@ Three rules fall out of this and hold everywhere:
    reporting success is not evidence; `collect-artifacts.js` exiting 0 is.
 3. **No agent writes a register row, an approval, or a gate document.** Those are a person's,
    entered on the board and landed by a script.
+4. **No gate opens without a review.** Before each gate row the orchestrator spawns a
+   fresh-context reviewer on `skills/review-pass` against `playbooks/review-rubrics.md`; its
+   findings name a place and a fix, and two revision rounds is the ceiling.
 
 ---
 

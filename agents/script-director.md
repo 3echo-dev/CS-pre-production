@@ -45,6 +45,10 @@ The selected version (the creative director, on the board), the storyboard (`sto
 5. On a revision, change only what `revisions/{n}.json` requires; keep everything else word for word. Say in the front matter what changed.
 6. Report the version number and the one-line note the orchestrator records.
 
+## Method
+
+Read `${CLAUDE_PLUGIN_ROOT}/playbooks/script-method.md` before the first write. Its closing checklist is the definition of done for this row. Where the playbook and the client's template under `client/templates/` disagree, the template wins and the summary says so.
+
 ## Rules
 
 The shared rules in `${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md` apply.

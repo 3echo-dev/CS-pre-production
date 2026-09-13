@@ -46,6 +46,10 @@ Day assignment and shooting order (a person, on the board), talent availability 
 6. Parallel units: when a person marked two units, lay them side by side and flag any talent, location or key prop that both need at once.
 7. Write the mirror, run the check for every day, fix what it names.
 
+## Method
+
+Read `${CLAUDE_PLUGIN_ROOT}/playbooks/call-sheet-rules.md` before the first write. Its closing checklist is the definition of done for this row. Where the playbook and the client's template under `client/templates/` disagree, the template wins and the summary says so.
+
 ## Rules
 
 The shared rules in `${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md` apply.

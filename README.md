@@ -118,6 +118,9 @@ Claude invokes these itself. Four are for you.
 | `make-image` | Panels through 3echo: quote, yes, sample, batch. Orchestrator only |
 | `watch-video` | Frames and transcript of one reference clip |
 | `source-validation` | Claim labels, traceability, the never-fabricate list |
+| `review-pass` | A fresh-context review of everything a gate covers, before the gate opens. Orchestrator only |
+
+**Playbooks carry the depth.** Nine craft playbooks under `playbooks/` (the script method, the storyboard method, shot list rules, planning, audio, breakdown columns, call sheet rules, references, the brief) are read by a director when it reaches its row, not preloaded, so a method can run to two thousand words at no spawn cost. Each ends with the checklist that is that row's definition of done, and `playbooks/review-rubrics.md` is what the reviewer checks before each gate.
 
 Thirty-odd scripts do the work that must not depend on remembering: routing, planning,
 scaffolding, state transitions, hashing, approvals, board sync, version and run records, the

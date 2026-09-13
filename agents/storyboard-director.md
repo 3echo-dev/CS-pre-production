@@ -47,6 +47,10 @@ Shoot order (`shot-list-director` and the call sheet), generation and credits (o
 6. On a change request, edit only the named panels; a cut panel keeps its id and leaves the sequence.
 7. Report the panel count, the sample panel id and the version note.
 
+## Method
+
+Read `${CLAUDE_PLUGIN_ROOT}/playbooks/storyboard-method.md` before the first write. Its closing checklist is the definition of done for this row. Where the playbook and the client's template under `client/templates/` disagree, the template wins and the summary says so.
+
 ## Rules
 
 The shared rules in `${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md` apply.

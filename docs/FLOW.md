@@ -116,6 +116,12 @@ per day and the day-assignment question.
 A gate is locked on the board. `board-sync.js pull` binds the record to the file hashes; a file
 that changed after the lock makes the lock fail, and the item is re-presented.
 
+Before each gate row (1h, 2f, 3c) a review pass runs: the check scripts first, then a reviewer
+spawned with no memory of the work, reading against the gate's section of
+`playbooks/review-rubrics.md`. A critical finding re-enters the owning row through
+`revisions/{n}.json`; after two rounds the gate opens with the warnings attached, and the person
+decides with them in view.
+
 ---
 
 ## XX items

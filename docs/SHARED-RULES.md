@@ -169,3 +169,9 @@ The artifacts hashed at decision time:
 | `A` | the selected `script/v{k}.md`, `storyboard/v{n}/panels.md` and its panels, `shot-list.csv`, `budget.xlsx`, `timeline.xlsx`, `references/board.md` |
 | `B` | `audio.md`, `registers/talents.json`, `registers/props.json`, `registers/locations.json` |
 | `C` | `breakdown.xlsx` and, per record, one `call-sheets/day-{d}.xlsx` |
+
+Each gate is preceded by a review pass: `validation/review-{gate}-{n}.md`, written by a reviewer
+spawned on `review-pass` against `playbooks/review-rubrics.md`. The orchestrator never opens a
+gate without that file on disk. Directors read their craft playbook under `playbooks/` at the
+row; the checklist at its end is the row's definition of done, and the client's template wins
+where the two disagree.

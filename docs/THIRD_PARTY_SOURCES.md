@@ -45,3 +45,19 @@ The chain-execution pattern (manifest, stage directors, checkpoints, human gates
 | https://github.com/coreyhaines31/marketingskills | MIT | use (narrow) | the fetched-content rule only |
 | https://github.com/langchain-ai/social-media-agent | MIT | inspiration | approve, edit, reject review loop |
 | https://github.com/calesthio/OpenMontage | AGPL-3.0 | inspiration | chain execution and gate discipline, re-derived |
+
+## Patterns learned for the playbooks
+
+OpenMontage is AGPL-3.0. Nothing from it is copied; each row names a structure that was learned and rewritten in our words for `playbooks/`. Repo: https://github.com/calesthio/OpenMontage.
+
+| Our file | Source file | Repo | License | Usage | What was taken |
+|---|---|---|---|---|---|
+| `playbooks/script-method.md` | `skills/pipelines/cinematic/script-director.md` | calesthio/OpenMontage | AGPL-3.0 | pattern only, no prose copied | beat map before scenes (hook, escalation, reveal, landing, midpoint turn), dialogue sparingly, title cards short, beat truth kept in metadata, quality gate shape |
+| `playbooks/script-method.md` | `skills/creative/storytelling.md` | calesthio/OpenMontage | AGPL-3.0 | pattern only, no prose copied | but-therefore joins between beats, scaling by duration as a table, one camera-intent line per beat, narration speed as a timing check |
+| `playbooks/storyboard-method.md` | `skills/pipelines/cinematic/scene-director.md` | calesthio/OpenMontage | AGPL-3.0 | pattern only, no prose copied | hero frames named first, limited transition vocabulary, five aspects per frame with N/A written, overlays listed separately from the frame |
+| `playbooks/storyboard-method.md` | `skills/creative/image-gen-usage.md` | calesthio/OpenMontage | AGPL-3.0 | pattern only, no prose copied | a shared style preamble repeated in every prompt, a hero reference before a batch, consistency across a sequence |
+| `playbooks/audio-rules.md` | `skills/creative/sound-design.md` | calesthio/OpenMontage | AGPL-3.0 | pattern only, no prose copied; mix levels deliberately dropped | music by content type as tempo bands, instrumental under speech, SFX categories with durations, whoosh timing before the cut |
+| `playbooks/references-method.md` | `skills/meta/video-reference-analyst.md` | calesthio/OpenMontage | AGPL-3.0 | pattern only, no prose copied | five-aspect description of a reference clip, a capability audit turned into a "what it would need" line, critical questions before proposing |
+| `playbooks/review-rubrics.md` (leaf R) | `skills/meta/reviewer.md` | calesthio/OpenMontage | AGPL-3.0 | pattern only, no prose copied | accurate, complete, constructive findings; two revision rounds maximum; review the artifact not the process |
+
+The client's own documents in the handoff (shoot board, concept breakdown, call sheet, project timeline) are the standard the breakdown, call sheet, shot list, storyboard and planning playbooks describe. Their structure is described; their content is never reproduced in this plugin.

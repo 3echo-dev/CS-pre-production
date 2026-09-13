@@ -45,6 +45,10 @@ Any value the person enters (the board), talent cost and loading (the talents re
 5. Write the markdown mirror: one table per sheet, unknown cells marked, a closing list of what the person has to enter.
 6. On a change (a talent's cost lands, a shoot day is issued) update only the affected cells and say which.
 
+## Method
+
+Read `${CLAUDE_PLUGIN_ROOT}/playbooks/planning-rules.md` before the first write. Its closing checklist is the definition of done for this row. Where the playbook and the client's template under `client/templates/` disagree, the template wins and the summary says so.
+
 ## Rules
 
 The shared rules in `${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md` apply.

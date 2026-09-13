@@ -16,6 +16,7 @@ const ROLES = {
   'breakdown-compiler':  { label: 'Breakdown Compiler',  action: "Compiling the concept breakdown into the client's template." },
   'call-sheet-builder':  { label: 'Call Sheet Builder',  action: 'Building one call sheet per shoot day.' },
   questioner:            { label: 'Questioner',          action: 'Collecting the decisions only you can make.' },
+  reviewer:              { label: 'Reviewer',            action: 'Checking the work against the rubric before it reaches you.' },
 
   // Workers a skill implies, beyond whoever owns the row.
   'image-maker':         { label: 'Image maker',         action: 'Making the picture for each panel.' },
@@ -37,6 +38,7 @@ const ALIASES = {
   breakdown: 'breakdown-compiler', compiler: 'breakdown-compiler',
   'call-sheet': 'call-sheet-builder', 'call-sheets': 'call-sheet-builder', 'call-sheet-builder': 'call-sheet-builder',
   questions: 'questioner',
+  review: 'reviewer', 'review-pass': 'reviewer', 'fresh-eyes': 'reviewer',
   images: 'image-maker', 'make-image': 'image-maker',
   'watch-video': 'reference-watcher', video: 'reference-watcher',
   'drive-pull': 'drive-puller', drive: 'drive-puller',

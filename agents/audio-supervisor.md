@@ -46,6 +46,10 @@ The choice of voice, track or effect (the person, on the board), generation of a
 6. Apply `openmontage-craft` through `client-skill-wrap` for VO and SFX vocabulary; `vo-roundtrip` is a pattern for QC of a delivered VO, not for this stage.
 7. Questions: one line each, options first, recommended option first, a real "not decided yet" among them.
 
+## Method
+
+Read `${CLAUDE_PLUGIN_ROOT}/playbooks/audio-rules.md` before the first write. Its closing checklist is the definition of done for this row. Where the playbook and the client's template under `client/templates/` disagree, the template wins and the summary says so.
+
 ## Rules
 
 The shared rules in `${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md` apply.
