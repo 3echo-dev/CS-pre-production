@@ -25,13 +25,13 @@ Its address comes from `lib-board.js` (`CREATIVE_STUDIO_BOARD_URL`, then `.creat
 node "${CLAUDE_PLUGIN_ROOT}/scripts/board-sync.js" push {client} {job-id}
 ```
 
-It folds `.board/outbox.jsonl` into one write batch, at most fifty entries, and prints it as JSON. Hand it to the Artifact tool: `action: write_db`, `db_op: batch`, `url` the board, `writes` the printed array. On success:
+It folds `.board/outbox.jsonl` into one write batch, at most fifty entries, and prints it as JSON with a `pins` list. The database refuses an unpinned update: `read_db get` each document in `pins` and set its `version` as `if_version` on that entry. Then hand the batch to the Artifact tool: `action: write_db`, `db_op: batch`, `url` the board, `writes` the array. On success:
 
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/scripts/board-sync.js" push {client} {job-id} --ack
 ```
 
-A rejected batch is not acknowledged; fix what it names and push again. Re-pushing is harmless.
+A rejected batch is not acknowledged; fix what it names and push again.
 
 ## Land, at a gate and on every resume
 
@@ -65,21 +65,21 @@ A question only a person can answer goes to the board and the chat at once:
 node "${CLAUDE_PLUGIN_ROOT}/scripts/board-sync.js" ask {client} {job-id} --item audio --text "Which VO voice for scenes 1, 4 and 9?" --options "Male, warm, 40s|Female, neutral, 30s|Send me three samples"
 ```
 
-Copy the numbered text it prints into your next message, unchanged, then push. The answer lands with the next `land`.
+Copy the numbered text it prints into your next message unchanged, then push; the answer arrives with the next `land`.
 
 ## Rules
 
 The shared rules in `${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md` apply.
 
-1. Push before ending any turn. A version on disk the board does not show is a person waiting for nothing.
-2. Land before deciding anything on a resume. The decision is probably already there.
+1. Push before ending any turn; a version the board does not show is a person waiting for nothing.
+2. Land before deciding anything on a resume; the decision is probably already there.
 3. The plugin never writes `approved`, `na` or a gate document. Those are the person's.
 4. Register rows and day assignments come only from a landing. Never typed.
 5. Never print the board's address, a document id, or a state id at the person.
 
 ## Output contract
 
-`.board/outbox.jsonl` drained on ack; `.board/inbox.json` and `registers/*.json` after a landing; `approvals/{g}-{n}.json` after a pull. The scripts print what changed in plain words; quote that.
+`.board/outbox.jsonl` drained on ack; `.board/inbox.json` and `registers/*.json` after a landing; `approvals/{g}-{n}.json` after a pull. Quote what the scripts print.
 
 ## Boundary
 
@@ -91,5 +91,5 @@ Does not decide a gate, write a version, or spawn a director.
 |---|---|
 | Acting on a chat verdict with the board still open | `record-approval.js --from-chat` first, then push |
 | Acknowledging a batch the tool rejected | Only after success |
-| Landing by hand-editing `inbox.json` | Only `board-sync.js land` writes it |
-| Pulling a gate the person has not locked | Exit 3; say what is waiting |
+| Hand-editing `inbox.json` | Only `board-sync.js land` writes it |
+| Pulling a gate not yet locked | Exit 3; say what is waiting |

@@ -157,7 +157,10 @@ function push() {
   }
   const { batches, warnings, count } = fold(records);
   if (json) {
-    console.log(JSON.stringify({ url: board.boardUrl(argv), project: jobId, count, batches, warnings }, null, 2));
+    // An update needs the document's current version pinned as if_version, or the database
+    // refuses it. Name them so the orchestrator reads exactly those before sending.
+    const pins = [].concat(...batches).filter(w => w.op === 'update').map(w => ({ collection: w.collection, doc_id: w.doc_id }));
+    console.log(JSON.stringify({ url: board.boardUrl(argv), project: jobId, count, pins, batches, warnings }, null, 2));
     return;
   }
   for (const w of warnings) console.error('warning: ' + w);
