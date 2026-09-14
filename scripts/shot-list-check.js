@@ -40,6 +40,10 @@ for (const [p, what] of [[csvPath, 'shot-list.csv'], [scriptPath, 'a script vers
 // Scenes are headings like "**4. INT. ..." or "SCENE 4" or "## Scene 4".
 const scenes = new Set();
 for (const line of fs.readFileSync(scriptPath, 'utf8').split(/\r?\n/)) {
+  // Two heading forms: the numeric kind ("**4. INT.", "SCENE 4", "## Scene 4") and the episode
+  // scene id the script method writes ("E01-S1"), which the shot list references verbatim.
+  const idm = line.match(/^\s*(?:\*\*|#+\s*)?(E\d{2}-S\d+)\b/i);
+  if (idm) { scenes.add(idm[1].toUpperCase()); continue; }
   const m = line.match(/^\s*(?:\*\*|#+\s*)?(?:scene\s+)?(\d+)[.:)\s]/i) || line.match(/^\s*(?:#+\s*)?scene\s+(\d+)/i);
   if (m) scenes.add(String(Number(m[1])));
 }
@@ -75,7 +79,8 @@ let grouped = 0;
 if (!problems.length) {
   rows.forEach((r, i) => {
     const line = i + 2;
-    const id = r[col('shot_id')] || '', scene = String(Number(r[col('scene')] || '')), panel = (r[col('panel')] || '').toUpperCase();
+    const rawScene = String(r[col('scene')] || '').trim();
+    const id = r[col('shot_id')] || '', scene = /^E\d{2}-S\d+$/i.test(rawScene) ? rawScene.toUpperCase() : String(Number(rawScene)), panel = (r[col('panel')] || '').toUpperCase();
     const label = col('label') >= 0 ? r[col('label')] || '' : '';
     if (!id) problems.push('line ' + line + ': no shot_id');
     else if (seen.has(id)) problems.push('line ' + line + ': shot_id ' + id + ' is used twice');
