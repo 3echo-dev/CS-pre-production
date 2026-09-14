@@ -94,3 +94,7 @@ With the flag on, `hooks/hooks.mjs` refuses: a generation call before the sample
 - Cowork: MCP calls work, HTTP egress to the 3echo asset host may be blocked. `preflight-media.js` finds out for one request.
 - 3echo images: 1 credit each, up to 16 references, `aspectRatio` from the brief.
 - Excel templates are the client's files under `workspaces/{client}/client/templates/`; the plugin copies and fills, never authors one.
+
+## Function hooks (the refusing guards)
+
+`hooks/hooks.json` ships with command hooks only, because a `modules` entry stops the desktop app from syncing the plugin. The refusing guards in `hooks/hooks.mjs` still ship. To arm them in a local Claude Code checkout, add `"modules": ["./hooks.mjs"]` to `hooks/hooks.json` and set `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1`; `scripts/test/hooks-lib.unit.js` proves the guards either way.
