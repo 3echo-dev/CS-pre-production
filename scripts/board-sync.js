@@ -84,13 +84,18 @@ function toWrite(rec) {
   switch (rec.kind) {
     case 'project': {
       const data = { ...p }; delete data.key;
-      return { op: 'update', collection: 'projects', doc_id: jobId, data: { ...data, updatedAt: at } };
+      // A project record is the whole document (open writes it), so it is a set: the database
+      // refuses an update on a document that does not exist yet.
+      return { op: 'set', collection: 'projects', doc_id: jobId, data: { ...data, updatedAt: at } };
     }
     case 'item': {
       if (!ITEMS.includes(p.item)) return { warn: 'unknown item ' + p.item };
       if (HUMAN_ONLY.has(p.status)) return { warn: 'dropped: the pipeline may not set ' + p.item + ' to ' + p.status + '; only a person on the board does' };
       const data = { ...p }; delete data.key; delete data.item;
-      return { op: 'update', collection: base + '/items', doc_id: p.item, data: { ...data, updatedAt: at, updatedBy: p.updatedBy || 'pipeline' } };
+      // The first record for an item (pending, no version) creates the document; every later one
+      // updates it, so the fields a person wrote on the board (approvedBy, changeNote) survive.
+      const fresh = (p.status || 'pending') === 'pending' && !Number(p.version || 0);
+      return { op: fresh ? 'set' : 'update', collection: base + '/items', doc_id: p.item, data: { ...data, updatedAt: at, updatedBy: p.updatedBy || 'pipeline' } };
     }
     case 'version':
       return { op: 'set', collection: base + '/versions', doc_id: 'v-' + p.item + '-' + p.n,
