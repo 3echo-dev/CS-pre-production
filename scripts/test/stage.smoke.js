@@ -21,7 +21,7 @@ const run = (args, root) => spawnSync(process.execPath, [SCRIPT, ...args, '--roo
 function pipelineRoot() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'stage-on-'));
   fs.mkdirSync(path.join(dir, 'workspaces'), { recursive: true });
-  fs.mkdirSync(path.join(dir, '.onedash-1-22'), { recursive: true });
+  fs.mkdirSync(path.join(dir, '.creative-studio-pipeline'), { recursive: true });
   return dir;
 }
 const outbox = root => {

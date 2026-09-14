@@ -3,7 +3,7 @@ workspaces/
 inputs/
 .pane/
 .board/
-.onedash-1-22/
+.creative-studio-pipeline/
 node_modules/
 __pycache__/
 *.pyc

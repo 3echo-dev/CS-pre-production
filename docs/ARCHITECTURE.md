@@ -74,8 +74,8 @@ inputs/{client}/{job-id}/       the Drive pull: Brief/ Concept/ Client Assets/ m
 ```
 
 **The plugin folder is replaced whole on update and never written to.** Your work is in your
-folder. Where that folder is resolves in a fixed order: `--root`, then `ONEDASH_ROOT`, then the
-nearest `.onedash-1-22/config.json`, then the current folder. `lib-workspace.js` is the only thing
+folder. Where that folder is resolves in a fixed order: `--root`, then `CREATIVE_STUDIO_ROOT`, then the
+nearest `.creative-studio-pipeline/config.json`, then the current folder. `lib-workspace.js` is the only thing
 that answers this question.
 
 ---

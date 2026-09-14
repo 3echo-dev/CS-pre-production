@@ -17,7 +17,7 @@ if (!key) {
   process.exit(2);
 }
 
-const OFFLINE = 'The board address is not set. Set boardUrl in the workspace config or ONEDASH_BOARD_URL.';
+const OFFLINE = 'The board address is not set. Set boardUrl in the workspace config or CREATIVE_STUDIO_BOARD_URL.';
 
 (async () => {
   const res = await gate.call('url', { key, ...(title ? { title } : {}) }, { argv });

@@ -23,7 +23,7 @@ const stages = require('../lib-stages.js');
   const ctx = { jobId: 'job-20260913-1030-night-shift', client: 'htf' };
   const safeSample = { valid: true, allowed: 'sample', samplePanel: 'P03', ceiling: 12 };
   const safeBatch = { valid: true, allowed: 'batch', ceiling: 12 };
-  const img = 'mcp__plugin_onedash-1-22_3echo__create_image_job';
+  const img = 'mcp__plugin_creative-studio-pipeline_3echo__create_image_job';
   const key = ctx.jobId + '/v2/P03';
 
   assert.ok(lib.spendVerdict('mcp__x__create_video_job', key, ctx, safeBatch, 0).deny, 'video is refused');
@@ -42,7 +42,7 @@ const stages = require('../lib-stages.js');
 
   // Write guard.
   const root = 'C:/onedash';
-  const plugin = 'C:/Users/x/.claude/plugins/onedash-1-22';
+  const plugin = 'C:/Users/x/.claude/plugins/creative-studio-pipeline';
   const job = root + '/workspaces/htf/jobs/job-1/';
   const deny = (p) => { const v = lib.classifyWrite(p, root, plugin); assert.strictEqual(v.action, 'deny', p + ' should be refused'); return v.reason; };
   const allow = (p) => assert.strictEqual(lib.classifyWrite(p, root, plugin).action, 'allow', p + ' should be allowed');

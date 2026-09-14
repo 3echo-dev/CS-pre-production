@@ -54,7 +54,7 @@ const hit = KNOWN.find(k => { try { return k.when(blob); } catch { return false;
 if (hit) process.stderr.write('Known failure: ' + hit.say + '\n');
 
 try {
-  const dir = path.join(process.cwd(), '.onedash-1-22');
+  const dir = path.join(process.cwd(), '.creative-studio-pipeline');
   fs.mkdirSync(dir, { recursive: true });
   const f = path.join(dir, 'tool-failures.md');
   const sig = tool + ' :: ' + (hit ? hit.say.split('.')[0] : blob.slice(0, 90));

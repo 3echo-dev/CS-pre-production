@@ -12,7 +12,7 @@ const { spawnSync } = require('child_process');
 const ROOT = path.resolve(__dirname, '..', '..');
 const S = n => path.join(ROOT, 'scripts', n);
 const env = { ...process.env };
-delete env.ONEDASH_ROOT;
+delete env.CREATIVE_STUDIO_ROOT;
 const run = (script, args, cwd) => spawnSync(process.execPath, [S(script), ...args], { cwd, encoding: 'utf8', env });
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'od-checks-'));

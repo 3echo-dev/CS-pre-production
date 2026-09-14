@@ -13,8 +13,8 @@ These are yours. Everything below them is machinery.
 | `credit_ceiling_per_job` | The most 3echo credits one project may spend on storyboard panels. | 40 |
 | `require_gate_*_human_approval` | Which gates stop and wait for a person on the board. Turning one off means that stage passes without anyone locking it. | all on |
 | `timezone` | The zone every timestamp in a workspace carries, unless `workspace.json` says otherwise. | Asia/Singapore |
-| Where the work is kept | Not in this file. Run `set-root.js <folder>`, or pass `--root`, or set `ONEDASH_ROOT`. | the current folder |
-| The board | Not in this file. `ONEDASH_BOARD_URL`, or `boardUrl` in `.onedash-1-22/config.json`, or the default in `scripts/lib-board.js`. | the 1-22 Control artifact |
+| Where the work is kept | Not in this file. Run `set-root.js <folder>`, or pass `--root`, or set `CREATIVE_STUDIO_ROOT`. | the current folder |
+| The board | Not in this file. `CREATIVE_STUDIO_BOARD_URL`, or `boardUrl` in `.creative-studio-pipeline/config.json`, or the default in `scripts/lib-board.js`. | the 1-22 Control artifact |
 
 The gate flags are the reason this thing exists rather than a script that writes call sheets on its own.
 Claude will not change them on request, will not behave as though they were changed, and the write guard refuses to write this file at all.

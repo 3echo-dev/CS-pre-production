@@ -6,8 +6,8 @@
 //
 // Resolution order, first hit wins:
 //   1. --root <dir> on the command line
-//   2. ONEDASH_ROOT in the environment
-//   3. "root" in .onedash-1-22/config.json, from the nearest ancestor of cwd
+//   2. CREATIVE_STUDIO_ROOT in the environment
+//   3. "root" in .creative-studio-pipeline/config.json, from the nearest ancestor of cwd
 //   4. the current directory
 //
 // A root holds workspaces/ (one folder per client) and inputs/ side by side. Pointing a root straight at a
@@ -15,7 +15,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const CONFIG_DIR = '.onedash-1-22';
+const CONFIG_DIR = '.creative-studio-pipeline';
 const CONFIG_FILE = 'config.json';
 
 function readConfigFrom(dir) {
@@ -42,8 +42,8 @@ function findConfig(start = process.cwd()) {
 function rootWithSource(argv = process.argv) {
   const i = argv.indexOf('--root');
   if (i >= 0 && argv[i + 1]) return { path: path.resolve(argv[i + 1]), source: '--root' };
-  if (process.env.ONEDASH_ROOT) {
-    return { path: path.resolve(process.env.ONEDASH_ROOT), source: 'ONEDASH_ROOT' };
+  if (process.env.CREATIVE_STUDIO_ROOT) {
+    return { path: path.resolve(process.env.CREATIVE_STUDIO_ROOT), source: 'CREATIVE_STUDIO_ROOT' };
   }
   const found = findConfig();
   if (found && found.config && found.config.root) {

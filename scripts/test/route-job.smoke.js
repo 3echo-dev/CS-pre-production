@@ -14,7 +14,7 @@ const { spawnSync } = require('child_process');
 const ROOT = path.resolve(__dirname, '..', '..');
 const S = n => path.join(ROOT, 'scripts', n);
 const env = { ...process.env };
-delete env.ONEDASH_ROOT;
+delete env.CREATIVE_STUDIO_ROOT;
 const run = (script, args, cwd) => spawnSync(process.execPath, [S(script), ...args], { cwd, encoding: 'utf8', env });
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'od-route-'));
@@ -33,7 +33,7 @@ try {
   fs.mkdirSync(inputs, { recursive: true });
   fs.writeFileSync(path.join(inputs, 'HTF_Brief_v2.pdf'), 'brief bytes');
   Object.assign(job, { kind: 'preproduction', scriptFormat: 'screenplay', storyboardStyle: 'live_pictures', hasTrailer: true, shootDays: 2,
-    driveFolder: 'One Dash / Projects / HTF Night Shift', inputs: { brief: ['Brief/HTF_Brief_v2.pdf'], concept: [], assets: [] } });
+    driveFolder: 'the studio / Projects / HTF Night Shift', inputs: { brief: ['Brief/HTF_Brief_v2.pdf'], concept: [], assets: [] } });
   fs.writeFileSync(jobFile, JSON.stringify(job, null, 2));
   let r = run('route-job.js', [jobFile], tmp);
   assert.strictEqual(r.status, 0, 'a complete project routes: ' + r.stdout + r.stderr);

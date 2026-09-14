@@ -16,7 +16,7 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'od-root-'));
 const elsewhere = fs.mkdtempSync(path.join(os.tmpdir(), 'od-elsewhere-'));
 const away = fs.mkdtempSync(path.join(os.tmpdir(), 'od-away-'));
 const clean = { ...process.env };
-delete clean.ONEDASH_ROOT;
+delete clean.CREATIVE_STUDIO_ROOT;
 
 // 4. The default: the current folder.
 let r = run('scaffold-client.js', ['htf', 'HTF'], { cwd: tmp, env: clean });
@@ -25,15 +25,15 @@ assert.ok(fs.existsSync(path.join(tmp, 'workspaces', 'htf', 'workspace.json')), 
 console.log('ok   with no setting, work lands under the current folder');
 
 // 2. The environment variable, from a completely different directory.
-r = run('scaffold-client.js', ['acme', 'Acme'], { cwd: away, env: { ...clean, ONEDASH_ROOT: elsewhere } });
+r = run('scaffold-client.js', ['acme', 'Acme'], { cwd: away, env: { ...clean, CREATIVE_STUDIO_ROOT: elsewhere } });
 assert.strictEqual(r.status, 0, r.stderr);
-assert.ok(fs.existsSync(path.join(elsewhere, 'workspaces', 'acme', 'workspace.json')), 'ONEDASH_ROOT should decide where the client lands');
+assert.ok(fs.existsSync(path.join(elsewhere, 'workspaces', 'acme', 'workspace.json')), 'CREATIVE_STUDIO_ROOT should decide where the client lands');
 assert.ok(!fs.existsSync(path.join(away, 'workspaces')), 'nothing should be written next to the cwd');
-console.log('ok   ONEDASH_ROOT wins over the current folder');
+console.log('ok   CREATIVE_STUDIO_ROOT wins over the current folder');
 
 // 1. --root beats the environment variable.
 const flagged = fs.mkdtempSync(path.join(os.tmpdir(), 'od-flag-'));
-r = run('scaffold-client.js', ['flagclient', 'Flag', '--root', flagged], { cwd: away, env: { ...clean, ONEDASH_ROOT: elsewhere } });
+r = run('scaffold-client.js', ['flagclient', 'Flag', '--root', flagged], { cwd: away, env: { ...clean, CREATIVE_STUDIO_ROOT: elsewhere } });
 assert.strictEqual(r.status, 0, r.stderr);
 assert.ok(fs.existsSync(path.join(flagged, 'workspaces', 'flagclient', 'workspace.json')), '--root should win');
 console.log('ok   --root wins over the environment variable');
@@ -44,7 +44,7 @@ const data = path.join(project, 'data');
 r = run('set-root.js', [data], { cwd: project, env: clean });
 assert.strictEqual(r.status, 0, r.stderr);
 assert.match(r.stdout, /will be saved in/);
-assert.ok(fs.existsSync(path.join(project, '.onedash-1-22', 'config.json')), 'the setting is written under the plugin\'s own config dir');
+assert.ok(fs.existsSync(path.join(project, '.creative-studio-pipeline', 'config.json')), 'the setting is written under the plugin\'s own config dir');
 r = run('scaffold-client.js', ['configclient', 'Config'], { cwd: project, env: clean });
 assert.strictEqual(r.status, 0, r.stderr);
 assert.ok(fs.existsSync(path.join(data, 'workspaces', 'configclient', 'workspace.json')), 'config root should apply');
@@ -52,7 +52,7 @@ assert.ok(fs.existsSync(path.join(data, 'workspaces', 'configclient', 'workspace
 const nested = path.join(data, 'workspaces', 'configclient');
 r = run('list-jobs.js', [], { cwd: nested, env: clean });
 assert.ok(/configclient|No projects started/.test(r.stdout), 'config should be found by walking up: ' + r.stdout);
-console.log('ok   .onedash-1-22/config.json is found from a nested folder');
+console.log('ok   .creative-studio-pipeline/config.json is found from a nested folder');
 
 // The board's outbox lives at the root too, wherever a script is run from.
 run('scaffold-job.js', ['htf', 'sync', 'Sync'], { cwd: tmp, env: clean });

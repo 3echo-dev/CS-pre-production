@@ -17,7 +17,7 @@ user-invocable: false
 
 ## The board
 
-Its address comes from `lib-board.js` (`ONEDASH_BOARD_URL`, then `.onedash-1-22/config.json`, then the default). Pass it to the Artifact tool as `url`. Never print it in chat. Collections live under `projects/{job-id}`: `items`, `versions`, `runs`, `gates`, `inbox`, `messages`, `talents`, `props`, `locations`, `days`.
+Its address comes from `lib-board.js` (`CREATIVE_STUDIO_BOARD_URL`, then `.creative-studio-pipeline/config.json`, then the default). Pass it to the Artifact tool as `url`. Never print it in chat. Collections live under `projects/{job-id}`: `items`, `versions`, `runs`, `gates`, `inbox`, `messages`, `talents`, `props`, `locations`, `days`.
 
 ## Push, after every row
 

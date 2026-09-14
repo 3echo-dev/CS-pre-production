@@ -1,4 +1,4 @@
-# One Dash 1-22
+# Creative Studio Pipeline
 
 A Claude Code plugin that takes a client's Drive folder, the brief, the concept deck and the
 client assets, and gives back a concept breakdown and one call sheet per shoot day, in the client's
@@ -178,17 +178,17 @@ board; `preflight-media.js` confirms one asset reaches disk.
 ### 1. Add the plugin
 
 ```bash
-/plugin marketplace add 3echo-dev/onedash-1-22
+/plugin marketplace add 3echo-dev/creative-studio-pipeline
 ```
 
 ```bash
-/plugin install onedash-1-22@3echo
+/plugin install creative-studio-pipeline@3echo
 ```
 
 Or try it without installing:
 
 ```bash
-claude --plugin-dir ./onedash-1-22
+claude --plugin-dir ./creative-studio-pipeline
 ```
 
 ### 2. Dependencies
@@ -210,7 +210,7 @@ Declared in `.mcp.json`. Needed only for storyboard panels.
 node scripts/set-root.js "D:/onedash"
 ```
 
-Or pass `--root`, or set `ONEDASH_ROOT`, or run in the folder you want. The first run makes
+Or pass `--root`, or set `CREATIVE_STUDIO_ROOT`, or run in the folder you want. The first run makes
 `workspaces/`, `inputs/` and `.board/` itself, and turns the guards on.
 
 ### 5. Onboard a client, once
@@ -233,7 +233,7 @@ It reads what is on disk, opens the board beside the chat, and asks whether to s
 project, resume one, or onboard a client.
 
 ```
-/new-project htf "One Dash / Projects / HTF Night Shift"
+/new-project htf "the studio / Projects / HTF Night Shift"
 ```
 
 Four questions in one batch: script format, storyboard style, trailer, shoot days. Then it

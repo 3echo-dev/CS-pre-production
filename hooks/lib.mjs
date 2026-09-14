@@ -8,7 +8,7 @@
 
 // ---------------------------------------------------------------------------------------
 // The spend guard's vocabulary. Only the suffix of an MCP tool name is stable: the server is
-// `plugin_onedash-1-22_3echo` under this plugin and a bare id under a Desktop connector.
+// `plugin_creative-studio-pipeline_3echo` under this plugin and a bare id under a Desktop connector.
 // ---------------------------------------------------------------------------------------
 /** The one tool 1-22 may spend credits through: a storyboard panel is an image job. */
 export const SPENDER = /__create_image_job$/;
@@ -94,7 +94,7 @@ export function relativeTo(root, p) {
   return isUnder(a, b) ? b.slice(a.length).replace(/^\//, '') : null;
 }
 export const WRITE_TOOLS = ['Write', 'Edit', 'MultiEdit', 'NotebookEdit'];
-export const WRITE_ALLOWED = ['workspaces', 'inputs', '.pane', '.board', '.onedash-1-22'];
+export const WRITE_ALLOWED = ['workspaces', 'inputs', '.pane', '.board', '.creative-studio-pipeline'];
 export const WRITE_DENY = {
   plugin: 'The plugin folder is read-only. It is replaced whole on update, so a fix written there is lost and a rule written there is a rule nobody agreed.',
   status: 'status.md is written only by set-state.js, which refuses an illegal move. Use it.',
@@ -160,4 +160,4 @@ export function classifyVerdict(text) {
   return SYNONYMS[said] || SYNONYMS[joined] || SYNONYMS[first] || null;
 }
 
-export const PLUGIN_NAME = 'One Dash 1-22';
+export const PLUGIN_NAME = 'Creative Studio Pipeline';

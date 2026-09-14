@@ -14,7 +14,7 @@ const { carriesJargon } = require(path.join(ROOT, 'scripts', 'lib-plain.js'));
 const wording = require(path.join(ROOT, 'scripts', 'lib-wording.js'));
 
 const env = { ...process.env };
-delete env.ONEDASH_ROOT;
+delete env.CREATIVE_STUDIO_ROOT;
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'od-jobctx-'));
 const brand = 'acme';

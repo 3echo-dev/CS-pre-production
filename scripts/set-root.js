@@ -4,7 +4,7 @@
 //   node set-root.js              show what is in use now
 //   node set-root.js <folder> --no-guards   skip the settings.json line
 //
-// Writes .onedash-1-22/config.json in the current folder. Scripts read it from the nearest
+// Writes .creative-studio-pipeline/config.json in the current folder. Scripts read it from the nearest
 // ancestor of wherever they run, so this only has to be done once per project.
 //
 // It also turns the guards on, because the spend and write refusals live behind
@@ -59,8 +59,8 @@ cfg.root = (!rel.startsWith('..') && !path.isAbsolute(rel)) ? (rel || '.') : abs
 fs.writeFileSync(file, JSON.stringify(cfg, null, 2) + '\n');
 
 console.log('Projects and clients will be saved in ' + ws.fwd(abs) + '.');
-if (process.env.ONEDASH_ROOT) {
-  console.log('Note: ONEDASH_ROOT is set in this shell and wins over this setting until you unset it.');
+if (process.env.CREATIVE_STUDIO_ROOT) {
+  console.log('Note: CREATIVE_STUDIO_ROOT is set in this shell and wins over this setting until you unset it.');
 }
 
 if (argv.includes('--no-guards')) {

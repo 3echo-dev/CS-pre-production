@@ -31,7 +31,7 @@ function outboxPath(argv) { return path.join(boardDir(argv), 'outbox.jsonl'); }
 function inboxPath(argv) { return path.join(boardDir(argv), 'inbox.json'); }
 
 function boardUrl(argv) {
-  if (process.env.ONEDASH_BOARD_URL) return process.env.ONEDASH_BOARD_URL;
+  if (process.env.CREATIVE_STUDIO_BOARD_URL) return process.env.CREATIVE_STUDIO_BOARD_URL;
   try {
     const cfg = JSON.parse(fs.readFileSync(path.join(ws.root(argv), ws.CONFIG_DIR, ws.CONFIG_FILE), 'utf8'));
     if (cfg && cfg.boardUrl) return cfg.boardUrl;
