@@ -111,6 +111,16 @@ try {
   assert.strictEqual(sites[0].url, 'https://vimeo.com/channels/staffpicks');
   assert.match(fs.readFileSync(path.join(tmp, 'workspaces', 'htf', 'client', 'sites.md'), 'utf8'), /\| Vimeo Staff Picks \| https:\/\/vimeo.com\/channels\/staffpicks \| motion first \|/);
   console.log('ok   sites-check refuses an empty roster and lands the sites the person typed');
+  fs.writeFileSync(path.join(tmp, 'links.txt'), '# Where to look\n- Vimeo Staff Picks https://vimeo.com/channels/staffpicks\nBehance: https://www.behance.net/search/projects?field=motion%20graphics\nhttps://www.adsoftheworld.com/\n\n');
+  r = run('sites-check.js', ['htf', '--from', path.join(tmp, 'links.txt')], tmp);
+  assert.strictEqual(r.status, 0, 'a links file from the folder lands: ' + r.stderr);
+  assert.match(r.stdout, /Took 2 sites from links.txt: Behance, adsoftheworld.com/);
+  r = run('sites-check.js', ['htf', '--json'], tmp);
+  assert.deepStrictEqual(JSON.parse(r.stdout).sites.map(s => s.site), ['Vimeo Staff Picks', 'Ads of the World', 'Behance', 'adsoftheworld.com']);
+  fs.writeFileSync(path.join(tmp, 'empty.txt'), '# nothing here\n\n');
+  r = run('sites-check.js', ['htf', '--from', path.join(tmp, 'empty.txt')], tmp);
+  assert.strictEqual(r.status, 1, 'a file with no sites is refused');
+  console.log('ok   sites-check lands a links file from the project folder without repeating a site');
 
   // --- call-sheet-check --------------------------------------------------------------
   write('registers/props.json', JSON.stringify({ rows: [] , na: true, by: 'assistant' }));

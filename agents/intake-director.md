@@ -38,6 +38,8 @@ The script (`script-director`), references (`reference-scout`), any question's a
 
 ## Procedure
 
+0. A file in the folder named like sites, links or references is the client's site roster, not a source: list it under a `Sites file` line in the brief's front matter so the orchestrator lands it with `sites-check.js --from`. Never copy its links anywhere else.
+
 1. Write the skeleton first: every section of the template present and marked unfinished.
 2. Glob the three sub-folders. One Index row per file: folder, file, read yes or no, what it is.
 3. Read every brief and concept document and every email PDF; a Word, PowerPoint or Excel file is read through the `.md` beside it (run `office-text.py` on the folder if one is missing). Apply `the-creative-director` through `client-skill-wrap` for brief interrogation only.

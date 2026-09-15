@@ -3,10 +3,11 @@
 // because the scout searches those sites and nowhere else. An empty roster means a question
 // for the person ("where should the scout research?"), never a guess and never an empty board.
 //
-//   node sites-check.js <client> [--json]                    exit 0 with the sites, 1 when empty
+//   node sites-check.js <client> [--json]                              exit 0 with the sites, 1 when empty
 //   node sites-check.js <client> --add "<site>" [--url u] [--note n]   append one row, in the person's words
+//   node sites-check.js <client> --from <file>                         land a sites/links file from the project folder
 //
-// Exit 0 ok · 1 no sites yet · 2 usage · 3 client/sites.md missing
+// Exit 0 ok · 1 no sites yet (or nothing in the file reads as a site) · 2 usage · 3 a file is missing
 const fs = require('fs');
 const path = require('path');
 const ws = require('./lib-workspace.js');
@@ -14,8 +15,9 @@ const ws = require('./lib-workspace.js');
 const argv = process.argv.slice(2);
 const json = argv.includes('--json');
 const flag = (n) => { const i = argv.indexOf(n); return i >= 0 && i + 1 < argv.length ? argv[i + 1] : null; };
-const client = argv.find(a => !a.startsWith('--') && argv[argv.indexOf(a) - 1] !== '--add' && argv[argv.indexOf(a) - 1] !== '--url' && argv[argv.indexOf(a) - 1] !== '--note');
-if (!client) { console.error('usage: sites-check.js <client> [--json] | --add "<site>" [--url <url>] [--note <text>]'); process.exit(2); }
+const VALS = new Set(['--add', '--url', '--note', '--from', '--root']);
+const client = argv.find((a, i) => !a.startsWith('--') && !VALS.has(argv[i - 1]));
+if (!client) { console.error('usage: sites-check.js <client> [--json] | --add "<site>" [--url <url>] [--note <text>] | --from <file>'); process.exit(2); }
 
 const root = ws.root(argv);
 const file = path.join(root, 'workspaces', client, 'client', 'sites.md');
@@ -25,18 +27,47 @@ const rows = () => fs.readFileSync(file, 'utf8').split(/\r?\n/)
   .filter(l => /^\|/.test(l) && !/^\|\s*Site\s*\|/i.test(l) && !/^\|\s*-/.test(l))
   .map(l => l.split('|').slice(1, -1).map(c => c.trim()))
   .filter(c => c[0]);
+const cell = v => String(v || '').replace(/\|/g, '/');
+function append(entries) {
+  let text = fs.readFileSync(file, 'utf8');
+  if (!/^\|\s*Site\s*\|/im.test(text)) text = text.replace(/\s*$/, '\n\n| Site | URL | Notes |\n|---|---|---|\n');
+  if (!/\n$/.test(text)) text += '\n';
+  for (const [site, url, note] of entries) text += '| ' + cell(site) + ' | ' + cell(url) + ' | ' + cell(note) + ' |\n';
+  fs.writeFileSync(file, text);
+}
 
 const add = flag('--add');
 if (add) {
   const site = add.trim();
   if (!site) { console.error('--add needs the site in the person\'s words'); process.exit(2); }
   if (rows().some(r => r[0].toLowerCase() === site.toLowerCase())) { console.log(site + ' is already on the list.'); process.exit(0); }
-  let text = fs.readFileSync(file, 'utf8');
-  if (!/^\|\s*Site\s*\|/im.test(text)) text = text.replace(/\s*$/, '\n\n| Site | URL | Notes |\n|---|---|---|\n');
-  if (!/\n$/.test(text)) text += '\n';
-  text += '| ' + site.replace(/\|/g, '/') + ' | ' + (flag('--url') || '').replace(/\|/g, '/') + ' | ' + (flag('--note') || '').replace(/\|/g, '/') + ' |\n';
-  fs.writeFileSync(file, text);
+  append([[site, flag('--url') || '', flag('--note') || '']]);
   console.log('Added ' + site + '. The scout may search ' + rows().length + ' site' + (rows().length === 1 ? '' : 's') + '.');
+  process.exit(0);
+}
+
+const from = flag('--from');
+if (from) {
+  // A file the person put in the project folder: one site per line, a name and, where present, a
+  // link. Headings, blank lines, table rules and a header row are skipped; the first URL on a line
+  // is the URL; a line that is only a URL takes its host as the name.
+  const src = path.resolve(from);
+  if (!fs.existsSync(src)) { console.error('No such file: ' + from); process.exit(3); }
+  const seen = new Set(rows().map(r => r[0].toLowerCase()));
+  const before = seen.size;
+  const added = [];
+  for (let line of fs.readFileSync(src, 'utf8').split(/\r?\n/)) {
+    line = line.replace(/^\s*(?:[-*+]|\d+[.)])\s+/, '').replace(/^\|/, '').replace(/\|$/, '').trim();
+    if (!line || /^#/.test(line) || /^-{3,}/.test(line) || /^-+\s*\|/.test(line) || /^site\s*\|/i.test(line)) continue;
+    const url = (line.match(/https?:\/\/\S+/) || [''])[0].replace(/[),.]+$/, '');
+    let name = line.replace(url, '').replace(/\|/g, ' ').replace(/[\s:]+$/, '').replace(/^[\s:]+/, '').trim();
+    if (!name && url) { try { name = new URL(url).hostname.replace(/^www\./, ''); } catch { name = url; } }
+    if (!name || seen.has(name.toLowerCase())) continue;
+    seen.add(name.toLowerCase()); added.push([name, url, 'from ' + path.basename(src)]);
+  }
+  if (!added.length) { console.error('Nothing in ' + path.basename(src) + ' reads as a site.'); process.exit(1); }
+  append(added);
+  console.log('Took ' + added.length + ' site' + (added.length === 1 ? '' : 's') + ' from ' + path.basename(src) + ': ' + added.map(a => a[0]).join(', ') + '. The scout may search ' + (before + added.length) + '.');
   process.exit(0);
 }
 

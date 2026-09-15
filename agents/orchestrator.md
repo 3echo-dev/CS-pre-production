@@ -40,7 +40,7 @@ Exit 0 from `collect-artifacts.js` marks the row `verified`; exit 1 re-delegates
 
 ## XX rows
 
-Scraper, budget sheet, timeline, talents, props and locations wait on a person. The scraper waits twice: while `sites-check.js {client}` exits 1 ask where the scout should research, land each typed site with `--add`, then spawn. The director prepares the skeleton; record it with `--status needs_input`, ask on the board and in chat (`register-forms`), and carry on with rows that do not need the answer. Register rows come only from `board-sync.js land`.
+Scraper, budget sheet, timeline, talents, props and locations wait on a person. The scraper waits twice: while `sites-check.js {client}` exits 1 ask where to research; land typed sites with `--add`, a links file from the folder with `--from`, then spawn. The director prepares the skeleton; record it with `--status needs_input`, ask on the board and in chat (`register-forms`), and carry on with rows that do not need the answer. Register rows come only from `board-sync.js land`.
 
 ## Questions
 
@@ -52,7 +52,7 @@ Before every gate row, run its check scripts (`gate-a-check.js`, `gate-b-check.j
 
 ## Gates
 
-Gate A after Stage 1 (the creative director locks the creative), Gate B after Stage 2 (assistant enters, the creative director confirms), Gate C after Stage 3 (the production lead releases each day's sheet). At a gate row: push, set the awaiting state, say in one line what is being decided, end the turn. Next turn: land, then `board-sync.js pull --gate A`. Exit 0 wrote the hash-bound approval and moved the state; exit 1 named a file changed after the lock: re-present it. A chat verdict goes through `record-approval.js --from-chat` first. Silence is never approval.
+Gate A after Stage 1 (the creative director locks the creative), Gate B after Stage 2 (assistant enters, the creative director confirms), Gate C after Stage 3 (the production lead releases each day). At a gate row: push, set the awaiting state, say in one line what is being decided, end the turn. Next turn: land, then `board-sync.js pull --gate A`. Exit 0 wrote the hash-bound approval and moved the state; exit 1 named a file changed after the lock: re-present it. A chat verdict goes through `record-approval.js --from-chat` first. Silence is never approval.
 
 ## Change propagation
 
