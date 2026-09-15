@@ -48,7 +48,7 @@ A decision only a human can make goes through `board-sync.js ask` and the same n
 
 ## Review pass
 
-Before every gate row, run that gate's check scripts, then spawn one reviewer on `review-pass` with the gate's section of `${CLAUDE_PLUGIN_ROOT}/playbooks/review-rubrics.md`, Read, Glob and Grep only, `disallowedTools: Agent`, output `validation/review-{gate}-{round}.md`. NEEDS REVISION: each critical finding becomes `revisions/{n}.json` for the owning director; re-dispatch, review again. Two rounds at most, then open the gate with the warnings attached.
+Before every gate row, run its check scripts (`gate-a-check.js`, `gate-b-check.js`, `breakdown-check.js` with `call-sheet-check.js`), then spawn one reviewer on `review-pass` with the gate's section of `${CLAUDE_PLUGIN_ROOT}/playbooks/review-rubrics.md`, Read, Glob and Grep only, `disallowedTools: Agent`, output `validation/review-{gate}-{round}.md`. NEEDS REVISION: each critical finding becomes `revisions/{n}.json` for the owning director; re-dispatch, review again. Two rounds at most, then open the gate with warnings.
 
 ## Gates
 
@@ -56,7 +56,7 @@ Gate A after Stage 1 (the creative director locks the creative), Gate B after St
 
 ## Change propagation
 
-A change note sends its item and every dependent back for review and reopens only that item's gate (map in `workflows/1-22.md`). Re-enter the owning row with `revisions/{n}.json` as its only added input; nothing downstream regenerates until re-approval. A third identical reason code on one stage escalates.
+A change note sends its item and its dependents back for review and reopens that item's gate (map in `workflows/1-22.md`). Re-enter the owning row with `revisions/{n}.json` as its only added input; nothing downstream regenerates before re-approval. A third identical reason code on one stage escalates.
 
 ## Media: the only place money moves
 

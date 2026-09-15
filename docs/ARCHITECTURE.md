@@ -235,7 +235,7 @@ All dependency-free Node or Python with Pillow. No `package.json`.
 | Board | `lib-board` · `board-sync` · `record-version` · `record-run` · `pane` · `pane-file` |
 | Before spending | `check-3echo` · `preflight-generation` · `preflight-media` |
 | Media | `save-asset-bytes` · `contact-sheet` · `watch-video` |
-| Checks | `shot-list-check` · `gate-b-check` · `breakdown-check` · `call-sheet-check` |
+| Checks | `shot-list-check` · `gate-a-check` · `gate-b-check` · `breakdown-check` · `call-sheet-check` |
 | Recovery and output | `collect-artifacts` · `build-release` |
 | Environment | `check-deps` · `note-failure` · `hooks/heartbeat` · `hooks/turn` |
 

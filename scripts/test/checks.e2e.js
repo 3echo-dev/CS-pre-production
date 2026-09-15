@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// The three checks that stand between a director's file and a gate. Each is proven against
+// The four checks that stand between a director's file and a gate. Each is proven against
 // a fixture that passes before it is trusted to refuse: an absence check that never saw a
 // positive control is not a check.
 //   node scripts/test/checks.e2e.js
@@ -62,6 +62,37 @@ try {
   r = run('gate-b-check.js', ['htf', jobId], tmp);
   assert.strictEqual(r.status, 1, 'not applicable with nobody named is refused');
   console.log('ok   gate-b-check tells unknown from not applicable and names who decided');
+
+  // --- gate-a-check ------------------------------------------------------------------
+  const manifest = (extra) => write('storyboard/v2/generation-manifest.json', JSON.stringify({ schemaVersion: '1.0', sample: 'P01', items: [
+    { panel: 'P01', kind: 'image', sample: true, status: 'pending', file: 'storyboard/v2/P01.png' },
+    { panel: 'P02', kind: 'image', status: 'pending', file: 'storyboard/v2/P02.png' },
+    { panel: 'P03', kind: 'image', status: 'pending', file: 'storyboard/v2/P03.png' }], ...extra }));
+  manifest({});
+  r = run('gate-a-check.js', ['htf', jobId], tmp);
+  assert.strictEqual(r.status, 1, 'a panel table with no images is refused');
+  assert.match(r.stderr, /3 of 3 panels have no image on disk \(P01, P02, P03\)/);
+  assert.ok(fs.existsSync(path.join(dir, 'validation', 'gate-a-check.md')));
+  manifest({ imagesDeferred: { by: 'creative-director', at: '2026-09-15', reason: 'animatic comes from the agency' } });
+  r = run('gate-a-check.js', ['htf', jobId], tmp);
+  assert.strictEqual(r.status, 0, 'a recorded decision to lock without images passes: ' + r.stderr);
+  assert.match(r.stdout, /images deferred by creative-director/);
+  manifest({ imagesDeferred: { reason: 'nobody said who' } });
+  r = run('gate-a-check.js', ['htf', jobId], tmp);
+  assert.strictEqual(r.status, 1, 'a deferral with nobody named is refused');
+  write('storyboard/v2/generation-manifest.json', JSON.stringify({ sample: 'P01', items: [
+    { panel: 'P01', kind: 'image', sample: true, status: 'validated', file: 'storyboard/v2/P01.png' },
+    { panel: 'P02', kind: 'image', status: 'validated', file: 'storyboard/v2/P02.png' },
+    { panel: 'P03', kind: 'image', status: 'validated', file: 'storyboard/v2/P03.png' }] }));
+  for (const p of ['P01', 'P02', 'P03']) write('storyboard/v2/' + p + '.png', 'png');
+  r = run('gate-a-check.js', ['htf', jobId], tmp);
+  assert.strictEqual(r.status, 0, 'every panel on disk passes: ' + r.stderr);
+  assert.match(r.stdout, /3 image panels, 3 on disk/);
+  fs.unlinkSync(path.join(dir, 'storyboard/v2/P02.png'));
+  r = run('gate-a-check.js', ['htf', jobId], tmp);
+  assert.strictEqual(r.status, 1, 'one missing file is refused');
+  assert.match(r.stderr, /1 of 3 panels have no image on disk \(P02\)/);
+  console.log('ok   gate-a-check refuses a storyboard without images unless a person recorded the deferral');
 
   // --- call-sheet-check --------------------------------------------------------------
   write('registers/props.json', JSON.stringify({ rows: [] , na: true, by: 'assistant' }));

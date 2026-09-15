@@ -10,7 +10,7 @@ These are yours. Everything below them is machinery.
 | Setting | What it does | Default |
 |---|---|---|
 | `max_parallel_agents` | How many directors work at once. Lower is slower and cheaper. | 3 |
-| `credit_ceiling_per_job` | The most 3echo credits one project may spend on storyboard panels. | 40 |
+| `credit_ceiling_per_job` | The most 3echo credits one project may spend on storyboard panels. | 60 |
 | `require_gate_*_human_approval` | Which gates stop and wait for a person on the board. Turning one off means that stage passes without anyone locking it. | all on |
 | `timezone` | The zone every timestamp in a workspace carries, unless `workspace.json` says otherwise. | Asia/Singapore |
 | Where the work is kept | Not in this file. Run `set-root.js <folder>`, or pass `--root`, or set `CREATIVE_STUDIO_ROOT`. | the current folder |
@@ -21,7 +21,7 @@ Claude will not change them on request, will not behave as though they were chan
 
 ```yaml
 max_parallel_agents: 3
-credit_ceiling_per_job: 40
+credit_ceiling_per_job: 60
 timezone: Asia/Singapore
 
 require_gate_a_human_approval: true        # Creative lock: the creative director, on the board
