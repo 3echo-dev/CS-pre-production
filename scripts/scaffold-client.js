@@ -49,7 +49,7 @@ fs.writeFileSync(path.join(dest, 'workspace.json'), JSON.stringify(cfg, null, 2)
 fs.writeFileSync(path.join(dest, 'client', 'sites.md'), [
   '# Scraper sites for ' + name, '',
   'One line per site the reference scout may search, in the words the client gave. A site not on this',
-  'list is never searched. Board sources named so far: Vimeo, YouTube, Ads.', '',
+  'list is never searched. Empty means the pipeline asks where to research before the scout runs.', '',
   '| Site | URL | Notes |', '|---|---|---|', '',
 ].join('\n'));
 fs.writeFileSync(path.join(dest, 'client', 'templates', 'README.md'), [

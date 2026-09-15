@@ -11,7 +11,7 @@ Read by `reference-scout` at row 1a. Output: `references/board.md` on `templates
 
 ## 2. Pull from the client's sites only
 
-- `client/sites.md` is the roster. Search it in the order written. A site not on it is a question for the orchestrator, never a search.
+- `client/sites.md` is the roster, in the person's own words; while it is empty the row is a question, not a search. A site not on it is a question for the orchestrator, never a search.
 - Per site: search with the site filter, open the candidate page, read the title and maker from the page, save the raw capture under `references/raw/{date}/{site}-{n}.html` or `.md`, then write the row.
 - Two to four sites per run is enough for one brief. Prefer the sites whose medium matches the deliverable: a motion or animation brief goes to the motion sites first, a live-action commercial to the advertising sites first.
 - Twelve to twenty references across the run. Fewer than twelve is fine when the sites are exhausted and the Gaps table says so; more than twenty is a sweep, not a shortlist.

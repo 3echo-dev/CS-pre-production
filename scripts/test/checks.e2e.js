@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// The four checks that stand between a director's file and a gate. Each is proven against
+// The five checks that stand between a director's file and a gate. Each is proven against
 // a fixture that passes before it is trusted to refuse: an absence check that never saw a
 // positive control is not a check.
 //   node scripts/test/checks.e2e.js
@@ -93,6 +93,24 @@ try {
   assert.strictEqual(r.status, 1, 'one missing file is refused');
   assert.match(r.stderr, /1 of 3 panels have no image on disk \(P02\)/);
   console.log('ok   gate-a-check refuses a storyboard without images unless a person recorded the deferral');
+
+  // --- sites-check -------------------------------------------------------------------
+  r = run('sites-check.js', ['htf'], tmp);
+  assert.strictEqual(r.status, 1, 'an empty site list refuses the scout: ' + r.stdout);
+  assert.match(r.stderr, /No sites yet. Ask the person where the scout should research/);
+  r = run('sites-check.js', ['htf', '--add', 'Vimeo Staff Picks', '--url', 'https://vimeo.com/channels/staffpicks', '--note', 'motion first'], tmp);
+  assert.strictEqual(r.status, 0, 'a site the person named is added: ' + r.stderr);
+  r = run('sites-check.js', ['htf', '--add', 'Ads of the World'], tmp);
+  assert.strictEqual(r.status, 0);
+  r = run('sites-check.js', ['htf', '--add', 'ads of the world'], tmp);
+  assert.match(r.stdout, /already on the list/);
+  r = run('sites-check.js', ['htf', '--json'], tmp);
+  assert.strictEqual(r.status, 0, 'two sites pass: ' + r.stderr);
+  const sites = JSON.parse(r.stdout).sites;
+  assert.deepStrictEqual(sites.map(s => s.site), ['Vimeo Staff Picks', 'Ads of the World']);
+  assert.strictEqual(sites[0].url, 'https://vimeo.com/channels/staffpicks');
+  assert.match(fs.readFileSync(path.join(tmp, 'workspaces', 'htf', 'client', 'sites.md'), 'utf8'), /\| Vimeo Staff Picks \| https:\/\/vimeo.com\/channels\/staffpicks \| motion first \|/);
+  console.log('ok   sites-check refuses an empty roster and lands the sites the person typed');
 
   // --- call-sheet-check --------------------------------------------------------------
   write('registers/props.json', JSON.stringify({ rows: [] , na: true, by: 'assistant' }));

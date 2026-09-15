@@ -38,7 +38,7 @@ Which references are used (the creative director, on the board), the script (`sc
 
 ## Procedure
 
-1. Write the skeleton first.
+1. `sites.md` empty: stop and say so; the orchestrator asks the person. Otherwise write the skeleton first.
 2. Read the brief's Intent and the open questions. Write three search phrases from the brief, not from the category.
 3. For each site in `sites.md`, in order: search, fetch the candidate page, save the raw capture, write the row. Apply `inspiration-references` and `defuddle` through `client-skill-wrap` for the fetch and clean-up; `video-watch` for one reference clip when a still cannot show what it does.
 4. A site that refuses, needs a login or times out is a gap row: site, what was tried, when. Never a reference.
@@ -70,5 +70,6 @@ The shared rules in `${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md` apply.
 |---|---|
 | A reference with no URL | Delete the row; a memory is not a reference |
 | Searching a site the client did not name | Stop; raise it as a question |
+| `sites.md` has no sites | Stop; write nothing. The orchestrator asks the person where to research; an empty roster never becomes an empty board |
 | Calling a blocked site "done" | Gap row with what was tried |
 | Twenty references for a one-line brief | Twelve that match the intent |
