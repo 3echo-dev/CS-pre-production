@@ -109,7 +109,7 @@ function toWrite(rec) {
       return { op: 'set', collection: base + '/sheets', doc_id: p.item, data };
     }
     case 'export-done':
-      return { op: 'update', collection: base + '/inbox', doc_id: p.id, data: { status: 'answered', answer: 'Excel written: ' + (p.driveCopy || p.exportPath), exportPath: p.exportPath, driveCopy: p.driveCopy || null, answeredBy: 'pipeline', answeredAt: at } };
+      return { op: 'update', collection: base + '/inbox', doc_id: p.id, data: { status: 'answered', answer: p.link ? 'Google Sheet ready' : 'Excel written: ' + (p.driveCopy || p.exportPath), exportPath: p.exportPath, driveCopy: p.driveCopy || null, link: p.link || null, answeredBy: 'pipeline', answeredAt: at } };
     case 'panel': {
       const data = { ...p }; delete data.key; delete data.id;
       return { op: p.thumb ? 'update' : 'set', collection: base + '/panels', doc_id: p.id, data };

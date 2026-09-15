@@ -3,7 +3,10 @@
 // export. The board shows the grid; its Export button files an export request the pipeline
 // answers by running this again and naming the file it wrote.
 //
-//   node push-sheet.js <client> <job-id> --item shot_list|budget_sheet|timeline|concept_breakdown [--request <inbox-id>] [--drive]
+//   node push-sheet.js <client> <job-id> --item shot_list|budget_sheet|timeline|concept_breakdown [--request <inbox-id>] [--drive] [--link <google-sheet-url>]
+//
+// --link records the Google Sheet the orchestrator uploaded the export to (Drive connector); the
+// board shows it as the Open in Google Sheets button.
 //
 // --request marks that inbox request done with the export path. --drive also copies the export
 // into <driveFolder>/Exports/ from job.json, so the client finds it in their own folder.
@@ -19,7 +22,7 @@ const { brand: client, jobId, dir } = ws.resolveJobArgs(argv, argv);
 const flag = n => { const i = argv.indexOf(n); return i >= 0 && argv[i + 1] ? argv[i + 1] : null; };
 const item = flag('--item');
 const ITEMS = ['shot_list', 'budget_sheet', 'timeline', 'concept_breakdown'];
-if (!client || !jobId || !ITEMS.includes(item)) { console.error('usage: push-sheet.js <client> <job-id> --item ' + ITEMS.join('|') + ' [--request <id>] [--drive]'); process.exit(2); }
+if (!client || !jobId || !ITEMS.includes(item)) { console.error('usage: push-sheet.js <client> <job-id> --item ' + ITEMS.join('|') + ' [--request <id>] [--drive] [--link <url>]'); process.exit(2); }
 
 const clientDir = path.join(ws.wsDir(client, argv), 'client');
 const r = spawnSync('python', [path.join(__dirname, 'sheet-export.py'), dir, '--item', item, '--client-dir', clientDir, '--json'], { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
@@ -41,11 +44,12 @@ if (argv.includes('--drive')) {
 
 (async () => {
   const at = new Date().toISOString();
+  const link = flag('--link');
   await board.call('sheet', {
     key: jobId, item, columns: out.columns, rows: out.rows, rowCount: out.rowCount,
-    template: out.template, exportPath: ws.fwd(out.export), driveCopy: driveCopy ? ws.fwd(driveCopy) : null, updatedAt: at,
+    template: out.template, exportPath: ws.fwd(out.export), driveCopy: driveCopy ? ws.fwd(driveCopy) : null, ...(link ? { link, linkedAt: at } : {}), updatedAt: at,
   }, { argv });
   const req = flag('--request');
-  if (req) await board.call('export-done', { key: jobId, id: req, item, exportPath: ws.fwd(out.export), driveCopy: driveCopy ? ws.fwd(driveCopy) : null }, { argv });
+  if (req) await board.call('export-done', { key: jobId, id: req, item, exportPath: ws.fwd(out.export), driveCopy: driveCopy ? ws.fwd(driveCopy) : null, link: link || null }, { argv });
   console.log('Queued ' + item + ' for the board: ' + out.rowCount + ' rows, ' + out.columns.length + ' columns' + (out.template ? ' in the client template' : '') + '. Excel at ' + ws.fwd(out.export) + (driveCopy ? ' and ' + ws.fwd(driveCopy) : '') + '. Run board-sync.js push next.');
 })();

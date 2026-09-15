@@ -124,12 +124,14 @@ try {
   fs.writeFileSync(landing, JSON.stringify([{ id: 'x-1', collection: 'projects/' + jobId + '/inbox', data: { type: 'export', item: 'shot_list', status: 'open', from: 'creative-director', createdAt: '2026-09-15T05:00:00Z' } }]));
   r = run('board-sync.js', ['land', 'htf', jobId, landing], tmp);
   assert.match(r.stdout, /export x-1 open/);
-  r = run('push-sheet.js', ['htf', jobId, '--item', 'shot_list', '--request', 'x-1'], tmp);
+  r = run('push-sheet.js', ['htf', jobId, '--item', 'shot_list', '--request', 'x-1', '--link', 'https://docs.google.com/spreadsheets/d/abc/edit'], tmp);
   assert.strictEqual(r.status, 0, r.stderr);
   r = run('board-sync.js', ['push', 'htf', jobId, '--json'], tmp);
   out = JSON.parse(r.stdout);
   const done = [].concat(...out.batches).find(w => /\/inbox$/.test(w.collection) && w.doc_id === 'x-1');
-  assert.ok(done && done.op === 'update' && done.data.status === 'answered' && /shot-list.xlsx/.test(done.data.answer), 'the export request is answered with the file');
+  assert.ok(done && done.op === 'update' && done.data.status === 'answered' && done.data.link === 'https://docs.google.com/spreadsheets/d/abc/edit', 'the export request is answered with the Google Sheet link');
+  const linked = [].concat(...out.batches).find(w => /\/sheets$/.test(w.collection));
+  assert.strictEqual(linked && linked.data.link, 'https://docs.google.com/spreadsheets/d/abc/edit', 'the sheet document carries the link');
   r = run('push-sheet.js', ['htf', jobId, '--item', 'timeline'], tmp);
   assert.strictEqual(r.status, 1, 'no source is a 1');
   console.log('ok   push-sheet exports the client format to Excel, shows it on the board, and answers an export request');
