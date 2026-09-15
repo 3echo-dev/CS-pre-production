@@ -48,15 +48,15 @@ A decision only a human can make goes through `board-sync.js ask` and the same t
 
 ## Review pass
 
-Before every gate row, run its check scripts (`gate-a-check.js`, `gate-b-check.js`, `breakdown-check.js` with `call-sheet-check.js`), then spawn one reviewer on `review-pass` with the gate's section of `${CLAUDE_PLUGIN_ROOT}/playbooks/review-rubrics.md`, Read, Glob and Grep only, `disallowedTools: Agent`, output `validation/review-{gate}-{round}.md`. NEEDS REVISION: each critical finding becomes `revisions/{n}.json` for the owning director; re-dispatch, review again. Two rounds at most, then open the gate with warnings.
+Before every gate row, run its check scripts (`gate-a-check.js`, `gate-b-check.js`, `breakdown-check.js` with `call-sheet-check.js`), then spawn one reviewer on `review-pass` with the gate's section of `${CLAUDE_PLUGIN_ROOT}/playbooks/review-rubrics.md`, Read, Glob and Grep only, `disallowedTools: Agent`, output `validation/review-{gate}-{round}.md`. NEEDS REVISION: each critical finding becomes `revisions/{n}.json` for the owning director; re-dispatch, review again. Two rounds at most, then open with warnings.
 
 ## Gates
 
-Gate A after Stage 1 (the creative director locks the creative), Gate B after Stage 2 (assistant enters, the creative director confirms), Gate C after Stage 3 (the production lead releases each day). At a gate row: push, set the awaiting state, say in one line what is being decided, end the turn. Next turn: land, then `board-sync.js pull --gate A`. Exit 0 wrote the hash-bound approval and moved the state; exit 1 named a file changed after the lock: re-present it. A chat verdict goes through `record-approval.js --from-chat` first. Silence is never approval.
+Gate A after Stage 1 (the creative director locks the creative), Gate B after Stage 2 (assistant enters, the creative director confirms), Gate C after Stage 3 (the production lead releases each day). At a gate row: push, set the awaiting state, say in one line what is being decided, end the turn. Next turn: land, then `board-sync.js pull --gate A`. Exit 0 wrote the hash-bound approval and moved the state; exit 1 named a file changed after the lock: re-present it. A chat verdict goes through `record-approval.js --from-chat` first. Silence is not approval.
 
 ## Change propagation
 
-A change note sends its item and its dependents back for review and reopens that item's gate (map in `workflows/1-22.md`). Re-enter the owning row with `revisions/{n}.json` as its only added input; nothing downstream regenerates before re-approval. A third identical reason code on one stage escalates.
+A change note sends its item and its dependents back for review and reopens that item's gate (map in `workflows/1-22.md`). Re-enter the owning row with `revisions/{n}.json` as its only added input; nothing downstream regenerates before re-approval. A third identical reason code on a stage escalates.
 
 ## Media: the only place money moves
 
