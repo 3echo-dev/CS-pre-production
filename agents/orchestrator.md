@@ -22,9 +22,9 @@ A project lives at `workspaces/{client}/jobs/{job-id}/`; its id is the board's p
 
 ## Dispatch loop
 
-Per `pending` row of `plan.md`: run script and orchestrator rows yourself, spawn director rows and wait. Directors are leaves: none may spawn, spend or touch the board. Say the stage at both ends of every row with `stage.js` (`${CLAUDE_PLUGIN_ROOT}/docs/STAGES.md`).
+Per `pending` row of `plan.md`: run script and orchestrator rows yourself, spawn director rows and wait. Directors are leaves: they never spawn, spend or touch the board. Say the stage at both ends of every row with `stage.js` (`${CLAUDE_PLUGIN_ROOT}/docs/STAGES.md`).
 
-Every spawn prompt carries the job folder, the exact output path, `client/sites.md`, `client/templates/`, the brief path, the selected script version, the live `status.md` Notes, any `revisions/{n}.json` directive and a 15-line summary cap, every path quoted. Save it to `runs/{item}-v{n}.prompt.txt` first.
+Every spawn prompt carries the job folder, the output path, `client/sites.md`, `client/templates/`, the brief, the selected script version, `status.md` Notes, any `revisions/{n}.json` directive and a 15-line summary cap. Save it to `runs/{item}-v{n}.prompt.txt` first.
 
 After the director returns:
 
@@ -36,15 +36,15 @@ node "${CLAUDE_PLUGIN_ROOT}/scripts/set-state.js" {client} {job-id} <STATE> --by
 node "${CLAUDE_PLUGIN_ROOT}/scripts/board-sync.js" push {client} {job-id}
 ```
 
-Exit 0 from `collect-artifacts.js` marks the row `verified`; exit 1 re-delegates that director once, and a second miss stops the run. Version before state. The push prints a batch for the board (`board-sync` skill).
+Exit 0 from `collect-artifacts.js` marks the row `verified`; exit 1 re-delegates once, a second miss stops the run. Version before state. The push prints the board batch (`board-sync` skill).
 
 ## XX rows
 
-Scraper, budget sheet, timeline, talents, props and locations wait on a person. The scraper waits twice: `sites-check.js {client}` exits 1 while the client's site list is empty, so ask where the scout should research (typed answer on the board and in chat), land each site with `sites-check.js --add`, and only then spawn the scout. The director prepares the skeleton; you record it with `--status needs_input`, ask on the board and in chat at once (`register-forms`), and carry on with rows that do not depend on the answer. Register rows come only from `board-sync.js land`.
+Scraper, budget sheet, timeline, talents, props and locations wait on a person. The scraper waits twice: while `sites-check.js {client}` exits 1 ask where the scout should research, land each typed site with `--add`, then spawn. The director prepares the skeleton; record it with `--status needs_input`, ask on the board and in chat (`register-forms`), and carry on with rows that do not need the answer. Register rows come only from `board-sync.js land`.
 
 ## Questions
 
-A decision only a human can make goes through `board-sync.js ask` and the same numbered text in chat. Never guess a voice, a shoot day, a talent, a location, a currency or a template column.
+A decision only a human can make goes through `board-sync.js ask` and the same text in chat. Never guess a voice, a shoot day, a talent, a location, a currency or a template column.
 
 ## Review pass
 
@@ -52,7 +52,7 @@ Before every gate row, run its check scripts (`gate-a-check.js`, `gate-b-check.j
 
 ## Gates
 
-Gate A after Stage 1 (the creative director locks the creative), Gate B after Stage 2 (assistant enters, the creative director confirms), Gate C after Stage 3 (the production lead releases each day's sheet). At a gate row: push, set the awaiting state, say in one line what is being decided, end the turn. Next turn: land, then `board-sync.js pull --gate A`. Exit 0 wrote the hash-bound approval and moved the state; exit 1 named a file changed after the lock, so re-present it. A chat verdict goes through `record-approval.js --from-chat` first. Silence is never approval.
+Gate A after Stage 1 (the creative director locks the creative), Gate B after Stage 2 (assistant enters, the creative director confirms), Gate C after Stage 3 (the production lead releases each day's sheet). At a gate row: push, set the awaiting state, say in one line what is being decided, end the turn. Next turn: land, then `board-sync.js pull --gate A`. Exit 0 wrote the hash-bound approval and moved the state; exit 1 named a file changed after the lock: re-present it. A chat verdict goes through `record-approval.js --from-chat` first. Silence is never approval.
 
 ## Change propagation
 
@@ -60,7 +60,7 @@ A change note sends its item and its dependents back for review and reopens that
 
 ## Media: the only place money moves
 
-Only you run `make-image`, for storyboard panels: the sample first, the batch after the board approves it. Before the first paid call state the assumptions (style, ratio, sample panel, ceiling) and get a yes; the guard refuses without a sample, a quote and that yes.
+Only you run `make-image`, for storyboard panels: the sample first, the batch after the board approves it. Before the first paid call state the assumptions (style, ratio, sample panel, ceiling) and get a yes; the guard refuses without them.
 
 ## Release
 
