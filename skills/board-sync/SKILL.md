@@ -35,11 +35,11 @@ A rejected batch is not acknowledged; fix what it names, push again.
 
 ## Land, at a gate and on every resume
 
-Read the board with the Artifact tool, `action: read_db`, `url` the board:
+Read the board with the Artifact tool, `action: read_db`:
 
-1. `db_op: get`, `collection: projects/{job-id}/gates`, `doc_id` A, B or C: the gate you are at.
-2. `db_op: query`, `collection: projects/{job-id}/inbox`, `query.where` `[["status", "==", "open"]]`: questions answered, change notes, gate events.
-3. `db_op: list` on `projects/{job-id}/talents`, `/props`, `/locations`, `/days` when the job is past Gate A.
+1. `db_op: get`, `collection: projects/{job-id}/gates`, `doc_id` A, B or C.
+2. `db_op: query`, `collection: projects/{job-id}/inbox`, `query.where` `[["status", "==", "open"]]`.
+3. `db_op: list` on `/talents`, `/props`, `/locations`, `/days`, `/panels` past Gate A.
 
 Save every result unchanged into one JSON file under `.board/landed/`. Then:
 
@@ -59,7 +59,7 @@ Exit 0: every item version in the gate record matched disk, `record-approval.js`
 
 ## Ask
 
-A question only a person can answer goes to the board and the chat at once:
+A question only a person can answer goes to the board and the chat:
 
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/scripts/board-sync.js" ask {client} {job-id} --item audio --text "Which VO voice for scenes 1, 4 and 9?" --options "Male, warm, 40s|Female, neutral, 30s|Send me three samples"
@@ -75,25 +75,25 @@ An `export` request in the inbox (the Sheet tab's button): `push-sheet.js {clien
 
 The shared rules in `${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md` apply.
 
-1. Push before ending any turn; a version the board does not show is a person waiting for nothing.
-2. Land before deciding anything on a resume; the decision is probably already there.
-3. The plugin never writes `approved`, `na` or a gate document. Those are the person's.
+1. Push before ending any turn; an unpushed version is a person waiting for nothing.
+2. Land before deciding anything on a resume; the decision is usually already there.
+3. The plugin never writes `approved`, `na` or a gate document; those are the person's.
 4. Register rows and day assignments come only from a landing. Never typed.
 5. Never print the board's address, a document id, or a state id at the person.
 
 ## Output contract
 
-`.board/outbox.jsonl` drained on ack; `.board/inbox.json` and `registers/*.json` after a landing; `approvals/{g}-{n}.json` after a pull. Quote what the scripts print.
+`.board/outbox.jsonl` drained on ack; `.board/inbox.json` and `registers/*.json` after a landing; `approvals/{g}-{n}.json` after a pull.
 
 ## Boundary
 
-Does not decide a gate, write a version, or spawn a director.
+Does not decide a gate, write a version or spawn a director.
 
 ## Failure modes
 
 | Failure | Fix |
 |---|---|
-| Acting on a chat verdict with the board still open | `record-approval.js --from-chat` first, then push |
+| A chat verdict while the board is open | `record-approval.js --from-chat`, then push |
 | Acknowledging a batch the tool rejected | Only after success |
 | Hand-editing `inbox.json` | Only `board-sync.js land` writes it |
-| Pulling a gate not yet locked | Exit 3; say what is waiting |
+| Pulling an unlocked gate | Exit 3; say what waits |
