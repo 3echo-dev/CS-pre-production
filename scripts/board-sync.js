@@ -104,6 +104,12 @@ function toWrite(rec) {
       const data = { ...p }; delete data.key;
       return { op: 'set', collection: base + '/runs', doc_id: p.item + '-v' + p.version, data };
     }
+    case 'sheet': {
+      const data = { ...p }; delete data.key;
+      return { op: 'set', collection: base + '/sheets', doc_id: p.item, data };
+    }
+    case 'export-done':
+      return { op: 'update', collection: base + '/inbox', doc_id: p.id, data: { status: 'answered', answer: 'Excel written: ' + (p.driveCopy || p.exportPath), exportPath: p.exportPath, driveCopy: p.driveCopy || null, answeredBy: 'pipeline', answeredAt: at } };
     case 'panel': {
       const data = { ...p }; delete data.key; delete data.id;
       return { op: p.thumb ? 'update' : 'set', collection: base + '/panels', doc_id: p.id, data };
@@ -180,7 +186,7 @@ function land() {
   let got;
   try { got = readJson(path.resolve(file)); } catch (e) { console.error('cannot read ' + file + ': ' + e.message); process.exit(3); }
   const docs = Array.isArray(got) ? got : (Array.isArray(got.documents) ? got.documents : (Array.isArray(got.docs) ? got.docs : [got]));
-  const landed = { gates: {}, questions: [], answers: [], registers: {}, panels: {}, generate: [] };
+  const landed = { gates: {}, questions: [], answers: [], registers: {}, panels: {}, generate: [], exports: [] };
   const changed = [];
   for (const d of docs) {
     const id = d.id || d.doc_id || null;
@@ -191,9 +197,10 @@ function land() {
     } else if (/\/panels$/.test(coll) || (id && /^P\d{2,}$/i.test(id) && ('sample' in data || 'thumb' in data || data.approvedBy))) {
       const { thumb, ...rest } = data; landed.panels[id] = { ...rest, id };
       if (data.approvedBy) changed.push('panel ' + id + ' approved by ' + data.approvedBy);
-    } else if (/\/inbox$/.test(coll) || data.type === 'question' || data.type === 'change' || data.type === 'gate' || data.type === 'generate') {
+    } else if (/\/inbox$/.test(coll) || data.type === 'question' || data.type === 'change' || data.type === 'gate' || data.type === 'generate' || data.type === 'export') {
       const q = { ...data, id };
       if (q.type === 'generate') landed.generate.push(q);
+      if (q.type === 'export') landed.exports.push(q);
       landed.questions.push(q);
       if (q.status === 'answered') landed.answers.push(q);
       changed.push((q.type || 'inbox') + ' ' + id + ' ' + (q.status || ''));
@@ -216,6 +223,7 @@ function land() {
     answers: landed.answers.length ? landed.answers : (prev.answers || []),
     panels: { ...(prev.panels || {}), ...landed.panels },
     generate: landed.generate.length ? landed.generate : (prev.generate || []),
+    exports: landed.exports.length ? landed.exports : (prev.exports || []),
   });
   if (json) console.log(JSON.stringify({ project: jobId, landed: changed }, null, 2));
   else console.log(changed.length ? 'Landed: ' + changed.join('; ') + '.' : 'Nothing recognisable in ' + file + '.');

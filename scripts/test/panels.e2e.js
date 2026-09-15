@@ -101,6 +101,39 @@ try {
   assert.strictEqual(JSON.parse(r.stdout).allowed, 'batch', 'the preflight now allows the batch');
   console.log('ok   a sample approval and a generate request land, and pull --gate sample writes the approval the preflight reads');
 
+  // --- sheets: the client's format on the board and as Excel ------------------------
+  write('shot-list.csv', 'shot_id,label,scene,panel,est_duration_s,Scene,Shot,INT / EXT,N/D,Camera,Shot Size,Camera Movement,Camera Angle,Sound,Scene Description,Location,Cast,Notes\nS001,1-1,E01-S1,P01,9,E01-S1,1-1,EXT,Day,A Cam,EWS,Dolly In,Eye Level,Diegetic,Queue outside,THE OUTLET,Ezra,master\nS002,1-2,E01-S1,P02,6,E01-S1,1-2,EXT,Day,A Cam,CU,Static,Eye Level,Diegetic,Ezra looks,THE OUTLET,Ezra,\n');
+  const tpl = path.join(tmp, 'workspaces', 'htf', 'client', 'templates');
+  fs.mkdirSync(tpl, { recursive: true });
+  let py2 = spawnSync('python', ['-c', 'import openpyxl; wb=openpyxl.Workbook(); ws=wb.active; ws.append(["Scene","Shot","INT / EXT","N/D","Camera","Shot Size","Camera Movement","Camera Angle","Sound","Scene Description","Location","Cast","Notes"]); ws.append([None,None,"INT","Day","Drone"]); wb.save(r"' + path.join(tpl, 'shot-list.xlsx').replace(/\\/g, '\\\\') + '")'], { encoding: 'utf8' });
+  assert.strictEqual(py2.status, 0, "template fixture: " + py2.stderr);
+  r = run('push-sheet.js', ['htf', jobId, '--item', 'shot_list'], tmp);
+  assert.strictEqual(r.status, 0, 'push-sheet: ' + r.stdout + r.stderr);
+  assert.match(r.stdout, /2 rows, 13 columns in the client template/);
+  const xlsx = path.join(dir, 'exports', 'shot-list.xlsx');
+  assert.ok(fs.existsSync(xlsx), 'the Excel export exists');
+  py2 = spawnSync('python', ['-c', 'import openpyxl; ws=openpyxl.load_workbook(r"' + xlsx.replace(/\\/g, '\\\\') + '").active; print([c.value for c in ws[2]][:4], [c.value for c in ws[3]][12])'], { encoding: 'utf8' });
+  assert.match(py2.stdout, /\['E01-S1', '1-1', 'EXT', 'Day'\] unknown/, 'rows land under the client header and a blank becomes unknown: ' + py2.stdout + py2.stderr);
+  r = run('board-sync.js', ['push', 'htf', jobId, '--json'], tmp);
+  out = JSON.parse(r.stdout);
+  const sheet = [].concat(...out.batches).find(w => /\/sheets$/.test(w.collection));
+  assert.ok(sheet && sheet.op === 'set' && sheet.doc_id === 'shot_list', 'a sheet document is set');
+  assert.deepStrictEqual(sheet.data.columns.slice(0, 3), ['Scene', 'Shot', 'INT / EXT'], 'pipeline columns are not shown to the client');
+  assert.strictEqual(sheet.data.rows.length, 2);
+  assert.strictEqual(run('board-sync.js', ['push', 'htf', jobId, '--ack'], tmp).status, 0);
+  fs.writeFileSync(landing, JSON.stringify([{ id: 'x-1', collection: 'projects/' + jobId + '/inbox', data: { type: 'export', item: 'shot_list', status: 'open', from: 'creative-director', createdAt: '2026-09-15T05:00:00Z' } }]));
+  r = run('board-sync.js', ['land', 'htf', jobId, landing], tmp);
+  assert.match(r.stdout, /export x-1 open/);
+  r = run('push-sheet.js', ['htf', jobId, '--item', 'shot_list', '--request', 'x-1'], tmp);
+  assert.strictEqual(r.status, 0, r.stderr);
+  r = run('board-sync.js', ['push', 'htf', jobId, '--json'], tmp);
+  out = JSON.parse(r.stdout);
+  const done = [].concat(...out.batches).find(w => /\/inbox$/.test(w.collection) && w.doc_id === 'x-1');
+  assert.ok(done && done.op === 'update' && done.data.status === 'answered' && /shot-list.xlsx/.test(done.data.answer), 'the export request is answered with the file');
+  r = run('push-sheet.js', ['htf', jobId, '--item', 'timeline'], tmp);
+  assert.strictEqual(r.status, 1, 'no source is a 1');
+  console.log('ok   push-sheet exports the client format to Excel, shows it on the board, and answers an export request');
+
   console.log('panels verification passed');
 } finally {
   fs.rmSync(tmp, { recursive: true, force: true });

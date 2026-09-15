@@ -235,6 +235,7 @@ All dependency-free Node or Python with Pillow. No `package.json`.
 | Board | `lib-board` · `board-sync` · `record-version` · `record-run` · `pane` · `pane-file` |
 | Before spending | `check-3echo` · `preflight-generation` · `preflight-media` |
 | Media | `save-asset-bytes` · `contact-sheet` · `watch-video` |
+| Sheets | `push-sheet` · `sheet-export.py`: the client's columns on the board and as Excel |
 | Checks | `sites-check` · `shot-list-check` · `gate-a-check` · `gate-b-check` · `breakdown-check` · `call-sheet-check` |
 | Recovery and output | `collect-artifacts` · `build-release` |
 | Environment | `check-deps` · `note-failure` · `hooks/heartbeat` · `hooks/turn` |
