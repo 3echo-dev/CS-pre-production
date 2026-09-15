@@ -18,7 +18,7 @@
   "scope": { "maxSpendCredits": null },
   "supersedes": null,
   "_enums": {
-    "gate": ["A", "B", "C"],
+    "gate": ["A", "B", "C", "sample"],
     "decision": ["approved", "changes_requested", "rejected"],
     "channel": ["board", "chat", "file"],
     "day": "Gate C only: the shoot day this approval releases; one record per day sheet",

@@ -9,7 +9,7 @@
     "jobId": { "type": "string" },
     "brand": { "type": "string" },
     "client": { "type": "string" },
-    "gate": { "enum": ["A", "B", "C"] },
+    "gate": { "enum": ["A", "B", "C", "sample"] },
     "round": { "type": "integer", "minimum": 1 },
     "decision": { "enum": ["approved", "changes_requested", "rejected"] },
     "edited": { "type": "boolean" },

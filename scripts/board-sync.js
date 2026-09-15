@@ -35,7 +35,7 @@ const rest = argv.slice(argv.indexOf(cmd) + 1);
 const json = argv.includes('--json');
 const opt = name => { const i = argv.indexOf(name); return i >= 0 && argv[i + 1] ? argv[i + 1] : null; };
 const usage = () => {
-  console.error('usage: board-sync.js open|push|land|pull|ask <client> <job-id> [args] [--json] [--ack] [--gate A|B|C] [--item X --text "..." --options "a|b|c"]');
+  console.error('usage: board-sync.js open|push|land|pull|ask <client> <job-id> [args] [--json] [--ack] [--gate A|B|C|sample] [--item X --text "..." --options "a|b|c"]');
   process.exit(2);
 };
 if (!['open', 'push', 'land', 'pull', 'ask'].includes(cmd)) usage();
@@ -103,6 +103,10 @@ function toWrite(rec) {
     case 'run': {
       const data = { ...p }; delete data.key;
       return { op: 'set', collection: base + '/runs', doc_id: p.item + '-v' + p.version, data };
+    }
+    case 'panel': {
+      const data = { ...p }; delete data.key; delete data.id;
+      return { op: p.thumb ? 'update' : 'set', collection: base + '/panels', doc_id: p.id, data };
     }
     case 'question':
       return { op: 'set', collection: base + '/inbox', doc_id: p.id || ('q-' + Date.parse(at).toString(36)),
@@ -176,7 +180,7 @@ function land() {
   let got;
   try { got = readJson(path.resolve(file)); } catch (e) { console.error('cannot read ' + file + ': ' + e.message); process.exit(3); }
   const docs = Array.isArray(got) ? got : (Array.isArray(got.documents) ? got.documents : (Array.isArray(got.docs) ? got.docs : [got]));
-  const landed = { gates: {}, questions: [], answers: [], registers: {} };
+  const landed = { gates: {}, questions: [], answers: [], registers: {}, panels: {}, generate: [] };
   const changed = [];
   for (const d of docs) {
     const id = d.id || d.doc_id || null;
@@ -184,8 +188,12 @@ function land() {
     const coll = String(d.collection || got.collection || '');
     if (/\/gates$/.test(coll) || (id && /^[ABC]$/.test(id) && data.status)) {
       landed.gates[id] = { ...data, id }; changed.push('gate ' + id + ' ' + data.status);
-    } else if (/\/inbox$/.test(coll) || data.type === 'question' || data.type === 'change' || data.type === 'gate') {
+    } else if (/\/panels$/.test(coll) || (id && /^P\d{2,}$/i.test(id) && ('sample' in data || 'thumb' in data || data.approvedBy))) {
+      const { thumb, ...rest } = data; landed.panels[id] = { ...rest, id };
+      if (data.approvedBy) changed.push('panel ' + id + ' approved by ' + data.approvedBy);
+    } else if (/\/inbox$/.test(coll) || data.type === 'question' || data.type === 'change' || data.type === 'gate' || data.type === 'generate') {
       const q = { ...data, id };
+      if (q.type === 'generate') landed.generate.push(q);
       landed.questions.push(q);
       if (q.status === 'answered') landed.answers.push(q);
       changed.push((q.type || 'inbox') + ' ' + id + ' ' + (q.status || ''));
@@ -206,6 +214,8 @@ function land() {
     gates: { ...(prev.gates || {}), ...landed.gates },
     questions: landed.questions.length ? landed.questions : (prev.questions || []),
     answers: landed.answers.length ? landed.answers : (prev.answers || []),
+    panels: { ...(prev.panels || {}), ...landed.panels },
+    generate: landed.generate.length ? landed.generate : (prev.generate || []),
   });
   if (json) console.log(JSON.stringify({ project: jobId, landed: changed }, null, 2));
   else console.log(changed.length ? 'Landed: ' + changed.join('; ') + '.' : 'Nothing recognisable in ' + file + '.');
@@ -232,8 +242,35 @@ async function ask() {
 const GATE_ITEMS = { A: ['script', 'storyboard', 'shot_list', 'budget_sheet', 'timeline', 'scraper'], B: ['audio', 'talents', 'props', 'locations'], C: ['concept_breakdown', 'call_sheet'] };
 const NA_ALLOWED = new Set(['talents', 'props', 'locations']);
 
+function pullSample() {
+  const got = board.landed(jobId, argv) || {};
+  const panels = got.panels || {};
+  const sample = Object.values(panels).find(p => p.sample === true) || null;
+  if (!sample) { console.error('No sample panel landed. Read projects/' + jobId + '/panels from the board and land it first.'); process.exit(3); }
+  if (!sample.approvedBy) { console.error('Sample ' + sample.id + ' is on the board but nobody has approved it yet.'); process.exit(1); }
+  const open = (got.generate || []).find(g => g.status === 'open' && g.scope === 'batch');
+  let max = open ? Number(open.credits) : null;
+  if (!Number.isInteger(max)) {
+    try {
+      const vdir = fs.readdirSync(path.join(dir, 'storyboard')).filter(f => /^v\d+$/.test(f)).sort().pop();
+      const m = readJson(path.join(dir, 'storyboard', vdir, 'generation-manifest.json'));
+      max = (m.items || []).filter(it => (it.kind || 'image') === 'image' && String(it.panel).toUpperCase() !== String(sample.id).toUpperCase()).length;
+    } catch { max = 0; }
+  }
+  const file = sample.file || null;
+  const args = [path.join(__dirname, 'record-approval.js'), client, jobId, 'sample', 'approve', '--by', sample.approvedBy, '--channel', 'board', '--max-credits', String(max)]
+    .concat(sample.approvedAt ? ['--decided-at', String(sample.approvedAt)] : [])
+    .concat(argv.includes('--root') ? ['--root', argv[argv.indexOf('--root') + 1]] : [])
+    .concat(file && fs.existsSync(path.join(dir, file)) ? [file] : []);
+  const r = spawnSync(process.execPath, args, { encoding: 'utf8' });
+  process.stdout.write(r.stdout || '');
+  if (r.status !== 0) { process.stderr.write(r.stderr || ''); process.exit(r.status || 1); }
+  console.log('Sample ' + sample.id + ' landed as an approval; the batch may spend up to ' + max + ' credits.');
+}
+
 function pull() {
   const gate = opt('--gate');
+  if (gate === 'sample') return pullSample();
   if (!gate || !GATE_ITEMS[gate]) usage();
   const got = board.landed(jobId, argv);
   const rec = got && got.gates ? got.gates[gate] : null;
