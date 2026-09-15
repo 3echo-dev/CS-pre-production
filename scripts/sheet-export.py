@@ -65,7 +65,9 @@ used_template = False
 if src.endswith('.xlsx'):
     shutil.copyfile(src, out)
     grid = grid_of_xlsx(out)
-    columns, rows = (grid[0], grid[1:]) if grid else ([], [])
+    # A client sheet often opens with a title block; the header is the first row with five or more filled cells.
+    hi = next((i for i, r in enumerate(grid) if sum(1 for v in r if v.strip()) >= 5), 0)
+    columns, rows = (grid[hi], grid[hi + 1:]) if grid else ([], [])
 else:
     header, data = read_csv(src)
     keep = [i for i, h in enumerate(header) if h not in PIPELINE_COLS] if a.item == 'shot_list' and any(h in PIPELINE_COLS for h in header) else list(range(len(header)))

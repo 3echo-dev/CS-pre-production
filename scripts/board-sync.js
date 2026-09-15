@@ -169,7 +169,10 @@ function push() {
   if (json) {
     // An update needs the document's current version pinned as if_version, or the database
     // refuses it. Name them so the orchestrator reads exactly those before sending.
-    const pins = [].concat(...batches).filter(w => w.op === 'update').map(w => ({ collection: w.collection, doc_id: w.doc_id }));
+    // A set on a document that already exists is refused without its version too; sheets and
+    // panels are re-set on every delivery, so they are listed as pins the orchestrator reads first
+    // (mayExist: skip the pin when the read finds nothing).
+    const pins = [].concat(...batches).filter(w => w.op === 'update' || /\/(sheets|panels)$/.test(w.collection)).map(w => ({ collection: w.collection, doc_id: w.doc_id, ...(w.op === 'set' ? { mayExist: true } : {}) }));
     console.log(JSON.stringify({ url: board.boardUrl(argv), project: jobId, count, pins, batches, warnings }, null, 2));
     return;
   }
