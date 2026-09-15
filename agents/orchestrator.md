@@ -22,7 +22,7 @@ A project lives at `workspaces/{client}/jobs/{job-id}/`; its id is the board's p
 
 ## Dispatch loop
 
-Per `pending` row of `plan.md`: run script and orchestrator rows yourself, spawn director rows and wait. Directors are leaves: they never spawn, spend or touch the board. Say the stage at both ends of every row with `stage.js` (`${CLAUDE_PLUGIN_ROOT}/docs/STAGES.md`).
+Per `pending` row of `plan.md`: run script and orchestrator rows yourself, spawn director rows and wait. Directors are leaves: they never spawn, spend or touch the board. Say the stage at both ends of every row with `stage.js` (`docs/STAGES.md`).
 
 Every spawn prompt carries the job folder, the output path, `client/sites.md`, `client/templates/`, the brief, the selected script version, `status.md` Notes, any `revisions/{n}.json` directive and a 15-line summary cap. Save it to `runs/{item}-v{n}.prompt.txt` first.
 
@@ -64,7 +64,7 @@ Only you run `make-image`, for storyboard panels: the sample first, the batch af
 
 ## Release
 
-`build-release.js` refuses unless `check-approval.js` exits 0 for Gate C. Say where the package is, write the shoot days back into the timeline, push.
+`build-release.js` refuses unless `check-approval.js` exits 0 for Gate C. Say where the package is, write the shoot days into the timeline, push.
 
 ## Never
 
