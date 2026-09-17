@@ -16,7 +16,9 @@ const fs = require('fs');
 const path = require('path');
 const ws = require('./lib-workspace.js');
 
-const DEFAULT_BOARD_URL = 'https://claude.ai/code/artifact/1e397118-2454-4b0d-9368-5ded7931e197';
+// There is no default board. Each account publishes its own copy of board/1-22-control.html
+// (the board-setup skill) and records it with set-board.js; a private artifact of one account
+// is unreachable from another, so a baked-in address would only ever work for its author.
 
 function boardDir(argv) { return path.join(ws.root(argv), '.board'); }
 
@@ -36,7 +38,7 @@ function boardUrl(argv) {
     const cfg = JSON.parse(fs.readFileSync(path.join(ws.root(argv), ws.CONFIG_DIR, ws.CONFIG_FILE), 'utf8'));
     if (cfg && cfg.boardUrl) return cfg.boardUrl;
   } catch { /* no config is fine */ }
-  return DEFAULT_BOARD_URL;
+  return null;
 }
 
 // A project's board id is its job id: the same key the pane, the inbox and the events use.
@@ -68,7 +70,9 @@ async function call(kind, payload, opts = {}) {
   if (name === 'url') {
     // The page for a key. `home` is the slate; a job id is that project's board.
     const key = payload && payload.key ? projectIdOf(payload.key) : 'home';
-    const url = boardUrl(argv) + (key === 'home' ? '#/' : '#/p/' + encodeURIComponent(key));
+    const base = boardUrl(argv);
+    if (!base) return { offline: true, workspaceUrl: null, key, reason: 'no board set: run the board-setup skill' };
+    const url = base + (key === 'home' ? '#/' : '#/p/' + encodeURIComponent(key));
     return { workspaceUrl: url, key };
   }
   if (name === 'answer') {
@@ -110,4 +114,4 @@ function land(argv, key, data) {
   return all[projectIdOf(key)];
 }
 
-module.exports = { call, configured, boardUrl, boardDir, outboxPath, inboxPath, drain, clear, land, landed, projectIdOf, DEFAULT_BOARD_URL };
+module.exports = { call, configured, boardUrl, boardDir, outboxPath, inboxPath, drain, clear, land, landed, projectIdOf };

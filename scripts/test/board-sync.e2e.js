@@ -9,6 +9,8 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
+// No board is baked into the plugin any more: a test root names one the way a workspace would.
+process.env.CREATIVE_STUDIO_BOARD_URL = process.env.CREATIVE_STUDIO_BOARD_URL || 'https://claude.ai/code/artifact/00000000-0000-4000-8000-000000000000';
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const S = n => path.join(ROOT, 'scripts', n);

@@ -111,6 +111,7 @@ Claude invokes these itself. Four are for you.
 | `/review` | Landing a gate decision, or recording one typed in chat |
 | `project-intake` | The folder into `job.json`; four questions, once |
 | `drive-pull` | Copying the named folder into `inputs/`, never searching for it |
+| `/board-setup` | Publishing this account's own copy of the board page (`board/1-22-control.html`) once, and recording its address |
 | `board-sync` | Pushing the outbox to the board; landing gates, answers and registers back |
 | `register-forms` | How an XX item is asked for and landed; unknown versus not applicable |
 | `client-skill-wrap` | How a director uses one of the client's skills without copying it |

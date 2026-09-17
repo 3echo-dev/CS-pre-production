@@ -12,6 +12,17 @@
       "description": "Entry point: what is in progress, open the board, then new project, resume, or onboard a client."
     },
     {
+      "skillId": "board-setup",
+      "risk": "generation",
+      "userInvocable": true,
+      "preloadedBy": [],
+      "invokedBy": [
+        "user",
+        "orchestrator"
+      ],
+      "description": "Publishes this account's own copy of the 1-22 Control board page from board/1-22-control.html (capabilities db and artifact) and records its address with set-board.js. Once per account or workspace."
+    },
+    {
       "skillId": "new-project",
       "risk": "read_only",
       "userInvocable": true,

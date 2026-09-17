@@ -26,6 +26,8 @@ One row per project, in plain words. Never ask a question this answers.
 
 ### 2. Open the board
 
+First time on this account: `set-board.js --show` exits 3 when no board is set; run the `board-setup` skill once (it publishes the board page that ships with the plugin and records the address), then continue.
+
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/scripts/pane.js" "home" "1-22"
 ```

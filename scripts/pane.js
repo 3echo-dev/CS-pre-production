@@ -17,7 +17,7 @@ if (!key) {
   process.exit(2);
 }
 
-const OFFLINE = 'The board address is not set. Set boardUrl in the workspace config or CREATIVE_STUDIO_BOARD_URL.';
+const OFFLINE = 'No board is set for this workspace yet. Run the board-setup skill once: it publishes the board page that ships with the plugin and records its address.';
 
 (async () => {
   const res = await gate.call('url', { key, ...(title ? { title } : {}) }, { argv });
