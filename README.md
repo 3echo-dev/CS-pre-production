@@ -1,4 +1,4 @@
-# Creative Studio Pipeline
+# CS Pre-production
 
 A Claude Code plugin that takes a client's folder, a path on this computer or a Google Drive link, with the brief, the concept deck and the
 client assets, and gives back a concept breakdown and one call sheet per shoot day, in the client's
@@ -178,17 +178,17 @@ board; `preflight-media.js` confirms one asset reaches disk.
 ### 1. Add the plugin
 
 ```bash
-/plugin marketplace add 3echo-dev/creative-studio-pipeline
+/plugin marketplace add 3echo-dev/cs-pre-production
 ```
 
 ```bash
-/plugin install creative-studio-pipeline@3echo
+/plugin install cs-pre-production@3echo
 ```
 
 Or try it without installing:
 
 ```bash
-claude --plugin-dir ./creative-studio-pipeline
+claude --plugin-dir ./cs-pre-production
 ```
 
 ### 2. Dependencies

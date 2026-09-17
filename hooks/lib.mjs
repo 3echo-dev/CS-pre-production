@@ -8,7 +8,7 @@
 
 // ---------------------------------------------------------------------------------------
 // The spend guard's vocabulary. Only the suffix of an MCP tool name is stable: the server is
-// `plugin_creative-studio-pipeline_3echo` under this plugin and a bare id under a Desktop connector.
+// `plugin_cs-pre-production_3echo` under this plugin and a bare id under a Desktop connector.
 // ---------------------------------------------------------------------------------------
 /** The one tool 1-22 may spend credits through: a storyboard panel is an image job. */
 export const SPENDER = /__create_image_job$/;
@@ -160,4 +160,4 @@ export function classifyVerdict(text) {
   return SYNONYMS[said] || SYNONYMS[joined] || SYNONYMS[first] || null;
 }
 
-export const PLUGIN_NAME = 'Creative Studio Pipeline';
+export const PLUGIN_NAME = 'CS Pre-production';

@@ -87,14 +87,14 @@ if (json) {
   console.log(JSON.stringify({
     brand, job: jobId || null,
     from: ws.fwd(ws.brandsDir()),
-    to: 'creative-studio-pipeline/workspaces',
+    to: 'cs-pre-production/workspaces',
     count: changed.length, bytes: totalBytes, files: changed,
   }, null, 2));
   process.exit(changed.length ? 1 : 0);
 }
 
 if (!changed.length) { console.log('Nothing new to save.'); process.exit(0); }
-console.log(changed.length + ' file(s) to copy into the connected folder, under creative-studio-pipeline/workspaces/:');
+console.log(changed.length + ' file(s) to copy into the connected folder, under cs-pre-production/workspaces/:');
 for (const c of changed) console.log('  ' + c.path + (c.binary ? '  (binary, ' + Math.round(c.bytes / 1024) + 'KB)' : ''));
 console.log('');
 console.log('Copy them, then run this again with --mark.');

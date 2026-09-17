@@ -6,11 +6,11 @@
   },
   "plugins": [
     {
-      "name": "creative-studio-pipeline",
-      "displayName": "Creative Studio Pipeline",
+      "name": "cs-pre-production",
+      "displayName": "CS Pre-production",
       "source": "./",
       "description": "Drive folder in, call sheets out. the studio's pre-production pipeline: ten director agents, six XX items a human fills, three gates decided on the 1-22 Control board.",
-      "version": "0.1.3",
+      "version": "0.1.4",
       "author": {
         "name": "3echo"
       }

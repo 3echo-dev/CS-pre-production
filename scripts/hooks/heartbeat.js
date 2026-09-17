@@ -77,7 +77,7 @@ const SAID = {
 // vocabulary is already the vocabulary the pane uses, so nothing new can leak through it.
 const specialist = (name) => {
   const role = require('../lib-roles.js').roleOf(
-    String(name || '').replace(/^creative-studio-pipeline:/, '').trim(),
+    String(name || '').replace(/^cs-pre-production:/, '').trim(),
   );
   return role ? 'Handing work to the ' + role.label.toLowerCase() : null;
 };

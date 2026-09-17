@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// The plugin is creative-studio-pipeline and nothing in it still points at the social pipeline's root
+// The plugin is cs-pre-production and nothing in it still points at the social pipeline's root
 // variable, config dir or manifest names. A leftover SOCIAL_PIPELINE_ROOT would send a run's
 // work to a folder nobody is watching.
 const assert = require('assert');
@@ -10,10 +10,10 @@ const ROOT = path.resolve(__dirname, '..', '..');
 const readJson = f => JSON.parse(fs.readFileSync(path.join(ROOT, f), 'utf8'));
 
 const plugin = readJson('.claude-plugin/plugin.json');
-assert.strictEqual(plugin.name, 'creative-studio-pipeline', 'plugin.json name');
-assert.strictEqual(plugin.displayName, 'Creative Studio Pipeline', 'displayName');
+assert.strictEqual(plugin.name, 'cs-pre-production', 'plugin.json name');
+assert.strictEqual(plugin.displayName, 'CS Pre-production', 'displayName');
 const market = readJson('.claude-plugin/marketplace.json');
-assert.ok(market.plugins.some(p => p.name === 'creative-studio-pipeline'), 'marketplace lists creative-studio-pipeline');
+assert.ok(market.plugins.some(p => p.name === 'cs-pre-production'), 'marketplace lists cs-pre-production');
 assert.ok(!market.plugins.some(p => p.name === 'social-pipeline'), 'marketplace no longer lists social-pipeline');
 
 const ws = require('../lib-workspace.js');
@@ -47,5 +47,5 @@ fs.writeFileSync(probe, '// SOCIAL_PIPELINE_ROOT\n');
 assert.ok(BAD[0].test(fs.readFileSync(probe, 'utf8')), 'control: the pattern is detectable');
 fs.rmSync(path.dirname(probe), { recursive: true, force: true });
 
-console.log('ok   plugin identity is creative-studio-pipeline and no social root or config dir remains');
+console.log('ok   plugin identity is cs-pre-production and no social root or config dir remains');
 console.log('identity verification passed');

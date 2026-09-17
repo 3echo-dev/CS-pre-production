@@ -1,7 +1,7 @@
 ---
 name: 1-22
 description: >
-  Entry point for Creative Studio Pipeline pre-production. Reads what is already in progress, opens the
+  Entry point for CS Pre-production pre-production. Reads what is already in progress, opens the
   board, then asks whether to start a new project, resume one, or onboard a client, and routes
   accordingly. Use when the user types /1-22 or says any of "start 1-22", "run pre-production",
   "new project", "call sheets for", "where is the HTF job", or asks what this plugin does.
