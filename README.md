@@ -1,6 +1,6 @@
 # Creative Studio Pipeline
 
-A Claude Code plugin that takes a client's Drive folder, the brief, the concept deck and the
+A Claude Code plugin that takes a client's folder, a path on this computer or a Google Drive link, with the brief, the concept deck and the
 client assets, and gives back a concept breakdown and one call sheet per shoot day, in the client's
 own templates.
 
@@ -20,11 +20,11 @@ A Drive folder becomes a typed project. A script routes it. An orchestrator walk
 table, spawning ten directors that wrap the client's skills. Every gate is decided on the board.
 
 ```
-      Drive folder: Brief / Concept / Client Assets
+      Folder (local path or Drive link): Brief / Concept / Client Assets
                      |
                      v
        +-----------------------------+
-       |  OPEN  ·  drive-pull        |  copied as is, manifest written
+       |  OPEN  ·  drive-pull        |  copied or fetched as is, manifest written
        |  project-intake  job.json   |  four questions, in one batch
        +--------------+--------------+
                       v

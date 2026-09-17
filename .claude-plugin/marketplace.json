@@ -10,7 +10,7 @@
       "displayName": "Creative Studio Pipeline",
       "source": "./",
       "description": "Drive folder in, call sheets out. the studio's pre-production pipeline: ten director agents, six XX items a human fills, three gates decided on the 1-22 Control board.",
-      "version": "0.1.2",
+      "version": "0.1.3",
       "author": {
         "name": "3echo"
       }

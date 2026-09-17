@@ -44,7 +44,8 @@
     },
     "driveFolder": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "description": "Where the inputs came from: a folder path on this computer or a Google Drive folder link, as drive-pull recorded it in manifest.source"
     },
     "scriptFormat": {
       "enum": [

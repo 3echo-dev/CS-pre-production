@@ -5,24 +5,24 @@ description: >
   folder, runs intake, routes and plans, opens the project on the board, and runs Stage 1 to
   Gate A, then stops. Use for "new project", "start the HTF job", "pre-production for", or any
   fresh brief that arrives as a Drive folder.
-argument-hint: "[client] and the Drive folder"
+argument-hint: "[client] and the folder: a path on this computer or a Google Drive link"
 metadata:
   version: 0.1.0
 ---
 
 # Start a new project
 
-**Purpose:** turn a Drive folder into a routed, planned project and get it to Gate A without asking twice.
+**Purpose:** turn the client's folder, local path or Drive link, into a routed, planned project and get it to Gate A without asking twice.
 
 ## Read the request
 
-The whole message arrives as `$ARGUMENTS`. The client is the first word matching a folder under the workspace root (`list-jobs.js --json` lists them), case-insensitively. The rest names the Drive folder. Never guess a client not on disk: it silently starts a second workspace.
+The whole message arrives as `$ARGUMENTS`. The client is the first word matching a folder under the workspace root (`list-jobs.js --json` lists them), case-insensitively. The rest names the folder: a path on this computer or a Google Drive folder link, either works. Never guess a client not on disk: it silently starts a second workspace.
 
 ## Steps
 
 1. **Resolve the client.** None named: list the folders under `workspaces/` and ask which. None exist: onboard first (the `1-22` skill says how).
 
-2. **Get the folder.** Usually the message names it. If not, ask for the Drive folder path, on the board and in chat. Check `<root>/inputs/{client}/` silently first: a folder already pulled is not pulled again.
+2. **Get the folder.** Usually the message names it. If not, ask on the board and in chat: "Where is the folder with the brief, concept and client assets? A path on this computer or a Google Drive folder link, either works." A link needs the Google Drive connector; without it, ask for the synced folder's path. Check `<root>/inputs/{client}/` silently first: a folder already pulled is not pulled again.
 
 3. **Derive a slug**, lowercase and hyphenated, three words at most:
 
@@ -34,7 +34,7 @@ The whole message arrives as `$ARGUMENTS`. The client is the first word matching
 
    The job id is known now and it is the board's project id. Open its page at once: `pane.js "{job-id}" "{title}"` (`${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md`); never print the web address. The title is the client and the film in plain words, "HTF, Night Shift".
 
-4. **Pull the folder** with `drive-pull` into `inputs/{client}/{job-id}/`. Nothing else reads Drive.
+4. **Pull the folder** with `drive-pull` into `inputs/{client}/{job-id}/`; for a link, the connector steps it lists. Nothing else reads Drive.
 
 5. **Run `project-intake`.** It writes `job.json`, asks the blocking questions once in one batch, runs the router and the planner, and owns what happens when the router cannot route.
 

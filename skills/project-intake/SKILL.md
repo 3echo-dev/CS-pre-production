@@ -22,7 +22,7 @@ user-invocable: false
 
 ## Steps
 
-1. Fill what the folder answers without asking: `driveFolder`, `inputs.brief`, `inputs.concept`, `inputs.assets` from the manifest; `client`, `title`, `approvers` from the workspace.
+1. Fill what the folder answers without asking: `driveFolder` (the manifest's `source`: a path or a Drive link, whichever came in), `inputs.brief`, `inputs.concept`, `inputs.assets` from the manifest; `client`, `title`, `approvers` from the workspace.
 2. Read the brief and concept file names and first pages for anything that states the format, the style, a trailer or shoot days. Quote it in the field's `_source` note; never infer from tone.
 3. Ask the blocking questions in one batch, at most four, on the board and in chat at once (`${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md`): script format (screenplay or AV script), storyboard style (sketches, live pictures, cartoon animation), trailer (yes or no), shoot days (a number or not decided yet). Options first, recommended first, a real "not decided yet" on shoot days.
 4. Write `job.json`. `shootDays` stays `null` until answered; every other field is required.

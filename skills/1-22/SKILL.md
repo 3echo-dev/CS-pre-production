@@ -34,7 +34,7 @@ Then `ToolSearch` for `select:mcp__Claude_Browser__preview_start`. If it exists,
 
 ### 3. Say what this is, in one line
 
-> Drive folder in, call sheets out. You decide at three gates on the board, and you fill in what only you know.
+> Your folder in, a path on this computer or a Google Drive link, call sheets out. You decide at three gates on the board, and you fill in what only you know.
 
 Only for someone with no clients yet. With a project on disk, show what `list-jobs.js` printed, in its words.
 
