@@ -18,7 +18,7 @@ const HOST = 'claude.ai/code/artifact';
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pane-file-'));
 fs.mkdirSync(path.join(tmp, 'workspaces'), { recursive: true });
 
-const url = 'https://' + HOST + '/1e397118-0000#/p/job-20260913-1030-night-shift';
+const url = 'https://' + HOST + '/00000000-0000#/p/job-20260913-1030-night-shift';
 const run = spawnSync(process.execPath, [SCRIPT, 'job-20260913-1030-night-shift', url, '--root', tmp], {
   encoding: 'utf8',
 });

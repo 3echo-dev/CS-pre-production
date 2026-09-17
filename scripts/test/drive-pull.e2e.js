@@ -39,12 +39,12 @@ r = run(client, jobId, src);
 assert.strictEqual(r.status, 3, 'a pulled job refuses a second pull');
 
 // 3. Drive route: the link's id is parsed, a plan is written, exit 4 tells the session to fetch.
-const link = 'https://drive.google.com/drive/u/0/folders/1YL-pfn7KbJesr4M2Ps9FSyENuLXkx-Wh?usp=sharing';
+const link = 'https://drive.google.com/drive/u/0/folders/1AbCdEfGhIjKlMnOpQrStUvWxYz0123456?usp=sharing';
 r = run(client, jobId, link, '--again');
 assert.strictEqual(r.status, 4, 'drive route exits 4: ' + r.stderr + r.stdout);
 const dest = path.join(inputs, 'pull-2');
 const plan = JSON.parse(fs.readFileSync(path.join(dest, 'pull-plan.json'), 'utf8'));
-assert.strictEqual(plan.folderId, '1YL-pfn7KbJesr4M2Ps9FSyENuLXkx-Wh');
+assert.strictEqual(plan.folderId, '1AbCdEfGhIjKlMnOpQrStUvWxYz0123456');
 assert.strictEqual(plan.status, 'staging');
 assert.ok(plan.exportAs['application/vnd.google-apps.document'].ext === '.docx', 'Google Docs export as docx');
 
