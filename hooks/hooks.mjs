@@ -46,6 +46,24 @@ export const register = (on) => {
     const tool = String(e.tool || '');
     const args = /** @type {Record<string, any>} */ (/** @type {unknown} */ (e));
 
+    // This plugin's refusals apply only where this plugin has work: a folder that is a 1-22
+    // root. The switch that loads function hooks is the folder's, not the plugin's, so
+    // onboarding one plugin arms every plugin installed there; on the first test run another
+    // plugin's guard refused every panel and every write over a folder it had no job in. So
+    // anywhere that is not a 1-22 root, every call passes through here untouched. The one rule
+    // that holds everywhere is that the plugin's own folder is read-only.
+    let ours = false;
+    try { const c = await context($); ours = Boolean(c && c.pipeline); } catch { ours = false; }
+    if (!ours) {
+      if (lib.WRITE_TOOLS.includes(tool)) {
+        try {
+          const verdict = lib.classifyWrite(lib.writeTarget(args), null, $.plugin.root);
+          if (verdict.action === 'deny') return { deny: verdict.reason };
+        } catch { /* allowed */ }
+      }
+      return next(e);
+    }
+
     // ---------------------------------------------------------------------------------
     // The spend guard. A generation call is refused unless the open project's plan passed
     // the pre-spend gate, the key names a panel that plan covers, the sample came first,

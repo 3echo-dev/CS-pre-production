@@ -38,7 +38,7 @@ The template (the client), any register value (the board), shot ids (`shot-list-
 
 ## Procedure
 
-1. Confirm `client/templates/breakdown.xlsx` exists. Read its header row and record the exact column order, including the two client-input columns that carry the same label; they are two columns, in template order, never merged.
+1. Confirm `client/templates/breakdown.xlsx` exists. Its header row is the one `template-check.js` reports for it, not necessarily row 1 (one client's has a stray number on row 1 and band labels on row 2). Record the exact column order; client-input columns, one or several, with or without a shared label, stay separate columns in template order, never merged on the label.
 2. One breakdown row per shot-list row, in shot-list order. Fill: scene and shot label, visuals from the panel's frame, description from the panel and script, lyrics or audio from `audio.md`, location from the locations register, specifics and requests from the props register with source text preserved, talents and wardrobe from the talents register, remarks from the shot list notes. Selected references go in the reference cell by number.
 3. A value the register has as `unknown` is written `unknown`; `not applicable` is written as the template's own N/A mark; a blank is never written.
 4. A row that continues across a page break in the template is one shot, once. Never a second row for the continuation.

@@ -130,7 +130,7 @@ Copy the numbered text it prints into your next message, unchanged, then push. A
 
 ## The chat and the board are one place
 
-Every question and every gate is shown in both places, and the person may answer or decide in either. Record a typed answer or verdict first, then act on it, so the board closes that step instead of going on asking: an answer with the next push as an answered inbox row; a verdict with `record-approval.js --from-chat`. Never act on something typed in chat and leave the board still asking for it.
+Every question and every gate is shown in both places, and the person may answer or decide in either. Record a typed answer or verdict first, then act on it, so the board closes that step instead of going on asking: an answer with `board-sync.js answer {client} {job-id} --id {inbox id} --text "{their words}"` and the next push; a verdict with `record-approval.js --from-chat`. A landing closes on its own the gate row a decided gate was asking about and the generate row whose panels are drawn. Never act on something typed in chat and leave the board still asking for it.
 
 ## Landing what the board decided
 

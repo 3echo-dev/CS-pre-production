@@ -93,7 +93,9 @@ try {
   const record = { collection: 'projects/' + jobId + '/gates', id: 'A', data: { status: 'passed', decidedBy: 'creative-director', decidedAt: '2026-09-13 18:00 +08:00',
     items: { script: { status: 'approved', version: 1 }, storyboard: { status: 'approved', version: 1 }, shot_list: { status: 'approved', version: 1 },
       budget_sheet: { status: 'approved', version: 1 }, timeline: { status: 'approved', version: 1 }, scraper: { status: 'approved', version: 1 } } } };
-  fs.writeFileSync(path.join(tmp, 'gate-a.json'), JSON.stringify(record));
+  // The board also holds the open row that asked for this gate, and a question answered in chat.
+  const askedGate = { collection: 'projects/' + jobId + '/inbox', id: 'g-open', data: { type: 'gate', gate: 'A', text: 'Gate A Creative passed by creative-director', status: 'open', createdAt: '2026-09-13T10:00:00Z' } };
+  fs.writeFileSync(path.join(tmp, 'gate-a.json'), JSON.stringify([record, askedGate]));
   // Move the job to the gate first, so the approval's state move is legal.
   for (const st of ['PLANNED', 'BRIEF_READY', 'REFERENCES_READY', 'SCRIPT_DRAFTED', 'STORYBOARD_DRAFTED', 'SHOT_LIST_DRAFTED', 'PLANNING_DRAFTED', 'AWAITING_GATE_A']) {
     const m = run('set-state.js', ['htf', jobId, st, '--by', 'test'], tmp);
@@ -102,6 +104,16 @@ try {
   r = run('board-sync.js', ['land', 'htf', jobId, path.join(tmp, 'gate-a.json')], tmp);
   assert.strictEqual(r.status, 0, r.stderr);
   assert.match(r.stdout, /gate A passed/);
+  assert.match(r.stdout, /closed gate g-open \(Gate A was decided on the board\)/, 'landing the decision closes the row that asked for it');
+  r = run('board-sync.js', ['answer', 'htf', jobId, '--id', 'q-format', '--text', 'Screenplay'], tmp);
+  assert.strictEqual(r.status, 0, r.stderr);
+  r = run('board-sync.js', ['push', 'htf', jobId, '--json'], tmp);
+  const closes = [].concat(...JSON.parse(r.stdout).batches).filter(w => /\/inbox$/.test(w.collection));
+  const gateClose = closes.find(w => w.doc_id === 'g-open'), chatClose = closes.find(w => w.doc_id === 'q-format');
+  assert.ok(gateClose && gateClose.op === 'update' && gateClose.data.status === 'answered' && gateClose.data.answeredBy === 'pipeline', 'the gate row is closed by the pipeline on the next push');
+  assert.ok(chatClose && chatClose.data.status === 'answered' && chatClose.data.answer === 'Screenplay' && chatClose.data.answeredBy === 'chat', 'a chat answer closes its question with the words used');
+  assert.strictEqual(run('board-sync.js', ['push', 'htf', jobId, '--ack'], tmp).status, 0);
+  console.log('ok   a landed decision closes the row that asked for it, and a chat answer closes its question');
   r = run('board-sync.js', ['pull', 'htf', jobId, '--gate', 'A'], tmp);
   assert.strictEqual(r.status, 0, 'pull lands the approval: ' + r.stdout + r.stderr);
   const ap = JSON.parse(fs.readFileSync(path.join(dir, 'approvals', 'A-1.json'), 'utf8'));

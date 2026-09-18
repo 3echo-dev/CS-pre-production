@@ -6,9 +6,11 @@
 // Reads breakdown.xlsx (or breakdown.csv), shot-list.csv and the landed registers. Three
 // things are checked, because they are the three ways a compiled table has gone wrong on
 // real jobs: a sample of rows must trace back to a shot in the shot list and to register
-// rows for the talents and locations it names; the two same-label client-input columns of
-// the client's template must both still be there, as separate columns; and a shot must not appear
-// twice, which is what a row continued across a page break turns into.
+// rows for the talents and locations it names; the compiled header must be the template's own
+// header row, column for column and in order, a shared label included (one client's template
+// has two same-label client-input columns; another's has 24 distinct labels with its header on
+// row 3, and a compiler assuming row 1 produces garbage); and a shot must not appear twice,
+// which is what a row continued across a page break turns into.
 //
 // Writes validation/breakdown-check.md. Exit 0 pass · 1 fail · 2 usage · 3 a file is missing
 const fs = require('fs');
@@ -50,11 +52,40 @@ const cTalent = findCol(header, 'talent', 'talents', 'cast');
 const cLoc = findCol(header, 'location', 'loc');
 if (cShot < 0) problems.push('no shot column (S/s or shot_id) in the breakdown header');
 
-// The two client-input columns carry the same label in the client's template. They are two columns,
-// and a compiler that merged them on the label lost half the client's answers.
-const clientCols = header.map((h, i) => (/client/i.test(String(h)) ? i : -1)).filter(i => i >= 0);
-if (clientCols.length < 2) problems.push('the two client-input columns are not both present (found ' + clientCols.length + ')');
-else notes.push('client-input columns kept separate at ' + clientCols.map(i => i + 1).join(' and '));
+// The template's header row is the truth about the columns. It is the row with the most text
+// cells among the first twenty, because a client's sheet often opens with a stray value and a
+// band of group labels before the real header.
+const tplPath = path.join(ws.wsDir(client, argv), 'client', 'templates', 'breakdown.xlsx');
+let tplHeader = null;
+if (fs.existsSync(tplPath)) {
+  try {
+    const trows = readRows(tplPath);
+    let best = 0, score = -1;
+    trows.slice(0, 20).forEach((r, i) => { const n = r.filter(c => c && !/^[-\d.]+$/.test(c)).length; if (n > score) { score = n; best = i; } });
+    tplHeader = (trows[best] || []).map(c => String(c).trim());
+    while (tplHeader.length && !tplHeader[tplHeader.length - 1]) tplHeader.pop();
+    notes.push('template header is row ' + (best + 1) + ' of breakdown.xlsx, ' + tplHeader.length + ' columns');
+  } catch (e) { notes.push('breakdown.xlsx in client/templates could not be read: ' + e.message); tplHeader = null; }
+}
+if (tplHeader) {
+  const got = header.map(c => String(c).trim());
+  while (got.length && !got[got.length - 1]) got.pop();
+  const same = got.length === tplHeader.length && got.every((c, i) => norm(c) === norm(tplHeader[i]));
+  if (same) {
+    const shared = [...new Set(tplHeader.filter((c, i) => tplHeader.findIndex(x => norm(x) === norm(c)) !== i))];
+    notes.push('all ' + tplHeader.length + ' template columns present in template order' + (shared.length ? ', the shared label' + (shared.length === 1 ? '' : 's') + ' ' + shared.map(s => '"' + s + '"').join(', ') + ' kept as separate columns' : ''));
+  } else {
+    tplHeader.forEach((c, i) => { if (norm(got[i]) !== norm(c)) problems.push('column ' + (i + 1) + ' should be "' + c + '" as in the template, found "' + (got[i] || '') + '"'); });
+    if (got.length > tplHeader.length) problems.push((got.length - tplHeader.length) + ' column' + (got.length - tplHeader.length === 1 ? '' : 's') + ' beyond the template\'s ' + tplHeader.length);
+  }
+} else {
+  // No template on disk to compare against: the one thing still checkable is that a shared
+  // label was not merged, which is how a compiler once lost half the client's answers.
+  notes.push('no client/templates/breakdown.xlsx to compare the header against');
+  const clientCols = header.map((h, i) => (/client/i.test(String(h)) ? i : -1)).filter(i => i >= 0);
+  if (clientCols.length < 2) problems.push('the two client-input columns are not both present (found ' + clientCols.length + ')');
+  else notes.push('client-input columns kept separate at ' + clientCols.map(i => i + 1).join(' and '));
+}
 
 // Duplicates: a continued row is the same shot twice.
 if (cShot >= 0) {
@@ -98,6 +129,6 @@ if (json) console.log(JSON.stringify(result, null, 2));
 else {
   for (const n of notes) console.log('note: ' + n);
   for (const p of problems) console.error('PROBLEM: ' + p);
-  console.log(problems.length ? 'The breakdown is refused: ' + problems.length + ' problem' + (problems.length === 1 ? '' : 's') + '.' : 'ok: ' + body.length + ' rows, sample traced, client-input columns intact, no duplicates.');
+  console.log(problems.length ? 'The breakdown is refused: ' + problems.length + ' problem' + (problems.length === 1 ? '' : 's') + '.' : 'ok: ' + body.length + ' rows, sample traced, template columns intact, no duplicates.');
 }
 process.exit(problems.length ? 1 : 0);

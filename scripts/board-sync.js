@@ -35,10 +35,10 @@ const rest = argv.slice(argv.indexOf(cmd) + 1);
 const json = argv.includes('--json');
 const opt = name => { const i = argv.indexOf(name); return i >= 0 && argv[i + 1] ? argv[i + 1] : null; };
 const usage = () => {
-  console.error('usage: board-sync.js open|push|land|pull|ask <client> <job-id> [args] [--json] [--ack] [--gate A|B|C|sample] [--item X --text "..." --options "a|b|c"]');
+  console.error('usage: board-sync.js open|push|land|pull|ask|answer <client> <job-id> [args] [--json] [--ack] [--gate A|B|C|sample] [--item X --text "..." --options "a|b|c"] [--id <inbox id> --text "..." [--by <who>]]');
   process.exit(2);
 };
-if (!['open', 'push', 'land', 'pull', 'ask'].includes(cmd)) usage();
+if (!['open', 'push', 'land', 'pull', 'ask', 'answer'].includes(cmd)) usage();
 const { brand: client, jobId, dir, rest: more } = ws.resolveJobArgs(rest, argv);
 if (!client || !jobId) usage();
 if (!fs.existsSync(dir)) { console.error('No project at ' + ws.fwd(dir) + '.'); process.exit(3); }
@@ -116,6 +116,11 @@ function toWrite(rec) {
       const data = { ...p }; delete data.key; delete data.id;
       return { op: p.thumb ? 'update' : 'set', collection: base + '/panels', doc_id: p.id, data };
     }
+    case 'answered':
+      // A question settled elsewhere: typed in chat (answer), or overtaken by the decision it
+      // was asking for (land closes a gate row when the gate is decided, a generate row when
+      // the panels are drawn). Left open, the board goes on asking for what is already done.
+      return { op: 'update', collection: base + '/inbox', doc_id: p.id, data: { status: 'answered', answer: p.answer || '', answeredBy: p.by || 'pipeline', answeredAt: at } };
     case 'question':
       return { op: 'set', collection: base + '/inbox', doc_id: p.id || ('q-' + Date.parse(at).toString(36)),
         data: { type: 'question', item: p.item || null, text: p.text, options: p.options || [], from: p.from || 'orchestrator', status: 'open', createdAt: at } };
@@ -213,6 +218,20 @@ function land() {
       const reg = REGISTERS.find(r => new RegExp('/' + r + '$').test(coll));
       if (reg) { (landed.registers[reg] = landed.registers[reg] || []).push({ ...data, id }); }
     }
+  }
+  // A decision closes the question that prompted it. On the first test run the board showed
+  // twelve open rows when seven were live: a gate row after the gate was locked, a generate
+  // row after the panels were drawn. Each is queued as answered and the next push closes it.
+  for (const q of landed.questions) {
+    if (q.status !== 'open') continue;
+    let why = null;
+    if (q.type === 'gate' && q.gate && landed.gates[q.gate] && landed.gates[q.gate].status) why = 'Gate ' + q.gate + ' was decided on the board';
+    else if (q.type === 'generate' && Array.isArray(q.panels) && q.panels.length &&
+      q.panels.every(id => { const p = landed.panels[String(id).toUpperCase()] || {}; return p.file || p.thumbAt || p.status === 'generated' || p.approvedBy; })) why = 'the panels were drawn';
+    if (!why) continue;
+    q.status = 'answered'; q.answer = why; q.answeredBy = 'pipeline';
+    board.call('answered', { key: jobId, id: q.id, answer: why, by: 'pipeline' }, { argv });
+    changed.push('closed ' + q.type + ' ' + q.id + ' (' + why + ')');
   }
   // Registers land on disk as the directors read them: rows the board holds, never typed here.
   fs.mkdirSync(path.join(dir, 'registers'), { recursive: true });
@@ -324,10 +343,20 @@ function pull() {
   console.log('Gate ' + gate + ' landed as an approval bound to ' + files.length + ' file' + (files.length === 1 ? '' : 's') + '.');
 }
 
+// A question answered in chat is closed on the board with the words the person used, so the
+// board stops asking for what it already has.
+function answer() {
+  const id = opt('--id'), text = opt('--text');
+  if (!id || !text) { console.error('Nothing was queued. usage: board-sync.js answer <client> <job-id> --id <inbox id> --text "<the answer>" [--by <who>]'); process.exit(2); }
+  board.call('answered', { key: jobId, id, answer: text, by: opt('--by') || 'chat' }, { argv });
+  console.log('Queued: question ' + id + ' answered in chat (' + text + '). Push next, and act on it.');
+}
+
 (async () => {
   if (cmd === 'open') await open();
   else if (cmd === 'push') push();
   else if (cmd === 'land') land();
+  else if (cmd === 'answer') answer();
   else if (cmd === 'pull') pull();
   else if (cmd === 'ask') await ask();
 })().catch(e => { console.error(e && e.message || e); process.exit(1); });

@@ -102,7 +102,7 @@ export const WRITE_DENY = {
   versions: 'versions.jsonl is written only by record-version.js, which hashes the file it names. A line written by hand is a version nobody can check.',
   register: 'A register is filled by a person on the board and landed by board-sync.js. The registrar prepares the form; it never types a talent, a prop or a location.',
   release: 'release/ is built by build-release.js from an approved Gate C record. Nothing is copied there by hand.',
-  outside: 'Write only under workspaces/ and inputs/ in the workspace root. Nothing else is the pipeline\'s to change.',
+  outside: 'Write only under workspaces/ and inputs/ in the workspace root: a job\'s files belong in workspaces/{client}/jobs/{job-id}/, a pulled folder under inputs/. Nothing else under the root is the pipeline\'s to change; a scratch file goes outside the root.',
 };
 export const writeTarget = (args) => String((args && (args.file_path || args.notebook_path || args.path)) || '');
 

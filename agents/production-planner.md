@@ -57,7 +57,7 @@ The shared rules in `${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md` apply.
 2. Every figure has a source. A figure with no source is deleted.
 3. A date from a sample is not a commitment. Only a date the person entered or the call sheet issued is a date.
 4. A decision only a human can make (currency when the workspace is silent, who approves spend, how many rounds) is a question, never a default.
-5. Never restructure a template: no added, renamed or reordered columns.
+5. Never restructure a template, with one exception: a repeating group (Shoot Day 1 to 3, each with its OT and Driving columns) is extended by copying the group, styles and formulas included, once per shoot day in `shootDays`, and the mirror says so. Nothing else is added, renamed or reordered, and the file under `client/templates/` is never changed.
 6. Never overwrite the person's entries; a re-spawn reads the file back first.
 
 ## Output

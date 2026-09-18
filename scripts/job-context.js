@@ -61,6 +61,8 @@ function context() {
     openQuestion: null,
     openGate: null,
     landedAt: null,
+    // Is this folder a 1-22 root at all? The hooks apply their refusals only where it is.
+    pipeline: board.configured(argv),
   };
 
   let job = null;
@@ -94,6 +96,7 @@ function context() {
     openGate: isTheirTurn ? gate : null,
     // When the board was last landed for this job, so a hook can say how stale the run's view is.
     landedAt: (() => { try { return (board.landed(job.jobId, argv) || {}).landedAt || null; } catch { return null; } })(),
+    pipeline: true,
   };
 }
 
@@ -117,7 +120,7 @@ if (require.main === module) {
     // normal case at the start of a session, not a failure to report.
     c = { root: ws.fwd(process.cwd()), brand: null, client: null, jobId: null, dir: null, state: null,
       sentence: null, gate: null, isTheirTurn: false, stage: null, creditsSpent: null,
-      creditsCeiling: null, openQuestion: null, openGate: null, landedAt: null, unreadable: String(err && err.message || err) };
+      creditsCeiling: null, openQuestion: null, openGate: null, landedAt: null, pipeline: false, unreadable: String(err && err.message || err) };
   }
   process.stdout.write((asJson ? JSON.stringify(c) : say(c)) + '\n');
 }

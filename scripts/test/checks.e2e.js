@@ -158,6 +158,22 @@ try {
   assert.strictEqual(r.status, 1, 'a merged client-input column is refused');
   assert.match(r.stderr, /client-input columns are not both present/);
   console.log('ok   breakdown-check traces a sample, keeps both client columns and refuses a continued row');
+  // With the client's template on disk, the compiled header must be the template's own header row,
+  // wherever that row sits: this one has a stray number on row 1 and band labels on row 2.
+  const tplDir = path.join(tmp, 'workspaces', 'htf', 'client', 'templates');
+  fs.mkdirSync(tplDir, { recursive: true });
+  const tplPy = spawnSync('python', ['-c', 'import openpyxl; wb=openpyxl.Workbook(); ws=wb.active; ws["A1"]=1; ws["A2"]="PRE PRODUCTION"; ws["E2"]="PRODUCTION"; ws.append(["S/s","Visuals","Location","Talent","Client input","Client input"]); wb.save(r"' + path.join(tplDir, 'breakdown.xlsx').replace(/\\/g, '\\\\') + '")'], { encoding: 'utf8' });
+  assert.strictEqual(tplPy.status, 0, 'template fixture: ' + tplPy.stderr);
+  write('breakdown.csv', 'S/s,Visuals,Location,Talent,Client input,Client input\nS001,Handover,Studio B,Nurse,,\nS003,Corridor,Studio B,Nurse,,\n');
+  r = run('breakdown-check.js', ['htf', jobId], tmp);
+  assert.strictEqual(r.status, 0, 'the compiled header matches the template header on row 3: ' + r.stdout + r.stderr);
+  assert.match(r.stdout, /template header is row 3 of breakdown\.xlsx, 6 columns/);
+  assert.match(r.stdout, /the shared label "Client input" kept as separate columns/);
+  write('breakdown.csv', 'S/s,Visuals,Talent,Location,Client input,Client input\nS001,Handover,Nurse,Studio B,,\n');
+  r = run('breakdown-check.js', ['htf', jobId], tmp);
+  assert.strictEqual(r.status, 1, 'two columns swapped against the template is refused');
+  assert.match(r.stderr, /column 3 should be "Location" as in the template, found "Talent"/);
+  console.log('ok   breakdown-check reads the template header where it really is and holds the compiled columns to it');
 
   // --- build-release ------------------------------------------------------------------
   r = run('build-release.js', ['htf', jobId], tmp);

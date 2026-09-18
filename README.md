@@ -203,7 +203,7 @@ a reference clip. Without them the reference row says what was not analysed.
 
 ### 3. Connect 3echo
 
-Declared in `.mcp.json`. Needed only for storyboard panels.
+Through the 3echo connector enabled in the account (`agentc`), not a server declared by the plugin: five plugins once shipped the same `.mcp.json`, so one endpoint appeared as five namespaced servers and a subagent reported an arbitrary one as unauthorised. Needed only for storyboard panels.
 
 ### 4. Pick a folder to work in
 

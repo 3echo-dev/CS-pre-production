@@ -67,7 +67,7 @@ function sentence(result, fwd) {
   switch (result.state) {
     case 'created':
     case 'updated':
-      return 'The guards are on. Start a new session and a spend without an approval on disk is refused, not just discouraged.';
+      return 'The guards are on. Start a new session and a spend without an approval on disk is refused, not just discouraged. The switch is the folder\'s, not this plugin\'s: every plugin installed here with function hooks is on with it, and this plugin\'s guards apply only where it has a project.';
     case 'already':
       return 'The guards were already on.';
     default:
