@@ -23,4 +23,12 @@ assert.ok(src.includes('function panelRatio()') && src.includes('style="--panel-
 assert.ok(src.includes('background-size:contain') && !src.includes('background-size:cover;background-position'), 'a frame is fitted, never cropped');
 assert.ok(src.includes("claude.use('comments')") && src.includes('cm.sendToClaude(') && src.includes('canSendToClaude()'), 'a decision is sent to Claude as a comment');
 assert.ok(src.includes("art.publish(buildDocument(src))"), 'the republish stays as the fallback');
+
+// Run 2, R4: the bell was wired to locking a gate, requesting a generation and requesting an
+// export, and left off answering a question - the one thing a person does constantly. Four
+// answers landed on the board and the run never woke. Assert the common paths ring it.
+const answerFn = src.slice(src.indexOf('async function answer('), src.indexOf('async function addRow('));
+assert.ok(answerFn.includes('signalPipeline('), 'answering a question rings the bell');
+const addRowFn = src.slice(src.indexOf('async function addRow('), src.indexOf('async function createProject('));
+assert.ok(addRowFn.includes('signalPipeline('), 'starting a register rings the bell');
 console.log('ok   the shipped board is the build of its source, panels keep their ratio, and a decision rings the bell');

@@ -533,14 +533,18 @@ function lightboxHtml(){ const p=panels.find(x=>x.id===lightbox); if(!p||!p.thum
 async function answer(req, value){
   await write('projects/'+project.id+'/inbox/'+req.id, {...req, status:'answered', answer:value, answeredBy:me, answeredAt:now()});
   await log(`Answered: ${req.text} → ${value}`, req.item||null);
-  toast('Answer sent to the pipeline', 'ok');
+  // An answer is the commonest thing a person does here, so it rings the bell like a gate does.
+  await signalPipeline('Answered: '+String(req.text||'').slice(0,70)+' -> '+value);
 }
 async function addRow(kind, form){
   const row={}; for(const f of REG_FIELDS[kind]) row[f]=(form.querySelector('[name='+f+']').value||'').trim();
   if(!row.name){ toast('A name is needed'); form.querySelector('[name=name]').focus(); return; }
   await write('projects/'+project.id+'/'+kind+'/'+Date.now().toString(36), {...row, by:me, at:now()});
-  const it=itemOf(kind); if(['pending','needs_input','na'].includes(it.status)) await setItem(kind,{status:'draft'});
+  const it=itemOf(kind); const first=['pending','needs_input','na'].includes(it.status);
+  if(first) await setItem(kind,{status:'draft'});
   form.reset(); form.querySelector('[name=name]').focus(); toast('Row added', 'ok');
+  // The first row says the register has been started; the rest are landed with it, so one bell.
+  if(first) await signalPipeline(itemOf(kind).name+' register started');
 }
 async function createProject(form){
   const title=form.querySelector('[name=title]').value.trim(); if(!title){ toast('Give the project a title'); form.querySelector('[name=title]').focus(); return; }
