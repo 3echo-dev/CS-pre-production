@@ -15,7 +15,9 @@ const path = require('path');
 const ws = require('./lib-workspace.js');
 
 const argv = process.argv.slice(2);
-const ARTIFACT = /^https:\/\/claude\.ai\/code\/artifact\/[0-9a-f-]{36}$/i;
+// Two shapes are in the wild: the older /code/artifact/<uuid> and the short id the Artifact
+// tool returns today. Both are this account's own page; only the shape differs.
+const ARTIFACT = /^https:\/\/claude\.ai\/(?:code\/)?artifact\/(?:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[A-Za-z0-9]{8,40})$/i;
 const cfgPath = () => path.join(ws.root(argv), ws.CONFIG_DIR, ws.CONFIG_FILE);
 
 function current() {
@@ -39,7 +41,7 @@ if (argv.includes('--show')) {
 
 const url = ws.positionals(argv).find(a => /^https?:/i.test(a));
 if (!url) {
-  console.error('usage: set-board.js <https://claude.ai/code/artifact/...> | --show');
+  console.error('usage: set-board.js <the artifact address the publish returned> | --show');
   process.exit(2);
 }
 if (!ARTIFACT.test(url.replace(/[?#].*$/, ''))) {
