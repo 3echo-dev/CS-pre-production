@@ -3,6 +3,7 @@
 //
 //   node record-approval.js <client> <job-id> <A|B|C|sample> <approve|edit|change|start over> --by "Name"
 //        [--comment "..."] [--decided-at "<board time>"] [--max-credits N] [--chosen PANEL-ID]
+//        (--max-credits: what the batch may spend from now on, not counting panels already drawn)
 //        [--score 1-5] [--why "..."] [--channel chat|board|file] [--from-chat] [--publish-plan]
 //        <file-relative-to-job...>
 //
@@ -90,10 +91,23 @@ if (opts['max-credits'] !== undefined && (!Number.isInteger(maxCredits) || maxCr
 }
 // The sample approval is the one that unlocks a spend, so it is the one that has to carry the
 // figure the person agreed to: a batch nobody put a number against is a batch nobody authorised.
+// The figure is what may be spent from here on. Panels already on disk are counted now and
+// written beside it, so the preflight and the spend guard add the two rather than reading the
+// batch figure as the whole board.
 if (gate === 'sample' && isApproval && maxCredits === null) {
-  console.error('REFUSED: an approved sample must include --max-credits for the batch, using 0 when no more panels may be generated');
+  console.error('REFUSED: an approved sample must include --max-credits: the credits the batch may spend from now on, not counting panels already drawn; 0 when no more panels may be generated');
   process.exit(1);
 }
+const panelsOnDisk = (() => {
+  if (gate !== 'sample') return null;
+  try {
+    const root = path.join(jobDir, 'storyboard');
+    const vs = fs.readdirSync(root).filter(f => /^v\d+$/.test(f)).map(f => Number(f.slice(1))).sort((a, b) => a - b);
+    if (!vs.length) return { boardVersion: null, count: 0 };
+    const v = vs[vs.length - 1];
+    return { boardVersion: v, count: fs.readdirSync(path.join(root, 'v' + v)).filter(f => /^P\d{2,}\.(png|jpe?g|webp)$/i.test(f)).length };
+  } catch { return { boardVersion: null, count: 0 }; }
+})();
 const apDir = path.join(jobDir, 'approvals');
 fs.mkdirSync(apDir, { recursive: true });
 const prev = fs.readdirSync(apDir).filter(f => f.startsWith(gate + '-') && f.endsWith('.json'))
@@ -121,7 +135,10 @@ const rec = {
   ...(opts.why ? { why: opts.why } : {}),
   // A pick_one gate returns the one panel the human chose; the rest were dropped, not rejected.
   ...(opts.chosen ? { chosen: opts.chosen } : {}),
-  scope: { publishPlanIncluded: !!opts['publish-plan'], maxSpendCredits: maxCredits },
+  scope: {
+    publishPlanIncluded: !!opts['publish-plan'], maxSpendCredits: maxCredits,
+    ...(panelsOnDisk ? { panelsOnDisk: panelsOnDisk.count, boardVersion: panelsOnDisk.boardVersion } : {}),
+  },
   supersedes: prev.length ? gate + '-' + prev[prev.length - 1] : null,
 };
 const errs = validate(JSON.parse(fs.readFileSync(path.join(ROOT, 'schemas', 'approval.schema.json'), 'utf8')), rec);

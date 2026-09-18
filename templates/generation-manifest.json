@@ -34,7 +34,8 @@
   "_notes": {
     "sample": "exactly one item; generated first and approved on the board before any other item is sent",
     "aspectRatio": "from the brief, never assumed; a film board is usually 16:9",
-    "credits": "images are 1 each; credit_ceiling_per_job in CONFIG.md is the hard limit",
+    "credits": "images are 1 each; credit_ceiling_per_job in CONFIG.md is the hard limit before the sample approval, and after it the batch figure the person agreed on top of the panels then on disk",
+    "status": "for people reading the manifest; the preflight and the spend guard count files on disk, so a panel stops counting against the batch the moment its file lands, whatever this says",
     "kind": "image only; 1-22 makes no video"
   }
 }

@@ -20,7 +20,11 @@
     "comment": { "type": "string" },
     "boardRecord": { "type": "object" },
     "day": { "type": ["integer", "null"], "minimum": 1 },
-    "scope": { "type": "object", "properties": { "maxSpendCredits": { "type": ["number", "null"], "minimum": 0 } } },
+    "scope": { "type": "object", "properties": {
+      "maxSpendCredits": { "type": ["number", "null"], "minimum": 0 },
+      "panelsOnDisk": { "type": "integer", "minimum": 0 },
+      "boardVersion": { "type": ["integer", "null"] }
+    } },
     "supersedes": { "type": ["string", "null"] }
   }
 }

@@ -1,9 +1,13 @@
 #!/usr/bin/env node
 // Prove a generated asset can reach the workspace, before spending credits on any.
 //
-//   node preflight-media.js <media-url> [outdir] [--timeout <ms>]
+//   node preflight-media.js "<media-url>" [outdir] [--timeout <ms>]
 //
-// Pass a media URL from get_asset on any existing asset. Generates nothing.
+// Pass a media URL from get_asset on any existing asset, in quotes: a signed URL carries its
+// signature after an &, and a shell given the URL unquoted ends the command there, so the
+// script receives the URL without its token and the host answers 401. The 401 message says so,
+// because on the first test run it said the URL had expired, and every panel was then landed
+// by fetching around this gate. Generates nothing.
 // Exits 0 only when a real image or video lands on disk: a run that cannot do this
 // would spend a credit per panel or clip on files that stay remote.
 //
@@ -51,8 +55,18 @@ const clean = () => { try { fs.unlinkSync(out); } catch { /* nothing was written
   }
 
   if (res.status === 401 || res.status === 403) {
+    let params = 0;
+    try { params = Array.from(new URL(url).searchParams.keys()).length; } catch { params = 0; }
     console.error('BLOCKED: the host answered ' + res.status + ', so the URL is reachable but not authorised.');
-    console.error('  A signed media URL expires. Call get_asset again for a fresh one before generating.');
+    if (params <= 1) {
+      console.error('  The URL this script received carries ' + (params ? 'one query parameter' : 'no query string') + '. A signed media URL carries several,');
+      console.error('  and a URL pasted into a shell unquoted loses everything after its first &, which is the signature.');
+      console.error('  Run it again with the whole URL in double quotes: preflight-media.js "<media-url>". If it still');
+      console.error('  answers ' + res.status + ' the URL has expired: call get_asset again for a fresh one. Do not fetch it another way;');
+      console.error('  the round trip through this script is the check.');
+    } else {
+      console.error('  The signature is present, so the URL has expired. Call get_asset again for a fresh one before generating.');
+    }
     process.exit(1);
   }
   if (!res.ok) blockedHost('The host answered ' + res.status + ' ' + res.statusText + '.');

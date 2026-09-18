@@ -40,7 +40,7 @@ export const DENY = {
   wrongJob: 'That idempotencyKey names a different project from the one that is open.',
   notSafe: 'The pre-spend gate refused this plan. Fix what preflight-generation.js reported and run it again before any panel is generated.',
   sampleFirst: 'One sample panel is generated and approved before the batch. Generate the panel the manifest marks as the sample, put it on the board, and record the sample approval with record-approval.js sample approve --max-credits N.',
-  overCeiling: (spent, ceiling) => 'Generating this panel would take the project to ' + (spent + 1) + ' credits, over the ' + ceiling + ' agreed at the sample approval.',
+  overCeiling: (spent, ceiling) => 'Generating this panel would take the board to ' + (spent + 1) + ' panels on disk, over the ' + ceiling + ' the sample approval allows (the panels on disk when it was recorded plus the batch agreed).',
   preflightBroke: 'The pre-spend gate could not be run, so the spend is refused. Run preflight-generation.js by hand and read what it says.',
 };
 
