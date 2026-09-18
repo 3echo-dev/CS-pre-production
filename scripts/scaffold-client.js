@@ -38,7 +38,9 @@ const base = {
   schemaVersion: '1.0', client: slug, name, status: 'active', timezone: 'Asia/Singapore',
   approvers: { creative: 'creative-director', logistics: 'assistant', release: 'lead' },
   sites: [],
-  templates: { budget: 'client/templates/budget.xlsx', timeline: 'client/templates/timeline.xlsx', breakdown: 'client/templates/breakdown.xlsx', callSheet: 'client/templates/call-sheet.xlsx' },
+  // Five, not four: the shot list's client columns come from shot-list.xlsx (workflow row 1d),
+  // and an onboarding that never asked for it left every client short one template.
+  templates: { shotList: 'client/templates/shot-list.xlsx', budget: 'client/templates/budget.xlsx', timeline: 'client/templates/timeline.xlsx', breakdown: 'client/templates/breakdown.xlsx', callSheet: 'client/templates/call-sheet.xlsx' },
   createdAt: today,
 };
 const cfg = { ...base, ...(wsJson || {}), client: slug, name };
@@ -54,7 +56,13 @@ fs.writeFileSync(path.join(dest, 'client', 'sites.md'), [
 ].join('\n'));
 fs.writeFileSync(path.join(dest, 'client', 'templates', 'README.md'), [
   '# Templates for ' + name, '',
-  "Drop the client's originals here, named exactly: budget.xlsx, timeline.xlsx, breakdown.xlsx, call-sheet.xlsx.",
+  "Drop the client's blank files here, named exactly: shot-list.xlsx, budget.xlsx, timeline.xlsx, breakdown.xlsx, call-sheet.xlsx.",
+  "Blank means the header block only. A finished job's workbook is not a template: it is the answers, and a",
+  'filled call sheet carries phone numbers into every job. Strip one with',
+  '  python "${CLAUDE_PLUGIN_ROOT}/scripts/strip-template.py" <workbook> --out <template> --sheet <name> --header <row>',
+  'and read the cells it kept. Then',
+  '  node "${CLAUDE_PLUGIN_ROOT}/scripts/template-check.js" ' + slug,
+  'says whether all five are here and empty; the orchestrator runs it before every row that copies one.',
   'The planners and builders refuse to invent a template; a missing one is a question on the board.', '',
 ].join('\n'));
 

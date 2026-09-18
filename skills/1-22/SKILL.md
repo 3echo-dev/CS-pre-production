@@ -56,7 +56,7 @@ Never drop an option for looking unlikely. The client slug can come with the ans
 |---|---|
 | Resume | `resume-project` with that client and job id. It continues; it does not reintroduce it. |
 | New project | `new-project` with the client, which scaffolds, pulls the Drive folder and runs intake. |
-| Onboard | Ask for the client name, the client's site list and the four template files, then scaffold with `scaffold-client.js`, drop the templates under `client/templates/` and the sites in `client/sites.md`. |
+| Onboard | Ask for the client name, the site list and the five blank templates (shot list, budget, timeline, breakdown, call sheet). Scaffold with `scaffold-client.js`, drop the templates under `client/templates/` and the sites in `client/sites.md`, then `template-check.js {client}`: exit 3 names a missing file and its folder, exit 1 a file that holds data, a question, never an input. `strip-template.py` empties a finished workbook and prints every cell it kept. |
 
 What runs next must not repeat the table or the question.
 

@@ -22,9 +22,11 @@ A project lives at `workspaces/{client}/jobs/{job-id}/`; its id is the board's p
 
 ## Dispatch loop
 
-Per `pending` row of `plan.md`: run script and orchestrator rows yourself, spawn director rows and wait. Directors are leaves: they never spawn, spend or touch the board. Say the stage at both ends of every row with `stage.js` (`docs/STAGES.md`).
+Per `pending` row of `plan.md`: run script and orchestrator rows yourself, spawn director rows and wait. Directors never touch the board. Say the stage at both ends of every row (`stage.js`).
 
 Every spawn prompt carries the job folder, the output path, `client/sites.md`, `client/templates/`, the brief, the selected script version, `status.md` Notes, any `revisions/{n}.json` directive and a 15-line summary cap. Save it to `runs/{item}-v{n}.prompt.txt` first.
+
+Before 1d, 1e, 1f, 3a and 3b: `template-check.js {client}`; a non-zero exit is a question on the board, and its message names the file and the fault.
 
 After the director returns:
 
@@ -36,19 +38,19 @@ node "${CLAUDE_PLUGIN_ROOT}/scripts/set-state.js" {client} {job-id} <STATE> --by
 node "${CLAUDE_PLUGIN_ROOT}/scripts/board-sync.js" push {client} {job-id}
 ```
 
-Exit 0 from `collect-artifacts.js` marks the row `verified`; exit 1 re-delegates once, a second miss stops the run. Version before state. The push prints the board batch (`board-sync` skill).
+Exit 0 from `collect-artifacts.js` marks the row `verified`; exit 1 re-delegates once, a second miss stops the run. Version before state. The push prints the board batch.
 
 ## XX rows
 
-Scraper, budget sheet, timeline, talents, props and locations wait on a person. The scraper waits twice: while `sites-check.js {client}` exits 1 ask where to research; land typed sites with `--add`, a links file from the folder with `--from`, then spawn. The director prepares the skeleton; record it with `--status needs_input`, ask on the board and in chat (`register-forms`), and carry on with rows that do not need the answer. Register rows come only from `board-sync.js land`.
+Scraper, budget sheet, timeline, talents, props and locations wait on a person. The scraper waits twice: while `sites-check.js {client}` exits 1 ask where to research; land typed sites with `--add`, a links file from the folder with `--from`, then spawn. The director prepares the skeleton; record it with `--status needs_input`, ask on the board (`register-forms`), and carry on with rows that do not need the answer. Register rows come only from `board-sync.js land`.
 
 ## Questions
 
-A decision only a human can make goes through `board-sync.js ask` and the same text in chat. Never guess a voice, a shoot day, a talent, a location, a currency or a template column.
+A decision only a human can make goes through `board-sync.js ask`. Never guess a voice, a shoot day, a talent, a location, a currency or a template column.
 
 ## Review pass
 
-Before every gate row, run its check scripts (`gate-a-check.js`, `gate-b-check.js`, `breakdown-check.js` with `call-sheet-check.js`), then spawn one reviewer on `review-pass` with the gate's section of `${CLAUDE_PLUGIN_ROOT}/playbooks/review-rubrics.md`, Read, Glob and Grep only, `disallowedTools: Agent`, output `validation/review-{gate}-{round}.md`. NEEDS REVISION: each critical finding becomes `revisions/{n}.json` for the owning director; re-dispatch, review again. Two rounds at most, then open with warnings.
+Before every gate row, run its check scripts (`gate-a-check.js`, `gate-b-check.js`, `breakdown-check.js` with `call-sheet-check.js`), then spawn one reviewer on `review-pass` with the gate's section of `${CLAUDE_PLUGIN_ROOT}/playbooks/review-rubrics.md`, read-only tools, `disallowedTools: Agent`, output `validation/review-{gate}-{round}.md`. NEEDS REVISION: each critical finding becomes `revisions/{n}.json` for the owning director; re-dispatch, review again. Two rounds at most, then open with warnings.
 
 ## Gates
 
@@ -60,7 +62,7 @@ A change note sends its item and its dependents back for review and reopens that
 
 ## Media: the only place money moves
 
-Only you run `make-image`, for storyboard panels: the sample first, the batch after the board approves it. Before the first paid call state the assumptions (style, ratio, sample panel, ceiling) and get a yes; the guard refuses without them.
+Only you run `make-image`: the sample first, the batch after the board approves it. Before the first paid call state the assumptions (style, ratio, sample panel, ceiling) and get a yes; the guard refuses without them.
 
 ## Release
 
@@ -70,7 +72,7 @@ Only you run `make-image`, for storyboard panels: the sample first, the batch af
 
 1. Mark an item approved, or write a gate document, on the board.
 2. Fill an XX register, a budget value or a shoot day yourself.
-3. Invent a template; the client's files under `client/templates/` or the row stays needs input.
+3. Invent a template, or take one from the pulled folder.
 4. Regenerate a whole storyboard to fix one panel.
 5. Build `release/` when `check-approval.js` exits non-zero.
 6. Print the board's web address, a state id or a file path at the person.

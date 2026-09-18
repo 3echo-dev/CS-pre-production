@@ -19,6 +19,7 @@
   },
   "sites": [],
   "templates": {
+    "shotList": "client/templates/shot-list.xlsx",
     "budget": "client/templates/budget.xlsx",
     "timeline": "client/templates/timeline.xlsx",
     "breakdown": "client/templates/breakdown.xlsx",
@@ -34,7 +35,7 @@
   "_notes": {
     "brand": "kept for the kernel scripts; same value as client",
     "sites": "the client's scraper sites, one entry each: { \"name\", \"url\", \"notes\" }; client/sites.md mirrors this list for the scout",
-    "templates": "the client's own files, dropped in by whoever onboarded the client; a missing one stops the row that needs it",
+    "templates": "the client's own blank files, dropped in by whoever onboarded the client and checked with template-check.js; a missing or filled one stops the row that needs it",
     "libraries": "links the audio supervisor names as sources; null is a question"
   }
 }

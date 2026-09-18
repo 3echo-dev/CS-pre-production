@@ -51,7 +51,7 @@ view of it plus the person's decisions.
 ```
 workspaces/{client}/
 ├── workspace.json              name, timezone, approvers, sites, template paths, libraries
-├── client/                     sites.md · templates/{budget,timeline,breakdown,call-sheet}.xlsx · skills/ (the client's, unpacked)
+├── client/                     sites.md · templates/{shot-list,budget,timeline,breakdown,call-sheet}.xlsx, each with a .source.json saying where it came from · skills/ (the client's, unpacked)
 └── jobs/{job-id}/
     ├── job.json  route.json  plan.md  status.md
     ├── brief.md                the unified brief
