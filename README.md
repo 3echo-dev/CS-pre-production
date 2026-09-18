@@ -203,7 +203,7 @@ a reference clip. Without them the reference row says what was not analysed.
 
 ### 3. Connect 3echo
 
-Through the 3echo connector enabled in the account (`agentc`), not a server declared by the plugin: five plugins once shipped the same `.mcp.json`, so one endpoint appeared as five namespaced servers and a subagent reported an arbitrary one as unauthorised. Needed only for storyboard panels.
+Declared in `.mcp.json` (the 3echo server at agentc.3echo.ai), so a fresh install can draw storyboard panels without any account-level connector. If the account also has the 3echo connector enabled, the same endpoint appears twice under two names; the spend guard matches the tool suffix, so it applies to both. Needed only for storyboard panels: pre-production never generates video, and the guard refuses a video tool.
 
 ### 4. Pick a folder to work in
 
