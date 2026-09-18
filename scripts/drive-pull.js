@@ -18,7 +18,15 @@
 // A second pull never replaces the first: without --again it refuses; with it the files land in
 // pull-{n}/ beside the first and the manifest records both.
 //
-// Exit 0 done · 1 a file failed · 2 usage · 3 refused (job missing, already pulled, folder empty)
+// The folder to pull is client material, so it is never the workspace root, a folder that holds
+// the root, or anything inside the pipeline's own inputs/ or workspaces/. On the first test run
+// the root defaulted to the client's folder, so the pull swept the job's own job.json, status.md
+// and .board/ into inputs/ as unmapped client input, and nothing said a word. Such a pull is
+// refused before a file is copied, and hidden folders (.git, .claude, .board) are skipped and
+// named in the counts line.
+//
+// Exit 0 done · 1 a file failed · 2 usage · 3 refused (job missing, already pulled, folder empty,
+// the folder is or holds the workspace root, or is inside inputs/ or workspaces/)
 // · 4 the Drive route needs the session to fetch (plan written)
 const fs = require('fs');
 const path = require('path');
@@ -52,12 +60,18 @@ function mapFolder(rel) {
   return FOLDERS[first.toLowerCase()] || 'unmapped';
 }
 
+// Hidden folders met while walking a source: tool and pipeline state, never client material.
+const skippedDirs = [];
 function walk(dir, base = dir, out = []) {
   for (const name of fs.readdirSync(dir)) {
     if (SKIP.has(name) || name === 'manifest.json' || name === 'pull-plan.json') continue;
     const p = path.join(dir, name);
     const st = fs.statSync(p);
-    if (st.isDirectory()) { if (!/^pull-\d+$/.test(name)) walk(p, base, out); continue; }
+    if (st.isDirectory()) {
+      if (name.startsWith('.')) { skippedDirs.push(ws.fwd(path.relative(base, p))); continue; }
+      if (!/^pull-\d+$/.test(name)) walk(p, base, out);
+      continue;
+    }
     out.push({ abs: p, rel: ws.fwd(path.relative(base, p)), bytes: st.size });
   }
   return out;
@@ -105,9 +119,31 @@ function say(manifest, dest) {
   const line = 'Pulled ' + manifest.files.filter(f => !f.sidecarOf).length + ' files into ' + ws.fwd(dest) +
     ': Brief ' + c.Brief + ', Concept ' + c.Concept + ', Client Assets ' + c['Client Assets'] +
     (c.unmapped ? ', unmapped ' + c.unmapped : '') + ', unreadable ' + c.unreadable + '.' +
-    (c.Brief ? '' : ' The Brief folder is empty: the router will block until a brief lands.');
-  if (json) console.log(JSON.stringify({ ok: true, dest: ws.fwd(dest), manifest }, null, 2));
+    (c.Brief ? '' : ' The Brief folder is empty: the router will block until a brief lands.') +
+    (skippedDirs.length ? ' Skipped ' + skippedDirs.length + ' hidden folder' + (skippedDirs.length === 1 ? '' : 's') + ' (' + skippedDirs.join(', ') + '): tool state, not client material.' : '');
+  if (json) console.log(JSON.stringify({ ok: true, dest: ws.fwd(dest), manifest, skipped: skippedDirs }, null, 2));
   else console.log(line);
+}
+
+// The one place the pipeline must never read from: itself.
+function refusePipelineFolder(src) {
+  const { path: root, source } = ws.rootWithSource(argv);
+  const abs = path.resolve(src);
+  const inside = (parent, child) => { const r = path.relative(parent, child); return r === '' || (!r.startsWith('..') && !path.isAbsolute(r)); };
+  if (inside(abs, root)) {
+    console.error('REFUSED: ' + ws.fwd(abs) + (abs === root ? ' is' : ' holds') + ' the workspace root ' + ws.fwd(root) + ' (set by ' + source + ').');
+    console.error('  A pull would copy the pipeline\'s own workspaces/, inputs/ and .board/ into the job as client input, and the');
+    console.error('  job\'s own job.json and status.md would come back as its brief. Nothing was copied. Either point the work');
+    console.error('  somewhere else first (set-root.js <folder>, run from a folder that is not the client\'s), or pull the sub-folder');
+    console.error('  that holds Brief, Concept and Client Assets.');
+    process.exit(3);
+  }
+  for (const sub of ['inputs', 'workspaces']) {
+    if (inside(path.join(root, sub), abs)) {
+      console.error('REFUSED: ' + ws.fwd(abs) + ' is inside the pipeline\'s ' + sub + '/ under ' + ws.fwd(root) + '. That is the pipeline\'s own output, not the client\'s folder. Nothing was copied.');
+      process.exit(3);
+    }
+  }
 }
 
 function destFor(client, jobId) {
@@ -134,6 +170,7 @@ function jobExists(client, jobId) {
 // ---- routes -----------------------------------------------------------------------------
 
 function pullLocal(client, jobId, src) {
+  refusePipelineFolder(src);
   const { dest } = destFor(client, jobId);
   const files = walk(src);
   if (!files.length) { console.error('REFUSED: ' + ws.fwd(src) + ' holds no files.'); process.exit(3); }
@@ -168,6 +205,7 @@ function planDrive(client, jobId, link, folderId) {
     },
     steps: [
       'search_files with query "parentId = \'' + folderId + '\'" (excludeContentSnippets true); for each sub-folder (mimeType application/vnd.google-apps.folder) search again with its id; never search by title',
+      'if that first search returns nothing while get_file_metadata resolves the folder by id, the connector cannot enumerate it (a shared drive, or a folder owned outside this account): stop, say so, and ask for a synced local path instead of searching another way',
       'download_file_content for each file (exportMimeType from exportAs for Google-native kinds); write the base64 string to a temp file',
       'node drive-pull.js stage ' + client + ' ' + jobId + ' --rel "<Sub-folder>/<name><ext>" --b64 <temp file>',
       'node drive-pull.js finish ' + client + ' ' + jobId,

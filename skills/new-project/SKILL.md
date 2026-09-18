@@ -16,13 +16,13 @@ metadata:
 
 ## Read the request
 
-The whole message arrives as `$ARGUMENTS`. The client is the first word matching a folder under the workspace root (`list-jobs.js --json` lists them), case-insensitively. The rest names the folder: a path on this computer or a Google Drive folder link, either works. Never guess a client not on disk: it silently starts a second workspace.
+The whole message arrives as `$ARGUMENTS`. The client is the first word matching a folder under the workspace root (`list-jobs.js --json` lists them), case-insensitively. The rest names the folder: a path on this computer or a Google Drive folder link. Never guess a client not on disk: it silently starts a second workspace.
 
 ## Steps
 
 1. **Resolve the client.** None named: list the folders under `workspaces/` and ask which. None exist: onboard first (the `1-22` skill says how).
 
-2. **Get the folder.** Usually the message names it. If not, ask on the board and in chat: "Where is the folder with the brief, concept and client assets? A path on this computer or a Google Drive folder link, either works." A link needs the Google Drive connector; without it, ask for the synced folder's path. Check `<root>/inputs/{client}/` silently first: a folder already pulled is not pulled again.
+2. **Get the folder.** If the message does not name it, ask on the board and in chat: "Where is the folder with the brief, concept and client assets? A path on this computer or a Google Drive folder link." Check `<root>/inputs/{client}/` silently first: a folder already pulled is not pulled again. Then `set-root.js` (no argument) prints where the work lives; say it beside the folder to pull before creating anything. If the pull is or holds that root, `set-root.js <folder>` from outside the client's folder first; the pull is refused otherwise.
 
 3. **Derive a slug**, lowercase and hyphenated, three words at most:
 
@@ -32,7 +32,7 @@ The whole message arrives as `$ARGUMENTS`. The client is the first word matching
 
    Exit 3 means no `workspace.json`: onboard first. Exit 1 means the id exists: ask whether to resume or start a separate project.
 
-   The job id is known now and it is the board's project id. Open its page at once: `pane.js "{job-id}" "{title}"` (`${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md`); never print the web address. The title is the client and the film in plain words, "HTF, Night Shift".
+   The job id is the board's project id: open its page at once with `pane.js "{job-id}" "{title}"` (`${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md`); never print the web address. The title is client and film in plain words, "HTF, Night Shift".
 
 4. **Pull the folder** with `drive-pull` into `inputs/{client}/{job-id}/`; for a link, the connector steps it lists. Nothing else reads Drive.
 
@@ -47,15 +47,15 @@ The whole message arrives as `$ARGUMENTS`. The client is the first word matching
 
    Hand the printed batch to the board (`board-sync` skill), then `push --ack`.
 
-7. **Run the plan.** Follow `plan.md` row by row as the `orchestrator`, which owns the narration, the versions, the runs and the pushes from here.
+7. **Run the plan.** Follow `plan.md` row by row as the `orchestrator`, which owns narration, versions, runs and pushes from here.
 
-8. **Stop at Gate A.** Push, set the awaiting state, say in one short message what the creative director is locking and which XX items are still open, and end the turn.
+8. **Stop at Gate A.** Push, set the awaiting state, say in one message what the creative director is locking and which XX items are still open, and end the turn.
 
 ## Rules
 
 The shared rules in `${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md` apply.
 
-1. One batch of questions, once. `project-intake` owns them and asks them on the board and in chat; do not ask again in your own words.
+1. One batch of questions, once: `project-intake` asks them; never re-ask in your own words.
 2. Never invent a file the folder does not hold, and never drop one it does.
 3. Never pass a gate. Silence is not approval.
 4. Never generate a panel here. Nothing is spent before the sample panel is approved on the board.
@@ -63,7 +63,7 @@ The shared rules in `${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md` apply.
 
 ## Output contract
 
-`workspaces/{client}/jobs/{job-id}/` holding `job.json`, `route.json`, `plan.md`, `status.md`, and whatever Stage 1 produced. The project ends waiting at Gate A with the open XX items named.
+`workspaces/{client}/jobs/{job-id}/` holding `job.json`, `route.json`, `plan.md`, `status.md`, and whatever Stage 1 produced, waiting at Gate A.
 
 ## Boundary
 
@@ -77,3 +77,4 @@ Does not onboard a client, decide a gate, or build the release. `resume-project`
 | Announcing you "will" create the folder | Create it, then say it exists |
 | Opening the board after the first stage has run | Open it the moment the id exists |
 | Pulling a folder twice | Check `inputs/` first |
+| The root defaulted to the client's folder | Say the root beside the folder first; `set-root.js` moves it |
