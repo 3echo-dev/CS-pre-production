@@ -1,13 +1,18 @@
 #!/usr/bin/env node
 // Record a human verdict at a gate, bound to the artifacts' content hashes at decision time.
 //
-//   node record-approval.js <client> <job-id> <A|B|C|sample> <approve|edit|changes|reject> --by "Name"
-//        [--comment "..."] [--score 1-5] [--why "..."] [--gate-app-decision-id ID]
-//        [--max-credits N] [--publish-plan] [--chosen PANEL-ID] [--channel chat|file] [--from-chat]
+//   node record-approval.js <client> <job-id> <A|B|C|sample> <approve|edit|change|start over> --by "Name"
+//        [--comment "..."] [--decided-at "<board time>"] [--max-credits N] [--chosen PANEL-ID]
+//        [--score 1-5] [--why "..."] [--channel chat|board|file] [--from-chat] [--publish-plan]
 //        <file-relative-to-job...>
 //
+// This header and the usage line the script prints are the same call: the header once listed
+// options the usage line did not, and a call built from it failed. The verdict words people use
+// (approved, ok, yes, changes, reject, redo ...) map onto the four above through SYNONYMS.
 // Writes approvals/<gate>-<round>.json validated against schemas/approval.schema.json.
-// "edit" means the human changed the file and approves it as it now is. Exit 0 ok, 1 error, 2 usage.
+// "edit" means the human changed the file and approves it as it now is.
+// Exit 0 ok · 1 refused (a bad value, a missing artifact, a failed state move) · 2 usage.
+// On exit 1 or 2 nothing was written, and the first line of stderr says so.
 const fs = require('fs');
 const path = require('path');
 const { hashFile } = require('./hash-artifact.js');
@@ -48,8 +53,17 @@ if (require.main !== module) return;
 const { brand, jobId: job, dir, rest } = ws.resolveJobArgs(pos, argv);
 const [gate, rawVerdict, ...files] = rest;
 const verdict = SYNONYMS[String(rawVerdict || '').toLowerCase()] || rawVerdict;
-if (!brand || !job || !GATES.includes(gate) || !VERDICTS[verdict] || !files.length || !opts.by) {
-  console.error('usage: record-approval.js <client> <job-id> <' + GATES.join('|') + '> <approve|edit|change|start over> --by "Name" [--comment "..."] [--decided-at "<board time>"] [--max-credits N] [--chosen PANEL-ID] [--channel chat|board] <file...>');
+const missing = [];
+if (!brand) missing.push('the client');
+if (!job) missing.push('the job id');
+if (!GATES.includes(gate)) missing.push('a gate (' + GATES.join(', ') + ')' + (gate ? ', not "' + gate + '"' : ''));
+if (!VERDICTS[verdict]) missing.push('a verdict (approve, edit, change, start over)' + (rawVerdict ? ', not "' + rawVerdict + '"' : ''));
+if (!opts.by) missing.push('--by "Name"');
+if (!files.length) missing.push('at least one file, relative to the job folder');
+if (missing.length) {
+  // Say what did not happen before saying how to call it: a usage line on its own has been read as success.
+  console.error('Nothing was recorded. This call needs ' + missing.join('; ') + '.');
+  console.error('usage: record-approval.js <client> <job-id> <' + GATES.join('|') + '> <approve|edit|change|start over> --by "Name" [--comment "..."] [--decided-at "<board time>"] [--max-credits N] [--chosen PANEL-ID] [--score 1-5] [--why "..."] [--channel chat|board|file] [--from-chat] [--publish-plan] <file...>');
   process.exit(2);
 }
 // The gate-app widget returns a 1-5 rating and a sentence with the verdict. Both are optional,
@@ -89,7 +103,7 @@ const round = (prev[prev.length - 1] || 0) + 1;
 const artifacts = [];
 for (const f of files) {
   const p = path.join(jobDir, f);
-  if (!fs.existsSync(p)) { console.error('missing artifact: ' + f); process.exit(1); }
+  if (!fs.existsSync(p)) { console.error('Nothing was recorded. Missing artifact: ' + f + ' (looked in ' + ws.fwd(jobDir) + ').'); process.exit(1); }
   const h = hashFile(p);
   artifacts.push({ path: f.split(path.sep).join('/'), sha256: h.sha256, bytes: h.bytes });
 }

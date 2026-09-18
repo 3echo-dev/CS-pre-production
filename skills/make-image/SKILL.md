@@ -22,11 +22,11 @@ user-invocable: false
 3. State the assumptions in one line: style, ratio from the brief, sample panel, reference assets, ceiling. `push-panels.js` puts a placeholder per panel on the board's Storyboard tab, whose Generate button files a `generate` request (landed as `generate[]`, scope sample or batch); that request, or the answer to `board-sync.js ask ... --item storyboard`, is the yes. **Wait for it.** The spend guard refuses without it.
 4. `list_workspaces` for id and balance, `check-3echo.js {client} {job-id} --credits {balance}` (or `--unreachable`), then `get_asset` and `preflight-media.js "<media-url>"`. Exit 0 from both is the permission to generate.
 5. Upload the client assets the manifest names (`upload_asset` or `import_asset_from_url`); record the ids in `manifest.referenceAssets` and each item's `assetIds`.
-6. **The sample panel only**: `create_image_job` (`workspaceId`, `prompt`, `aspectRatio`, `assetIds`, `idempotencyKey` spelled `{job-id}/v{n}/P{id}`), `wait_for_job`, `get_job_result`. Land it under rules 5 to 8. Record the version (`record-version.js --item storyboard --note "sample P{id}"`), `push-panels.js --only P{id}`, push, end the turn. The person approves the sample on the board; `board-sync.js pull --gate sample` writes `approvals/sample-{n}.json` with the batch ceiling from the generate request.
+6. **The sample panel only**: `create_image_job` (`workspaceId`, `prompt`, `aspectRatio`, `assetIds`, `idempotencyKey` spelled `{job-id}/v{n}/P{id}`), `wait_for_job`, `get_job_result`. Land it under rules 5 to 8. Record the version (`record-version.js {client} {job-id} --item storyboard --n {n} --file "storyboard/v{n}" --note "sample P{id}"`), `push-panels.js --only P{id}`, push, end the turn. The person approves the sample on the board; `board-sync.js pull --gate sample` writes `approvals/sample-{n}.json` with the batch ceiling from the generate request.
 7. Next turn, once the sample approval is on disk: the batch, same key format, preamble, continuity and negative list. Land each as `storyboard/v{n}/P{id}.png` by panel id, never display number; set `status` and `file`.
 8. `push-panels.js`, then `python "${CLAUDE_PLUGIN_ROOT}/scripts/contact-sheet.py" "storyboard/v{n}" --cols 4`. A panel it excludes is `rejected`: re-fetch or regenerate. Update the tally in `status.md`.
 
-`stage.js` at both ends: `--substep "Storyboard: quoting"` for steps 1 to 4, then `--substep "Storyboard: panels" --agents "image-maker:working"`.
+`stage.js {job-id} stage-1-creative running --substep "Storyboard: quoting"` for steps 1 to 4, then `--substep "Storyboard: panels" --agents "image-maker:working"`, then `done`. `storyboard` is not a stage id.
 
 ## Rules
 
@@ -39,7 +39,7 @@ The shared rules in `${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md` apply.
 5. Thumbnails are review quality only.
 6. Validate every file: opens with Pillow, 200 px or more short side.
 7. Look at every panel: another brand, a wrong location, an uncast face.
-8. A real place looks like the client's picture, not a guess.
+8. A real place matches the client's picture.
 9. `assetIds` takes 16 references. `aspectRatio` is one of `1:1 2:3 3:2 3:4 4:3 9:16 16:9 21:9`, from the brief, never assumed.
 10. A redo is one panel, one credit: only the ids the person named, archived as `P{id}-r{k}.png`, their note verbatim as the prompt's last line, a yes to its own quote.
 11. Cutting a panel is a storyboard version, not generation.
@@ -50,7 +50,7 @@ The shared rules in `${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md` apply.
 
 ## Boundary
 
-Does not write the panel table (`storyboard-director`), list shots or approve anything. Orchestrator only.
+Never writes the panel table, lists shots or approves.
 
 ## Failure modes
 
@@ -58,5 +58,5 @@ Does not write the panel table (`storyboard-director`), list shots or approve an
 |---|---|
 | `preflight-media.js` exits 3 | Allowlist the asset host; do not generate |
 | A generation tool fails silently | Run `check-3echo.js`; three in a row is reachability |
-| The batch generated before the sample was approved | Stop; the guard should have refused; report it |
+| The batch generated before the sample was approved | Stop and report it |
 | Base64 transcribed by hand | Pipe `dataBase64` into `save-asset-bytes.py` |

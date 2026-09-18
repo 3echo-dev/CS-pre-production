@@ -5,9 +5,14 @@
 //
 //   node sites-check.js <client> [--json]                              exit 0 with the sites, 1 when empty
 //   node sites-check.js <client> --add "<site>" [--url u] [--note n]   append one row, in the person's words
+//   node sites-check.js <client> --add "<a>" --add "<b>" ...           append several; --url and --note need a single --add
 //   node sites-check.js <client> --from <file>                         land a sites/links file from the project folder
 //
 // Exit 0 ok · 1 no sites yet (or nothing in the file reads as a site) · 2 usage · 3 a file is missing
+//
+// `--add a --add b --add c` used to take the first, print "Added a. The scout may search 1 site."
+// and exit 0, with b and c dropped without a word. Every --add is taken now, and the line says
+// which sites were added, which were already there, and how many the scout may search.
 const fs = require('fs');
 const path = require('path');
 const ws = require('./lib-workspace.js');
@@ -17,7 +22,7 @@ const json = argv.includes('--json');
 const flag = (n) => { const i = argv.indexOf(n); return i >= 0 && i + 1 < argv.length ? argv[i + 1] : null; };
 const VALS = new Set(['--add', '--url', '--note', '--from', '--root']);
 const client = argv.find((a, i) => !a.startsWith('--') && !VALS.has(argv[i - 1]));
-if (!client) { console.error('usage: sites-check.js <client> [--json] | --add "<site>" [--url <url>] [--note <text>] | --from <file>'); process.exit(2); }
+if (!client) { console.error('Nothing was changed. usage: sites-check.js <client> [--json] | --add "<site>" [--add "<site>" ...] [--url <url>] [--note <text>] | --from <file>'); process.exit(2); }
 
 const root = ws.root(argv);
 const file = path.join(root, 'workspaces', client, 'client', 'sites.md');
@@ -36,13 +41,22 @@ function append(entries) {
   fs.writeFileSync(file, text);
 }
 
-const add = flag('--add');
-if (add) {
-  const site = add.trim();
-  if (!site) { console.error('--add needs the site in the person\'s words'); process.exit(2); }
-  if (rows().some(r => r[0].toLowerCase() === site.toLowerCase())) { console.log(site + ' is already on the list.'); process.exit(0); }
-  append([[site, flag('--url') || '', flag('--note') || '']]);
-  console.log('Added ' + site + '. The scout may search ' + rows().length + ' site' + (rows().length === 1 ? '' : 's') + '.');
+if (argv.includes('--add')) {
+  const sites = argv.map((a, i) => a === '--add' ? String(argv[i + 1] || '').trim() : null).filter(v => v !== null);
+  if (sites.some(s => !s || s.startsWith('--'))) { console.error('Nothing was added. --add needs the site in the person\'s words, one site per --add.'); process.exit(2); }
+  if (sites.length > 1 && (flag('--url') || flag('--note'))) { console.error('Nothing was added. --url and --note describe one site; with several --add flags they are ambiguous, so add that site on its own.'); process.exit(2); }
+  const have = new Set(rows().map(r => r[0].toLowerCase()));
+  const added = [], already = [];
+  for (const site of sites) {
+    if (have.has(site.toLowerCase())) { if (!already.includes(site)) already.push(site); continue; }
+    have.add(site.toLowerCase()); added.push([site, flag('--url') || '', flag('--note') || '']);
+  }
+  if (added.length) append(added);
+  const total = rows().length;
+  const said = [];
+  if (added.length) said.push('Added ' + added.length + ' site' + (added.length === 1 ? '' : 's') + ': ' + added.map(a => a[0]).join(', ') + '.');
+  if (already.length) said.push(already.join(', ') + (already.length === 1 ? ' is' : ' are') + ' already on the list.');
+  console.log(said.join(' ') + ' The scout may search ' + total + ' site' + (total === 1 ? '' : 's') + '.');
   process.exit(0);
 }
 

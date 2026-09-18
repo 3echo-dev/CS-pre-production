@@ -14,7 +14,7 @@
 // decision to an approval on disk, and it refuses when the board approved a version that is
 // not the one on disk.
 //
-// Exit 0 done · 1 the answer is no (a stale version) · 2 usage · 3 a prerequisite is missing
+// Exit 0 done · 1 the answer is no (a stale version, or a land file with no board record in it) · 2 usage · 3 a prerequisite is missing
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
@@ -219,6 +219,15 @@ function land() {
     fs.writeFileSync(path.join(dir, 'registers', reg + '.json'), JSON.stringify({ rows, landedAt: now() }, null, 2) + '\n');
     changed.push(reg + ': ' + rows.length + ' row' + (rows.length === 1 ? '' : 's'));
   }
+  if (!changed.length) {
+    // This used to print "Nothing recognisable" and exit 0, which is how a run lost a decision:
+    // the orchestrator read success and moved on. It is a failure, and it names the shape it wants.
+    const shape = '{"collection":"projects/' + jobId + '/gates","documents":[{"id":"A","data":{...}}]}';
+    const why = 'Nothing in ' + file + ' reads as a board record, so nothing was landed. land takes what read_db returned: ' + shape + ', or an array of such reads; collections end in /gates, /inbox, /panels, /talents, /props or /locations. The landed record this plugin keeps ({gates, questions, answers, ...}) is what land writes, not what it reads.';
+    if (json) console.log(JSON.stringify({ project: jobId, landed: [], problem: why }, null, 2));
+    else console.error(why);
+    process.exit(1);
+  }
   const prev = board.landed(jobId, argv) || {};
   board.land(argv, jobId, {
     gates: { ...(prev.gates || {}), ...landed.gates },
@@ -229,7 +238,7 @@ function land() {
     exports: landed.exports.length ? landed.exports : (prev.exports || []),
   });
   if (json) console.log(JSON.stringify({ project: jobId, landed: changed }, null, 2));
-  else console.log(changed.length ? 'Landed: ' + changed.join('; ') + '.' : 'Nothing recognisable in ' + file + '.');
+  else console.log('Landed: ' + changed.join('; ') + '.');
 }
 
 // A decision only a person can make. Queued for the board inbox as a question, and printed

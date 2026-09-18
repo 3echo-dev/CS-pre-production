@@ -10,6 +10,7 @@
 // drifts from the hash that approved it.
 //
 // Exit 0 recorded · 1 refused (duplicate version) · 2 usage · 3 the file is not there
+// On exit 1, 2 or 3 nothing was written, and the first line of stderr says so.
 const fs = require('fs');
 const path = require('path');
 const ws = require('./lib-workspace.js');
@@ -26,16 +27,24 @@ const item = opt('--item'), n = Number(opt('--n')), note = opt('--note') || '', 
 // A skeleton a person must fill (an XX item) is recorded as needs_input, so the board shows the
 // tape stamp and opens the register. The plugin never records approved or na; those are human acts.
 const status = opt('--status') || 'draft';
-if (!['draft', 'needs_input', 'running', 'needs_review'].includes(status)) { console.error('--status must be draft, needs_input, running or needs_review'); process.exit(2); }
-if (!client || !jobId || !ITEMS.includes(item) || !Number.isInteger(n) || n < 1 || !file) {
+const missing = [];
+if (!client) missing.push('the client');
+if (!jobId) missing.push('the job id');
+if (!ITEMS.includes(item)) missing.push('--item <' + ITEMS.join('|') + '>' + (item ? ', not "' + item + '"' : ''));
+if (!Number.isInteger(n) || n < 1) missing.push('--n <whole number from 1>' + (opt('--n') ? ', not "' + opt('--n') + '"' : ''));
+if (!file) missing.push('--file <path relative to the job>');
+if (!['draft', 'needs_input', 'running', 'needs_review'].includes(status)) missing.push('--status draft, needs_input, running or needs_review, not "' + status + '"');
+if (missing.length) {
+  // Say what did not happen before saying how to call it: a usage line on its own has been read as success.
+  console.error('Nothing was recorded. This call needs ' + missing.join('; ') + '.');
   console.error('usage: record-version.js <client> <job-id> --item <' + ITEMS.join('|') + '> --n <1..> --file <path relative to the job> [--note "..."] [--seat <agent>] [--status draft|needs_input]');
   process.exit(2);
 }
 const abs = path.join(dir, file);
-if (!fs.existsSync(abs)) { console.error('The file is not there: ' + ws.fwd(abs)); process.exit(3); }
+if (!fs.existsSync(abs)) { console.error('Nothing was recorded. The file is not there: ' + ws.fwd(abs)); process.exit(3); }
 // A directory version (a storyboard folder) hashes its panels.md; a file hashes itself.
 const target = fs.statSync(abs).isDirectory() ? path.join(abs, 'panels.md') : abs;
-if (!fs.existsSync(target)) { console.error('A folder version needs a panels.md inside it: ' + ws.fwd(target)); process.exit(3); }
+if (!fs.existsSync(target)) { console.error('Nothing was recorded. A folder version needs a panels.md inside it: ' + ws.fwd(target)); process.exit(3); }
 
 const log = path.join(dir, 'versions.jsonl');
 let lines = [];
