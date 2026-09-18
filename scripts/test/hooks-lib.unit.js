@@ -72,6 +72,8 @@ const stages = require('../lib-stages.js');
   // Context block never leaks a state id.
   const block = lib.contextBlock({ jobId: 'job-1', client: 'htf', sentence: 'Gate A: lock the creative on the board.', isTheirTurn: true, openGate: 'A', creditsSpent: 3, creditsCeiling: 12 });
   assert.ok(block && /Gate A/.test(block) && !/AWAITING_GATE_A/.test(block), 'context block speaks in sentences');
+  assert.ok(/last landed never/.test(block) && /land them/.test(block), 'the block says when the board was last landed and makes landing the first step');
+  assert.ok(/last landed 2026-09-18T08:14:00Z/.test(lib.contextBlock({ jobId: 'job-1', client: 'htf', isTheirTurn: true, landedAt: '2026-09-18T08:14:00Z' })));
   assert.strictEqual(lib.contextBlock(null), null);
 
   console.log('ok   spend guard refuses video, studio, unsafe and over-ceiling; write guard refuses the six script-only paths; tables match');

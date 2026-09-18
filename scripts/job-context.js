@@ -23,6 +23,7 @@ const ws = require('./lib-workspace.js');
 const jobs = require('./lib-open-job.js');
 const states = require('./lib-states.js');
 const wording = require('./lib-wording.js');
+const board = require('./lib-board.js');
 const turn = require('./hooks/turn.js');
 
 const argv = process.argv.slice(2);
@@ -59,6 +60,7 @@ function context() {
     creditsCeiling: null,
     openQuestion: null,
     openGate: null,
+    landedAt: null,
   };
 
   let job = null;
@@ -90,6 +92,8 @@ function context() {
     openQuestion: asked,
     // A gate the person still has to decide, as opposed to a gate the job has walked past.
     openGate: isTheirTurn ? gate : null,
+    // When the board was last landed for this job, so a hook can say how stale the run's view is.
+    landedAt: (() => { try { return (board.landed(job.jobId, argv) || {}).landedAt || null; } catch { return null; } })(),
   };
 }
 
@@ -113,7 +117,7 @@ if (require.main === module) {
     // normal case at the start of a session, not a failure to report.
     c = { root: ws.fwd(process.cwd()), brand: null, client: null, jobId: null, dir: null, state: null,
       sentence: null, gate: null, isTheirTurn: false, stage: null, creditsSpent: null,
-      creditsCeiling: null, openQuestion: null, openGate: null, unreadable: String(err && err.message || err) };
+      creditsCeiling: null, openQuestion: null, openGate: null, landedAt: null, unreadable: String(err && err.message || err) };
   }
   process.stdout.write((asJson ? JSON.stringify(c) : say(c)) + '\n');
 }

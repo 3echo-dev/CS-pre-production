@@ -11,6 +11,8 @@ A file may still state one of these inline when it is the file's own subject.
 `SendUserFile` takes a list, even for one file: `{ "files": ["workspaces/htf/jobs/job-1/brief.md"], "caption": "...", "status": "normal" }`.
 In the Code tab the board already shows the artifact, so send a file only when it is something to keep, such as the release package.
 
+When a row delivers, the chat line says what was produced in the item's own terms, "11 references, 2 sites unreachable: X and Y", never a path or a byte count; the path is for `record-version.js`, not the person. The board shows the content itself because `record-run.js --output-file` carries the file's text into the drawer's Output tab; a run recorded without it shows nothing there, and the tool says so.
+
 ## What the board may say
 
 The board is read by the client, not by the person who built the pipeline.
@@ -129,6 +131,14 @@ Copy the numbered text it prints into your next message, unchanged, then push. A
 ## The chat and the board are one place
 
 Every question and every gate is shown in both places, and the person may answer or decide in either. Record a typed answer or verdict first, then act on it, so the board closes that step instead of going on asking: an answer with the next push as an answered inbox row; a verdict with `record-approval.js --from-chat`. Never act on something typed in chat and leave the board still asking for it.
+
+## Landing what the board decided
+
+Only you reach the board's database, through the artifact database tool; the scripts read what you land. Read `projects/{job-id}/gates` (get A, B, C), `projects/{job-id}/inbox` (query, status open) and, past Gate A, the `panels`, `talents`, `props`, `locations` and `days` collections. Put every result in one JSON file under `.board/landed/`: an array with one entry per collection, each `{"collection": "projects/{job-id}/gates", "documents": [{"id": "A", "data": {...}}]}`, the documents exactly as the tool returned them. Then `board-sync.js land {client} {job-id} "{file}"`. It prints what it landed; a file that holds no board record exits 1 and names this shape. The record it keeps in `.board/inbox.json` (`{gates, questions, answers, ...}`) is its output, never its input.
+
+If `land` is refused by the harness or a guard, the decision still lands through the script that owns it: a gate verdict with `record-approval.js {client} {job-id} {gate} approve --by "{name from the gate record}" --channel board --decided-at "{time from the gate record}" {the files the gate covers}`; a typed site with `sites-check.js --add`; a change note as `revisions/{n}.json`. A register row has no other path: say it waits on `land`, never type it.
+
+**How the run learns the board moved.** A republish of the board delivers a new version and starts no turn, so a decision made on the board reaches nobody until a turn lands it. The board's own way to ring the bell is a comment sent to Claude: the page sends one on every gate lock, generate request and answer, and the session that watches the board gets a turn headed `[Artifact comment sent to Claude]`. The session that runs jobs is the one that watches the board, because it published it or because it watches it with the ArtifactComments tool at the start of the job. On such a turn: land first, act, then reply in that thread in one line. Whatever the bell does, the floor holds: every resume lands before reading state, and a turn that ends waiting on the board restates every open question, numbered, as its last lines, and says when the run will look again.
 
 ## Where a project really is
 

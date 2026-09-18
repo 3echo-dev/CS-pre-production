@@ -20,15 +20,15 @@ metadata:
 
    The id is the board's project id, so open its page now, before reading anything: `pane.js "{job-id}" "{title}"` (`${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md`); never print the web address. The title is the client and the film in the words `status.md` uses today.
 
-2. **Read `status.md`**, its Notes block first: live constraints, an open revision, a deferred question, the credit tally for panels.
-
-3. **Read the board.** Follow the `board-sync` skill: read the gate documents, the open inbox rows and the registers into a JSON file, then:
+2. **Read the board first, every time.** Follow the `board-sync` skill: read the gate documents, the open inbox rows and the registers into a JSON file, then:
 
    ```bash
    node "${CLAUDE_PLUGIN_ROOT}/scripts/board-sync.js" land {client} {job-id} "{file.json}"
    ```
 
-   It prints what changed since the last landing: a gate locked, a question answered, a change requested, rows entered.
+   It prints what changed since the last landing: a gate locked, a question answered, a change requested, rows entered. A turn that opened with `[Artifact comment sent to Claude]` is the board ringing for exactly this landing; reply in that thread in one line once you have acted.
+
+3. **Read `status.md`**, its Notes block first: live constraints, an open revision, a deferred question, the credit tally for panels.
 
 4. **Reconcile against disk.** If `status.md` disagrees with the files, the files win. Correct it with `set-state.js`, say what you corrected in one clause. Read the state off the last artifact present, against `plan.md`, with the table in `${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md`.
 

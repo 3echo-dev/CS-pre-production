@@ -141,7 +141,13 @@ export function contextBlock(ctx) {
   if (!ctx || !ctx.jobId || !(ctx.client || ctx.brand)) return null;
   const lines = ['1-22, this folder:'];
   lines.push('- ' + (ctx.client || ctx.brand) + ', ' + ctx.jobId + '. ' + (ctx.sentence || 'Working on it.'));
-  if (ctx.isTheirTurn) lines.push('- It is the person\'s turn' + (ctx.openGate ? ' at Gate ' + ctx.openGate : '') + '. Read the board (board-sync.js land, then pull) before assuming anything was decided.');
+  if (ctx.isTheirTurn) {
+    // A decision on the board reaches the run only when a turn lands it, so the block says when
+    // that last happened and makes landing the first thing to do, not a reproach at the end.
+    lines.push('- It is the person\'s turn' + (ctx.openGate ? ' at Gate ' + ctx.openGate : '') + '. The board was last landed ' +
+      (ctx.landedAt ? ctx.landedAt : 'never') + ': read projects/' + ctx.jobId + '/gates and projects/' + ctx.jobId +
+      '/inbox with the artifact database tool and land them (board-sync.js land, then pull) before assuming anything was decided.');
+  }
   if (ctx.creditsCeiling !== null && ctx.creditsCeiling !== undefined) lines.push('- ' + ctx.creditsSpent + ' of ' + ctx.creditsCeiling + ' credits used.');
   lines.push('- A gate is decided on the board, never in this chat. An XX item is filled by a person, never by an agent.');
   return lines.join('\n');

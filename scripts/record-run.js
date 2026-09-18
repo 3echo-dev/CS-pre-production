@@ -39,6 +39,10 @@ if (outputPath) {
   const target = fs.statSync(outputPath).isDirectory() ? path.join(outputPath, 'panels.md') : outputPath;
   if (fs.existsSync(target) && TEXT.test(target)) output = fs.readFileSync(target, 'utf8').slice(0, 60000);
 }
+// The drawer's Output tab renders `output`; a run without it shows an empty tab and a path,
+// which on the first test run left the person opening files to learn what a director made.
+if (!outputPath) console.error('Note: no --output-file, so the board\'s Output tab shows nothing for this run. Pass the file the director wrote.');
+else if (!output) console.error('Note: ' + path.basename(outputPath) + ' is not text, so the board\'s Output tab shows its path only.');
 let trace = [];
 if (tracePath) { try { trace = JSON.parse(fs.readFileSync(tracePath, 'utf8')); } catch { trace = []; } }
 
