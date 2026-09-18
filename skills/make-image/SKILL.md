@@ -40,7 +40,7 @@ The shared rules in `${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md` apply.
 6. Validate every file: opens with Pillow, 200 px or more short side.
 7. Look at every panel: another brand, a wrong location, an uncast face.
 8. A real place matches the client's picture.
-9. `assetIds` takes 16 references. `aspectRatio` is one of `1:1 2:3 3:2 3:4 4:3 9:16 16:9 21:9`, from the brief, never assumed.
+9. `assetIds` takes 16 references. `aspectRatio` is one of `1:1 2:3 3:2 3:4 4:3 9:16 16:9 21:9`, from `job.json`, never assumed.
 10. A redo is one panel, one credit: only the ids the person named, archived as `P{id}-r{k}.png`, their note verbatim as the prompt's last line, a yes to its own quote.
 11. Cutting a panel is a storyboard version, not generation.
 

@@ -23,7 +23,8 @@ try {
   // 1. Every command-line script called with no arguments exits non-zero. The exceptions take
   //    no arguments by design: four report the folder's state, and note-failure.js is a hook that
   //    reads an event on stdin and must never fail the tool it is reporting on.
-  const NO_ARGS_OK = new Set(['check-deps.js', 'job-context.js', 'list-jobs.js', 'set-root.js', 'note-failure.js']);
+  //    build-board.js with no arguments is its ordinary call: build the page from its source.
+  const NO_ARGS_OK = new Set(['check-deps.js', 'job-context.js', 'list-jobs.js', 'set-root.js', 'note-failure.js', 'build-board.js']);
   const cli = fs.readdirSync(scripts).filter(name => name.endsWith('.js') && !name.startsWith('lib-') && !NO_ARGS_OK.has(name));
   const zero = [];
   for (const name of cli) {

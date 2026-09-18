@@ -60,6 +60,10 @@
         "cartoon_animation"
       ]
     },
+    "aspectRatio": {
+      "description": "The frame every storyboard panel is drawn in; asked at intake, carried into the generation manifest, and the board's card ratio until the first panel is drawn",
+      "enum": ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9", "2:3", "3:2", null]
+    },
     "hasTrailer": {
       "type": "boolean"
     },

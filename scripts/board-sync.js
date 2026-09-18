@@ -66,6 +66,8 @@ async function open() {
   await board.call('project', {
     key: jobId, title: job.title, client: job.client || client, driveFolder: job.driveFolder || '',
     scriptFormat: job.scriptFormat || null, storyboardStyle: job.storyboardStyle || null,
+    // The board's card ratio before any panel is drawn; the first drawn panel's size wins after.
+    aspectRatio: job.aspectRatio || null,
     status: 'intake', createdAt: job.requestedAt || now(), createdBy: 'pipeline',
   }, { argv });
   for (const item of ITEMS) {

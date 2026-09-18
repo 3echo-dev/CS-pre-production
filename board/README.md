@@ -10,10 +10,17 @@ records the address with `scripts/set-board.js`. The page keeps its state in the
 database, so a fresh copy opens on the slate with no projects until the first `board-sync.js
 push`.
 
-The file is a built page: the source plus a base64 copy of itself in a `<script type="text/plain"
-id="__src">` tag. A gate lock republishes the page from that copy, which is the signal that
-wakes a watching Claude Code session. Edit the source elsewhere and rebuild; never hand-edit
-this file.
+The file is a built page: the source, `src/1-22-control.html`, plus a base64 copy of that
+source in a `<script type="text/plain" id="__src">` tag, so a gate lock can republish the page
+from a pristine copy. Edit `src/1-22-control.html`, run `node scripts/build-board.js`, and commit
+both files; `build-board.js --check` runs in the test suite, so a hand-edit of the built page
+fails the build.
+
+A decision on the page reaches the run as a comment sent to Claude (the `comments` capability),
+which starts a turn in the session watching the artifact; the republish is the fallback, and
+delivers a version without starting a turn. The panel cards take their ratio from the panels
+themselves (`--panel-ar`, from the pixel size `push-panels.js` sends, else the project's aspect
+ratio, else 16/9) and fit the frame instead of cropping it.
 
 The database contract the scripts rely on is what `board-sync.js push --json` prints and
 what `board-sync.js land` reads back; `skills/board-sync/SKILL.md` describes both.

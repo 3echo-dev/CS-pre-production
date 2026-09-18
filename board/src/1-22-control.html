@@ -1,0 +1,816 @@
+<title>1-22 Control</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --ink:#0d0f12;--panel:#151920;--panel2:#1b2129;--panel3:#222a34;--line:#2a323d;--line2:#374150;
+  --paper:#e6e9ee;--dim:#a2acba;--faint:#6b7684;
+  --tape:#f2b53a;--tape-ink:#1a1400;--go:#3fd39b;--go-dim:#1f7d5c;--hold:#e4573f;--hold-dim:#7d2d21;--wait:#6aa9ff;--wait-dim:#2b4a75;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  --cond:'Barlow Condensed','Arial Narrow',sans-serif;
+  --r1:3px;--r2:5px;--r3:8px;
+  --ease-out:cubic-bezier(.23,1,.32,1);--ease-drawer:cubic-bezier(.32,.72,0,1);
+  --shadow:0 12px 32px -8px rgba(0,0,0,.55),0 2px 6px rgba(0,0,0,.35);
+  --z-scrim:19;--z-drawer:20;--z-toast:30;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{background:var(--ink);scrollbar-color:var(--line2) var(--ink)}
+body{margin:0;background:var(--ink);color:var(--paper);font-family:var(--sans);font-size:14px;line-height:1.5;padding-block:0 48px;padding-inline:clamp(16px,2.5vw,32px);caret-color:var(--tape);-webkit-font-smoothing:antialiased}
+::selection{background:var(--tape);color:var(--tape-ink)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:6px;border:2px solid var(--ink)}
+::-webkit-scrollbar-track{background:transparent}
+a{color:inherit}
+button{font:inherit;color:inherit;background:none;border:1px solid var(--line2);border-radius:var(--r2);padding:5px 11px;min-height:32px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;line-height:1.2;transition:border-color 150ms ease,background-color 150ms ease,color 150ms ease,transform 160ms var(--ease-out)}
+button:hover{border-color:var(--dim);background:rgba(255,255,255,.03)}
+button:active{transform:scale(.97)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--tape);outline-offset:2px}
+button.primary{background:var(--paper);color:var(--ink);border-color:var(--paper);font-weight:600}
+button.primary:hover{background:#fff}
+button.tape{background:var(--tape);color:var(--tape-ink);border-color:var(--tape);font-weight:600}
+button.tape:hover{background:#f7c458}
+button.ghost{border-color:transparent;color:var(--dim)}
+button.ghost:hover{color:var(--paper);border-color:var(--line2)}
+button:disabled{opacity:.4;cursor:not-allowed;transform:none}
+button svg{width:14px;height:14px;flex:none}
+input,textarea,select{font:inherit;color:var(--paper);background:var(--ink);border:1px solid var(--line2);border-radius:var(--r2);padding:7px 9px;width:100%;min-height:34px;transition:border-color 150ms ease}
+input:hover,textarea:hover,select:hover{border-color:var(--dim)}
+input::placeholder,textarea::placeholder{color:var(--faint)}
+textarea{min-height:68px;resize:vertical}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a2acba' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;background-size:14px;padding-right:28px}
+h1,h2,h3{font-family:var(--cond);text-transform:uppercase;letter-spacing:.02em;margin:0;text-wrap:balance;font-weight:700}
+.mono{font-family:var(--mono);font-size:12px}
+.num{font-variant-numeric:tabular-nums}
+.meta{font-size:12px;color:var(--dim)}
+svg.i{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-2px}
+
+/* top bar */
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0 12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.brand a{text-decoration:none}
+.brand h1{font-size:28px;line-height:1}
+.brand .sub{color:var(--dim);font-size:13px}
+.brand .sub b{color:var(--paper);font-weight:500}
+.who{display:flex;align-items:center;gap:14px;font-size:13px;color:var(--dim);flex-wrap:wrap}
+.who label{display:inline-flex;align-items:center;gap:8px}
+.who select{width:auto;min-height:32px;padding:4px 28px 4px 9px}
+.conn{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--dim)}
+.conn i{width:8px;height:8px;border-radius:50%;background:var(--faint);display:inline-block;transition:background-color 300ms ease}
+.conn.on i{background:var(--go);box-shadow:0 0 0 3px rgba(63,211,155,.18)}
+.rules{display:flex;gap:6px 22px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--line);font-size:12px;color:var(--dim)}
+.rules b{color:var(--paper);font-weight:600}
+
+/* slate */
+.sect{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:26px;margin-bottom:10px}
+.sect h2{font-size:20px}
+.slate{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.pcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--r3);padding:14px 16px;display:flex;flex-direction:column;gap:10px;cursor:pointer;text-align:left;transition:border-color 150ms ease,transform 160ms var(--ease-out),background-color 150ms ease}
+.pcard:hover{border-color:var(--line2);background:var(--panel2)}
+.pcard:active{transform:scale(.99)}
+.pcard h3{font-size:22px;line-height:1.05}
+.pcard .row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.pcard .prog{height:4px;background:var(--line);border-radius:2px;overflow:hidden}
+.pcard .prog i{display:block;height:100%;background:var(--go);border-radius:2px;transition:width 300ms var(--ease-out)}
+.gchips{display:inline-flex;gap:4px}
+.gchip{font-family:var(--cond);font-weight:700;font-size:12px;width:20px;height:20px;border-radius:var(--r1);border:1px solid var(--line2);display:inline-flex;align-items:center;justify-content:center;color:var(--faint)}
+.gchip.passed{color:var(--ink);background:var(--go);border-color:var(--go)}
+.gchip.ready{color:var(--tape-ink);background:var(--tape);border-color:var(--tape)}
+.gchip.reopened{color:var(--hold);border-color:var(--hold)}
+.newp{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end;margin-top:14px;padding:14px 16px;border:1px dashed var(--line2);border-radius:var(--r3)}
+.newp label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--dim)}
+
+/* gate strip */
+.gates{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0 12px}
+.gate{background:var(--panel);border:1px solid var(--line);border-radius:var(--r3);padding:12px 14px;display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:start;position:relative;text-align:left;cursor:pointer;transition:border-color 150ms ease,background-color 150ms ease,transform 160ms var(--ease-out)}
+.gate:hover{border-color:var(--dim)}
+.gate:active{transform:scale(.995)}
+.gate .letter{font-family:var(--cond);font-size:44px;font-weight:700;line-height:.85;grid-row:1/4;color:var(--dim);letter-spacing:-.02em;transition:color 200ms ease}
+.gate .name{font-family:var(--cond);text-transform:uppercase;letter-spacing:.06em;font-size:15px;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.gate .cond{font-size:12px;color:var(--dim);line-height:1.4}
+.gate .approver{font-size:11px;color:var(--faint);display:flex;justify-content:space-between;gap:8px;align-items:center}
+.gate .chev{color:var(--faint);transition:transform 200ms var(--ease-out)}
+.gate.sel .chev{transform:rotate(180deg)}
+.gate.passed{border-color:var(--go-dim)}
+.gate.passed .letter{color:var(--go)}
+.gate.ready{border-color:var(--tape)}
+.gate.ready .letter{color:var(--tape)}
+.gate.reopened{border-color:var(--hold-dim)}
+.gate.reopened .letter{color:var(--hold)}
+.gate.sel{background:var(--panel2);border-color:var(--paper)}
+.gatedetail{background:var(--panel2);border:1px solid var(--paper);border-radius:var(--r3);padding:14px 18px 16px;margin:-4px 0 16px;display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:8px 24px;opacity:1;transform:translateY(0);transition:opacity 200ms var(--ease-out),transform 200ms var(--ease-out)}
+@starting-style{.gatedetail{opacity:0;transform:translateY(-4px)}}
+.gatedetail h3{font-size:22px;grid-column:1/-1;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.gatedetail h3 span{font-family:var(--sans);text-transform:none;letter-spacing:0;font-weight:400;font-size:12px;color:var(--dim)}
+.gatedetail .gi{display:grid;grid-template-columns:1fr auto auto;gap:2px 10px;align-items:center;font-size:13px;padding:7px 0;border-bottom:1px solid var(--line)}
+.gatedetail .gi:last-child{border-bottom:0}
+.gatedetail .gi .who{font-size:11px;color:var(--faint);white-space:nowrap}
+.gatedetail .gi .what{color:var(--dim);font-size:12px;grid-column:1/-1}
+.gatedetail dl{display:grid;grid-template-columns:auto 1fr;gap:7px 12px;font-size:13px;margin:0;align-content:start}
+.gatedetail dt{color:var(--faint);font-family:var(--cond);text-transform:uppercase;letter-spacing:.06em;font-size:12px;padding-top:1px}
+.gatedetail dd{margin:0;color:var(--dim)}
+
+/* board */
+.board{display:grid;grid-template-columns:minmax(0,1fr) 312px;gap:16px;align-items:start}
+.stages{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.stage{display:flex;flex-direction:column;gap:8px;min-width:0}
+.stage .head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;border-bottom:2px solid var(--line2);padding-bottom:5px}
+.stage .head h2{font-size:18px}
+.stage .head h2 span{color:var(--dim);font-weight:500}
+.stage .head .cnt{font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums}
+.intake{margin-bottom:12px}
+.item{background:var(--panel);border:1px solid var(--line);border-radius:var(--r3);padding:11px 12px 10px;display:flex;flex-direction:column;gap:7px;min-width:0;transition:border-color 150ms ease,opacity 200ms ease,background-color 150ms ease}
+.item:hover{border-color:var(--line2)}
+.item .t{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.item .t h3{font-size:17px;font-weight:600;display:flex;align-items:center;gap:7px}
+.item .t .v{font-family:var(--mono);font-size:11px;color:var(--faint)}
+.item .s{font-size:12.5px;color:var(--dim);overflow-wrap:anywhere;line-height:1.45}
+.item .foot{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
+.item .seat{font-size:11px;color:var(--faint)}
+.item.nr{border-color:var(--hold-dim)}
+.item.hl{border-color:var(--paper);background:var(--panel2)}
+.item.dimmed{opacity:.35}
+.pill{display:inline-flex;align-items:center;gap:5px;font-family:var(--cond);text-transform:uppercase;letter-spacing:.06em;font-size:12px;font-weight:600;padding:2px 7px;border-radius:var(--r1);border:1px solid var(--line2);color:var(--dim);white-space:nowrap;line-height:1.3}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.9}
+.pill.approved{color:var(--go);border-color:var(--go-dim)}
+.pill.na{color:var(--faint);border-color:var(--line2)}
+.pill.na::before{display:none}
+.pill.needs_input{color:var(--tape-ink);background:var(--tape);border-color:var(--tape)}
+.pill.needs_review{color:var(--hold);border-color:var(--hold-dim)}
+.pill.running{color:var(--wait);border-color:var(--wait-dim)}
+.pill.running::before{animation:blink 1.2s ease-in-out infinite}
+.pill.draft{color:var(--paper);border-color:var(--line2)}
+.pill.pending{color:var(--faint)}
+.pill.plain::before{display:none}
+@keyframes blink{50%{opacity:.25}}
+.xx{font-family:var(--cond);font-weight:700;font-size:11px;letter-spacing:.12em;color:var(--tape-ink);background:var(--tape);padding:1px 5px;border-radius:2px;transform:rotate(-4deg);display:inline-block;line-height:1.3}
+.actions{display:flex;gap:4px;flex-wrap:wrap}
+.actions button{padding:3px 9px;font-size:12px;min-height:28px}
+
+/* rail */
+.rail{display:flex;flex-direction:column;gap:12px;min-width:0}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:var(--r3);padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.box h2{font-size:16px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.box h2 span{font-family:var(--sans);font-size:11px;color:var(--faint);text-transform:none;letter-spacing:0;font-weight:400}
+.req{border-top:1px solid var(--line);padding-top:8px;display:grid;grid-template-columns:18px 1fr;gap:2px 8px;font-size:13px;transition:opacity 200ms ease}
+.req .ic{color:var(--dim);padding-top:2px}
+.req.change .ic{color:var(--hold)}
+.req.gate .ic{color:var(--go)}
+.req.question .ic{color:var(--tape)}
+.req .from{font-size:11px;color:var(--faint);grid-column:2}
+.req .body{grid-column:2}
+.req.answered{opacity:.5}
+.opts{display:flex;gap:4px;flex-wrap:wrap;grid-column:2;margin-top:4px}
+.opts button{font-size:12px;min-height:28px;padding:3px 9px}
+.msg{border-top:1px solid var(--line);padding-top:7px;font-size:13px}
+.msg .by{font-size:11px;color:var(--faint);display:flex;justify-content:space-between;gap:8px}
+.seats{display:flex;flex-direction:column;gap:2px;font-size:12px}
+.seat-row{display:grid;grid-template-columns:24px 1fr auto;gap:8px;align-items:baseline;color:var(--dim);padding:4px 4px;margin:0 -4px;border-radius:var(--r1);text-align:left;border:0;min-height:0;width:calc(100% + 8px)}
+.seat-row:hover{background:var(--panel2)}
+.seat-row[disabled]{opacity:1;cursor:default;background:none}
+.seat-row b{color:var(--paper);font-weight:500}
+.seat-row .st{font-family:var(--cond);text-transform:uppercase;letter-spacing:.06em;font-size:11px}
+.seat-row .st.new{color:var(--faint)}
+.seat-row .st.done{color:var(--go)}
+.seat-row .st.working{color:var(--wait)}
+.seat-row .st.human{color:var(--tape)}
+.empty{color:var(--faint);font-size:12.5px;line-height:1.5}
+.skel{background:linear-gradient(90deg,var(--panel) 25%,var(--panel2) 50%,var(--panel) 75%);background-size:200% 100%;animation:shimmer 1.4s linear infinite;border-radius:var(--r3);border:1px solid var(--line)}
+@keyframes shimmer{to{background-position:-200% 0}}
+
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgba(6,8,10,.5);z-index:var(--z-scrim);opacity:1;transition:opacity 200ms ease}
+@starting-style{.scrim{opacity:0}}
+.drawer{position:fixed;inset:0 0 0 auto;width:min(580px,100%);background:var(--panel2);border-left:1px solid var(--line2);box-shadow:var(--shadow);padding:18px 22px 40px;overflow:auto;display:flex;flex-direction:column;gap:14px;z-index:var(--z-drawer);transform:translateX(0);transition:transform 260ms var(--ease-drawer)}
+@starting-style{.drawer{transform:translateX(100%)}}
+.drawer .dh{display:flex;justify-content:space-between;align-items:start;gap:12px}
+.drawer .dh h2{font-size:26px;line-height:1;display:flex;align-items:baseline;gap:8px}
+.drawer .dh .meta{margin-top:5px}
+.tabs{display:flex;gap:2px;align-items:center;border-bottom:1px solid var(--line2);padding-bottom:6px;flex-wrap:wrap}
+.tabs button{border:none;border-radius:var(--r1);padding:4px 10px;min-height:28px;font-family:var(--cond);text-transform:uppercase;letter-spacing:.06em;font-size:13px;font-weight:600;color:var(--dim)}
+.tabs button:hover{background:var(--panel3);color:var(--paper)}
+.tabs button.on{background:var(--paper);color:var(--ink)}
+.tabs .cnt{font-family:var(--mono);font-size:10px;opacity:.7}
+.sheet-wrap{overflow:auto;max-height:56vh;border:1px solid var(--line);border-radius:var(--r2);background:var(--ink)}
+.sheet{border-collapse:collapse;font-size:12px;min-width:100%}
+.sheet th{position:sticky;top:0;background:var(--panel3);font-family:var(--cond);text-transform:uppercase;letter-spacing:.06em;font-size:11px;color:var(--dim);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line2);white-space:nowrap;z-index:1}
+.sheet td{padding:5px 8px;border-bottom:1px solid var(--line);vertical-align:top;max-width:280px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.sheet td.unk{color:var(--tape);font-style:italic}
+.sheet tr:last-child td{border-bottom:0}
+.sb-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.sb-head .num{font-size:12px;color:var(--dim)}
+.sb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.sb-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r2);overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.sb-card.sample{border-color:var(--tape)}
+/* The ratio comes from the panels themselves (--panel-ar, set per project from the first panel's pixel size, else the project's aspect ratio, else 16/9), and a frame is fitted, never cropped. */
+.sb-thumb{display:block;width:100%;aspect-ratio:var(--panel-ar,16/9);background:var(--ink);border:none;padding:0;cursor:zoom-in}
+.sb-ph{aspect-ratio:var(--panel-ar,16/9);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;background:var(--ink);color:var(--faint);font-family:var(--mono);font-size:11px;border-bottom:1px dashed var(--line2)}
+.sb-cap{padding:6px 8px;font-size:11.5px;line-height:1.35;color:var(--dim);display:flex;flex-direction:column;gap:3px}
+.sb-cap b{color:var(--paper);font-family:var(--mono);font-size:11px}
+.sb-cap .row{display:flex;gap:4px;flex-wrap:wrap}
+.sb-cap .row button{min-height:24px;padding:2px 7px;font-size:11px}
+.sb-tag{display:inline-block;font-family:var(--cond);text-transform:uppercase;letter-spacing:.06em;font-size:10px;padding:1px 5px;border-radius:var(--r1);background:var(--tape);color:var(--tape-ink);font-weight:700}
+.sb-lb{position:fixed;inset:0;z-index:calc(var(--z-drawer) + 2);background:rgba(6,8,10,.9);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;padding:20px;cursor:zoom-out}
+.sb-lb img{max-height:82vh;max-width:min(92vw,1100px);border:1px solid var(--line2);border-radius:var(--r2)}
+.sb-lb .cap{color:var(--paper);font-size:13px;max-width:1100px;text-align:center}
+.runmeta{display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--dim);margin-bottom:8px}
+.out{background:var(--ink);border:1px solid var(--line);border-radius:var(--r2);padding:12px 14px;font-size:13px;line-height:1.55;max-height:52vh;overflow:auto}
+.out code{font-size:12px;color:var(--wait)}
+.pre{background:var(--ink);border:1px solid var(--line);border-radius:var(--r2);padding:12px 14px;font-family:var(--mono);font-size:12px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere;max-height:52vh;overflow:auto;margin:0}
+.trace{display:flex;flex-direction:column;font-size:12px}
+.trace .tr{display:grid;grid-template-columns:52px 130px 1fr;gap:8px;border-bottom:1px solid var(--line);padding:5px 0;color:var(--dim)}
+.trace .tr:last-child{border-bottom:0}
+.note{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.note .row{display:flex;justify-content:flex-end}
+.kv{display:grid;grid-template-columns:120px 1fr;gap:5px 12px;font-size:13px;margin:0}
+.kv dt{color:var(--faint)}
+.kv dd{margin:0;overflow-wrap:anywhere}
+.reg{width:100%;border-collapse:collapse;font-size:12px}
+.reg th{font-family:var(--cond);text-transform:uppercase;letter-spacing:.06em;font-size:11px;color:var(--dim);text-align:left;padding:5px 7px;border-bottom:1px solid var(--line2);font-weight:600;white-space:nowrap}
+.reg td{padding:6px 7px;border-bottom:1px solid var(--line);vertical-align:top;font-variant-numeric:tabular-nums}
+.reg tr:last-child td{border-bottom:0}
+.reg td.unk{color:var(--tape);font-style:italic}
+.regform{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:6px;margin-top:10px}
+.regform label{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--dim)}
+.regform .add{display:flex;align-items:end}
+.versions{display:flex;flex-direction:column;font-size:12px}
+.versions .vr{display:grid;grid-template-columns:36px 1fr auto;gap:8px;color:var(--dim);padding:4px 0;border-bottom:1px solid var(--line)}
+.versions .vr:last-child{border-bottom:0}
+.versions .vr.sel{color:var(--paper)}
+.subh{font-family:var(--cond);text-transform:uppercase;letter-spacing:.06em;font-size:13px;font-weight:600;color:var(--dim);margin:2px 0 6px}
+.foot-note{margin-top:28px;font-size:11px;color:var(--faint);border-top:1px solid var(--line);padding-top:10px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(0);background:var(--paper);color:var(--ink);padding:9px 14px;border-radius:var(--r2);font-weight:500;z-index:var(--z-toast);box-shadow:var(--shadow);display:flex;align-items:center;gap:8px;opacity:1;transition:opacity 220ms ease,transform 220ms var(--ease-out)}
+@starting-style{.toast{opacity:0;transform:translateX(-50%) translateY(8px)}}
+.toast.out{opacity:0;transform:translateX(-50%) translateY(6px)}
+@media (max-width:960px){.board{grid-template-columns:1fr}.stages{grid-template-columns:1fr}.gates{grid-template-columns:1fr}.gatedetail{grid-template-columns:1fr}.gate .letter{font-size:36px}}
+@media (pointer:coarse){button{min-height:40px}.actions button,.opts button,.tabs button{min-height:36px}}
+@media (prefers-reduced-motion:reduce){*{transition-duration:0ms!important;animation-duration:0ms!important}.pill.running::before{animation:none}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="ic-q" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7"/><path d="M12 17h.01"/></symbol>
+  <symbol id="ic-change" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15.5-6.3L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.3L3 16"/><path d="M3 21v-5h5"/></symbol>
+  <symbol id="ic-gate" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="ic-check" viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7"/></symbol>
+  <symbol id="ic-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="ic-chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="ic-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></symbol>
+  <symbol id="ic-send" viewBox="0 0 24 24"><path d="M4 12 20 4l-4 16-4-7z"/><path d="M12 13 20 4"/></symbol>
+  <symbol id="ic-open" viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4 10 14"/><path d="M18 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5"/></symbol>
+</svg>
+
+<div id="app"></div>
+
+<script>
+/* ---------- The 1-22 model: what the board knows without a database ---------- */
+const ITEMS = [
+  {id:'intake',            stage:0, name:'Intake',            xx:false, seat:'intake-director',    produces:'Unified brief with the folder index, conflict list and open questions', deps:[]},
+  {id:'scraper',           stage:1, name:'Scraper',           xx:true,  seat:'reference-scout',    produces:'Reference board: URL, retrieval date and why it fits, per reference', deps:['intake']},
+  {id:'script',            stage:1, name:'Script',            xx:false, seat:'script-director',    produces:'Screenplay or AV script, versioned, one selected', deps:['intake','scraper']},
+  {id:'storyboard',        stage:1, name:'Storyboard',        xx:false, seat:'storyboard-director',produces:'Panels in one style: sketches, live pictures or cartoon/animation', deps:['script']},
+  {id:'shot_list',         stage:1, name:'Shot list',         xx:false, seat:'shot-list-director', produces:'Shot rows with stable IDs that survive reordering', deps:['script','storyboard']},
+  {id:'budget_sheet',      stage:1, name:'Budget sheet',      xx:true,  seat:'production-planner', produces:'Template pre-filled; unknown stays unknown, never zero', deps:['shot_list']},
+  {id:'timeline',          stage:1, name:'Timeline',          xx:true,  seat:'production-planner', produces:'Milestone calendar; main film and trailer tracked separately', deps:['shot_list']},
+  {id:'audio',             stage:2, name:'Audio',             xx:false, seat:'audio-supervisor',   produces:'VO, BGM and SFX rows per scene with library source', deps:['storyboard']},
+  {id:'talents',           stage:2, name:'Talents',           xx:true,  seat:'logistics-registrar',produces:'Per-job register: name, picture, age, availability, cost, loading', deps:['shot_list']},
+  {id:'props',             stage:2, name:'Props',             xx:true,  seat:'logistics-registrar',produces:'Key props declared by a human', deps:['shot_list','storyboard']},
+  {id:'locations',         stage:2, name:'Locations',         xx:true,  seat:'logistics-registrar',produces:'Real locations; availability is a human fact', deps:['shot_list','storyboard']},
+  {id:'concept_breakdown', stage:3, name:'Concept breakdown', xx:false, seat:'breakdown-compiler', produces:'MOT-format table compiled from every upstream record', deps:['shot_list','storyboard','audio','talents','props','locations']},
+  {id:'call_sheet',        stage:3, name:'Call sheet',        xx:false, seat:'call-sheet-builder', produces:'One sheet per shoot day in the HTF layout', deps:['concept_breakdown','talents','locations','timeline']},
+];
+const STAGES = [
+  {n:1, name:'Stage 1', sub:'Creative', gate:'A'},
+  {n:2, name:'Stage 2', sub:'Logistics', gate:'B'},
+  {n:3, name:'Stage 3', sub:'Documents', gate:'C'},
+];
+const GATES = {
+  A:{name:'Creative lock', after:1, items:['script','storyboard','shot_list','budget_sheet','timeline','scraper'], approver:'The creative director for creative; the assistant accepts the templates', cond:'Script version selected. Storyboard approved in its one style. Shot list approved. Budget and timeline templates accepted. Scraper targets confirmed and references selected.'},
+  B:{name:'Logistics lock', after:2, items:['audio','talents','props','locations'], approver:'Assistant enters, the creative director confirms', cond:'Talents, props and locations entered or explicitly not applicable. Audio choices recorded. Unknown is not the same as not applicable.'},
+  C:{name:'Documents released', after:3, items:['concept_breakdown','call_sheet'], approver:'Production lead', cond:'Breakdown checked against a sample. Every shoot day\'s call sheet approved by the named releaser.'},
+};
+const GATE_RELEASES = {A:'Stage 2: audio drafting and the three logistics registers open.', B:'Stage 3: the concept breakdown compiles and call sheets are built.', C:'The release package: breakdown plus every approved day sheet, bound to their hashes. Shoot days are written back to the timeline.'};
+const GATE_ROLLBACK = {A:'A change on any Stage 1 item reopens Gate A only; approved versions are kept.', B:'A change on a register or audio reopens Gate B only; the breakdown and call sheets go back to review.', C:'A released sheet is never edited; a change makes a new version and Gate C is asked again for that day.'};
+const SEATS = [
+  {id:'orchestrator',        n:'00', label:'Orchestrator',        kind:'agent', note:'Walks the plan, verifies every file on disk, stops at every gate'},
+  {id:'intake-director',     n:'01', label:'Intake Clerk',        kind:'new',   note:'Reads the Drive folder, builds the unified brief, lists conflicts'},
+  {id:'reference-scout',     n:'02', label:'Reference Scout',     kind:'new',   note:'Runs the scraper against the client\'s sites; URL, date, reason kept'},
+  {id:'script-director',     n:'03', label:'Scriptwriter',        kind:'new',   note:'Screenplay or AV drafts in the creative director\'s voice; version record'},
+  {id:'storyboard-director', n:'04', label:'Storyboard Artist',   kind:'new',   note:'Panels in the chosen style with labels that survive reordering'},
+  {id:'shot-list-director',  n:'05', label:'Shot Lister',         kind:'new',   note:'Shot rows and IDs from script and board'},
+  {id:'production-planner',  n:'06', label:'Production Planner',  kind:'new',   note:'Budget and timeline templates; unknown-value tracking'},
+  {id:'audio-supervisor',    n:'07', label:'Audio Supervisor',    kind:'new',   note:'VO, BGM, SFX requirements and library options'},
+  {id:'logistics-registrar', n:'08', label:'Logistics Registrar', kind:'new',   note:'The XX forms for talents, props, locations'},
+  {id:'breakdown-compiler',  n:'09', label:'Breakdown Compiler',  kind:'new',   note:'The MOT-format table from all upstream records'},
+  {id:'call-sheet-builder',  n:'10', label:'Call Sheet Builder',  kind:'new',   note:'Day sheets from selected rows in the client\'s layout'},
+  {id:'questioner',          n:'11', label:'Questioner',          kind:'new',   note:'Asks the missing-decision questions at each stage'},
+  {id:'creative-director', n:'H1', label:'Creative director', kind:'human', note:'Creative approvals at Gates A to C'},
+  {id:'assistant',           n:'H2', label:'Production assistant',kind:'human', note:'Logistics entry, templates, call-sheet release support'},
+  {id:'lead',                n:'H3', label:'Production lead',     kind:'human', note:'Releases every call sheet at Gate C'},
+];
+const STATUS_LABEL = {pending:'Not started', running:'Working', draft:'Draft', needs_input:'Your input', needs_review:'Needs review', approved:'Approved', na:'Not applicable'};
+const REG_FIELDS = {
+  talents:['name','picture','age','availability','cost','loading'],
+  props:['name','scene','source','have'],
+  locations:['name','address','availability','contact'],
+};
+const HUMANS = [{id:'creative-director',label:'Creative director'},{id:'assistant',label:'Production assistant'},{id:'lead',label:'Production lead'},{id:'finance',label:'Finance approver'}];
+const LEGACY_IDS = {sham:'creative-director', eugene:'finance'};
+const ic = n => `<svg class="i" aria-hidden="true"><use href="#ic-${n}"/></svg>`;
+
+/* ---------- state ---------- */
+let db = null, dbState = 'connecting';
+let projects = [], project = null, items = {}, gates = {}, inbox = [], messages = [], regs = {talents:[],props:[],locations:[]}, versions = {}, runs = {};
+let unsubs = [];
+let drawer = null, drawerTab = 'output', runSel = null, gateOpen = null, busy = new Set();
+// Browser popups (confirm, prompt) are blocked inside the artifact sandbox and return nothing,
+// so every consequential action confirms in the page: a second press within a few seconds.
+let armed = null; // {key, until}
+function isArmed(key){ return armed && armed.key===key && Date.now()<armed.until; }
+function arm(key){ armed={key, until:Date.now()+8000}; render(); setTimeout(()=>{ if(armed&&armed.key===key&&Date.now()>=armed.until){ armed=null; render(); } }, 8200); }
+let changeFor = null; // item id whose change form is open
+let answerFor = null; // inbox id whose typed-answer form is open
+let panels = []; // storyboard panels the pipeline pushed, with thumbnails
+let sheets = {}; // item id -> {columns, rows, exportPath, driveCopy, template}
+let lightbox = null; // panel id shown large
+let redoFor = null; // panel id whose redo note is open
+let me = (()=>{ try { const v = localStorage.getItem('c122.me') || 'creative-director'; return LEGACY_IDS[v] || v; } catch(e){ return 'creative-director'; } })();
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const now = () => new Date().toISOString();
+const fmt = iso => { if(!iso) return ''; const d=new Date(iso); return isNaN(d)?iso:d.toLocaleString('en-SG',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}); };
+const slug = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40) || 'project';
+const humanName = id => { const k = LEGACY_IDS[id] || id; return (HUMANS.find(h=>h.id===k)||{}).label || (k==='pipeline'?'Pipeline':k); };
+let toastEl=null;
+function toast(t, kind){ if(toastEl) toastEl.remove(); const el=document.createElement('div'); el.className='toast'; el.setAttribute('role','status'); el.innerHTML=(kind==='ok'?ic('check'):'')+esc(t); document.body.appendChild(el); toastEl=el; setTimeout(()=>{ el.classList.add('out'); setTimeout(()=>{ if(el===toastEl) toastEl=null; el.remove(); },240); },1900); }
+
+/* ---------- routing ---------- */
+function route(){ const h=location.hash||'#/'; const m=h.match(/^#\/p\/([^/]+)/); return m?{page:'project',id:decodeURIComponent(m[1])}:{page:'slate'}; }
+window.addEventListener('hashchange', ()=>{ drawer=null; gateOpen=null; bindProject(); render(); });
+window.addEventListener('keydown', e=>{ if(e.key==='Escape' && drawer){ drawer=null; render(); } });
+
+/* ---------- db binding ---------- */
+async function boot(){
+  render();
+  try { db = await claude.use('db'); } catch(e){ db=null; }
+  dbState = db ? 'on' : 'off';
+  if(db){
+    db.collection('projects').orderBy('createdAt','desc').onSnapshot(q=>{ projects=q.docs.map(d=>({id:d.id,...d.data()})); render(); }, e=>{ dbState='off'; render(); });
+  }
+  bindProject(); render();
+}
+function bindProject(){
+  unsubs.forEach(u=>{try{u()}catch(e){}}); unsubs=[];
+  items={}; gates={}; inbox=[]; messages=[]; regs={talents:[],props:[],locations:[]}; versions={}; runs={}; project=null; panels=[]; lightbox=null; redoFor=null; sheets={};
+  const r=route(); if(r.page!=='project'||!db) return;
+  const base='projects/'+r.id;
+  unsubs.push(db.doc(base).onSnapshot(s=>{ project=s.exists?{id:s.id,...s.data()}:{id:r.id,missing:true}; render(); }));
+  unsubs.push(db.collection(base+'/items').onSnapshot(q=>{ items={}; q.docs.forEach(d=>items[d.id]=d.data()); render(); }));
+  unsubs.push(db.collection(base+'/gates').onSnapshot(q=>{ gates={}; q.docs.forEach(d=>gates[d.id]=d.data()); render(); }));
+  unsubs.push(db.collection(base+'/inbox').orderBy('createdAt','desc').limit(40).onSnapshot(q=>{ inbox=q.docs.map(d=>({id:d.id,...d.data()})); render(); }));
+  unsubs.push(db.collection(base+'/messages').orderBy('at','desc').limit(40).onSnapshot(q=>{ messages=q.docs.map(d=>({id:d.id,...d.data()})); render(); }));
+  for(const k of Object.keys(REG_FIELDS)) unsubs.push(db.collection(base+'/'+k).onSnapshot(q=>{ regs[k]=q.docs.map(d=>({id:d.id,...d.data()})); render(); }));
+  unsubs.push(db.collection(base+'/versions').orderBy('at','desc').limit(100).onSnapshot(q=>{ versions={}; q.docs.forEach(d=>{const v=d.data(); (versions[v.item]=versions[v.item]||[]).push({id:d.id,...v});}); render(); }));
+  unsubs.push(db.collection(base+'/sheets').onSnapshot(q=>{ sheets={}; q.docs.forEach(d=>sheets[d.id]=d.data()); render(); }));
+  unsubs.push(db.collection(base+'/panels').onSnapshot(q=>{ panels=q.docs.map(d=>({id:d.id,...d.data()})); render(); }));
+  unsubs.push(db.collection(base+'/runs').orderBy('startedAt','desc').limit(120).onSnapshot(q=>{ runs={}; q.docs.forEach(d=>{const v=d.data(); (runs[v.item]=runs[v.item]||[]).push({id:d.id,...v});}); render(); }));
+}
+
+/* ---------- derived ---------- */
+function itemOf(id){ const def=ITEMS.find(i=>i.id===id); return Object.assign({status:'pending',version:0,summary:''}, def, items[id]||{}); }
+function gateReady(g){ return GATES[g].items.every(id=>['approved','na'].includes(itemOf(id).status)); }
+function gateView(g){ const rec=gates[g]||{}; const ready=gateReady(g); const st = rec.status==='passed'?'passed': rec.status==='reopened'?'reopened': ready?'ready':'locked'; return {...rec, st, ready}; }
+function dependents(id){ const out=new Set(); const walk=x=>ITEMS.filter(i=>i.deps.includes(x)).forEach(i=>{ if(!out.has(i.id)){out.add(i.id); walk(i.id);} }); walk(id); return [...out]; }
+function gateOfItem(id){ return Object.keys(GATES).find(g=>GATES[g].items.includes(id)) || null; }
+function regUnknowns(k){ return regs[k].filter(r=>REG_FIELDS[k].some(f=>!String(r[f]||'').trim())).length; }
+function runsOf(id){ return runs[id]||[]; }
+function lastRunOfSeat(seat){ let best=null; for(const k in runs) for(const r of runs[k]) if(r.seat===seat && (!best || (r.startedAt||'')>(best.startedAt||''))) best=r; return best; }
+function seatLabel(id){ const s=SEATS.find(x=>x.id===id); return s?s.label:id; }
+function md(s){
+  const lines=String(s||'').split('\n'); let out='', inTable=false;
+  const inline=t=>esc(t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/`(.+?)`/g,'<code class="mono">$1</code>');
+  for(const raw of lines){
+    const l=raw.replace(/\s+$/,'');
+    if(/^\|.*\|$/.test(l)){ const cells=l.slice(1,-1).split('|').map(c=>c.trim()); if(cells.every(c=>/^:?-{2,}:?$/.test(c))) continue; if(!inTable){ out+='<div style="overflow-x:auto"><table class="reg">'; inTable='head'; }
+      out+='<tr>'+cells.map(c=>inTable==='head'?`<th>${inline(c)}</th>`:`<td>${inline(c)}</td>`).join('')+'</tr>'; if(inTable==='head') inTable='body'; continue; }
+    if(inTable){ out+='</table></div>'; inTable=false; }
+    if(/^#{1,3} /.test(l)){ const n=l.match(/^#+/)[0].length; out+=`<div class="subh" style="margin-top:${n===1?10:8}px;color:${n===1?'var(--paper)':'var(--dim)'}">${inline(l.replace(/^#+ /,''))}</div>`; }
+    else if(/^\s*[-*] /.test(l)) out+=`<div style="padding-left:14px;text-indent:-10px">· ${inline(l.replace(/^\s*[-*] /,''))}</div>`;
+    else if(l==='') out+='<div style="height:6px"></div>';
+    else out+=`<div>${inline(l)}</div>`;
+  }
+  if(inTable) out+='</table></div>';
+  return out;
+}
+
+/* ---------- writes ---------- */
+async function write(path, data, merge){
+  if(!db){ toast('Not connected to the board database'); return false; }
+  try { const ref=db.doc(path); if(merge){ await ref.update(data); } else { await ref.set(data); } return true; }
+  catch(e){ if(merge && e && e.code==='invalid_argument'){ try{ await db.doc(path).set(data); return true; }catch(e2){} } toast('Could not save: '+(e&&e.message||e)); return false; }
+}
+async function guarded(key, fn){ if(busy.has(key)) return; busy.add(key); render(); try{ await fn(); } finally { busy.delete(key); render(); } }
+async function log(text, item){ if(!project) return; await write('projects/'+project.id+'/messages/'+Date.now().toString(36), {by:me, text, item:item||null, at:now()}); }
+async function setItem(id, patch, note){
+  const base='projects/'+project.id;
+  const next={...items[id], ...patch, updatedAt:now(), updatedBy:me};
+  for(const k of ['deps','produces','name','seat','stage','xx']) delete next[k];
+  await write(base+'/items/'+id, next);
+  if(note) await log(note, id);
+}
+async function approve(id){
+  const it=itemOf(id); if(['approved','na'].includes(it.status)) return;
+  await setItem(id,{status:'approved', approvedBy:me, approvedAt:now(), approvedVersion:it.version||0}, `${it.name} v${it.version||0} approved.`);
+  toast(`${it.name} v${it.version||0} approved`, 'ok');
+}
+async function markNA(id){ const it=itemOf(id); await setItem(id,{status:'na', naBy:me, naAt:now()}, `${it.name} marked not applicable for this job.`); toast(`${it.name} marked not applicable`, 'ok'); }
+async function requestChange(id, note){
+  const it=itemOf(id); if(note==null||!note.trim()) return;
+  const base='projects/'+project.id;
+  await setItem(id,{status:'needs_review', changeNote:note.trim()});
+  const deps=dependents(id).filter(d=>['approved','draft','needs_review'].includes(itemOf(d).status));
+  for(const d of deps) await setItem(d,{status:'needs_review', changeNote:'Upstream change on '+it.name});
+  const g=gateOfItem(id); if(g && gates[g] && gates[g].status==='passed') await write(base+'/gates/'+g,{...gates[g],status:'reopened',reopenedAt:now(),reopenedBy:me,reason:'Change on '+it.name});
+  await write(base+'/inbox/'+Date.now().toString(36),{type:'change',item:id,text:note.trim(),from:me,status:'open',createdAt:now()});
+  await log(`Change requested on ${it.name}: ${note.trim()}${deps.length?` (${deps.length} dependent item${deps.length>1?'s':''} sent back for review)`:''}`, id);
+  toast(`Change sent to ${seatLabel(it.seat)}`, 'ok');
+}
+async function lockGate(g){
+  if(!gateReady(g)) return; const base='projects/'+project.id;
+  const stamp={status:'passed', decidedBy:me, decidedAt:now(), items:Object.fromEntries(GATES[g].items.map(id=>[id,{status:itemOf(id).status,version:itemOf(id).version||0}]))};
+  await write(base+'/gates/'+g, stamp);
+  const nextStatus = g==='A'?'stage2': g==='B'?'stage3':'released';
+  await write(base, {...project, status: nextStatus, updatedAt: now()});
+  await write(base+'/inbox/'+Date.now().toString(36),{type:'gate',gate:g,text:`Gate ${g} ${GATES[g].name} passed by ${humanName(me)}`,from:me,status:'open',createdAt:now()});
+  await log(`Gate ${g} ${GATES[g].name} locked.`);
+  await signalPipeline(`Gate ${g} locked`);
+}
+// How the page rings the bell. A republish delivers a new version to a watching session but
+// starts no turn, so on the first test run three decisions sat unread until a person landed
+// them by hand. A comment sent to Claude does start a turn in the sessions watching this
+// artifact, so that is tried first, from the viewer's own gesture (the lock, the request, the
+// answer); the republish stays as the fallback, and the page holds its own pristine source
+// (base64) so it can republish itself with a fresh copy embedded.
+function pristineSource(){ const el=document.getElementById('__src'); if(!el) return null; try{ const bin=atob(el.textContent.trim()); const bytes=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i); return new TextDecoder().decode(bytes); }catch(e){ return null; } }
+function embedSource(src){ const bytes=new TextEncoder().encode(src); let bin=''; for(let i=0;i<bytes.length;i++) bin+=String.fromCharCode(bytes[i]); return '<script type="text/plain" id="__src">'+btoa(bin)+'</scr'+'ipt>'; }
+function buildDocument(src){ const cut=src.indexOf('<svg width="0"'); const head=cut>0?src.slice(0,cut):''; const body=cut>0?src.slice(cut):src; return '<!doctype html>'+String.fromCharCode(10)+'<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'+head+'</head><body>'+body+String.fromCharCode(10)+embedSource(src)+String.fromCharCode(10)+'</body></html>'; }
+async function signalPipeline(why){
+  const what=why+(project&&project.title?' on '+project.title:'')+(project&&project.id?' ('+project.id+')':'');
+  let cm=null; try{ cm=await claude.use('comments'); }catch(e){ cm=null; }
+  if(cm){
+    let can='off'; try{ can=await cm.canSendToClaude(); }catch(e){ can='off'; }
+    if(can==='available'){
+      try{
+        const el=document.querySelector('[data-signal-anchor]')||document.body.firstElementChild||document.body;
+        const anchor=await cm.anchorFor(el);
+        await cm.sendToClaude({anchor, text:'1-22 board: '+what+'. Land the board (board-sync.js land) and carry on; reply here in one line.'});
+        toast(why+'. The run has been told.', 'ok'); return true;
+      }catch(e){ if(e&&e.code==='consent_required') toast(why+'. Allow this page to send comments to Claude, or the run has to be told in chat.'); }
+    } else if(can==='no_session'){ toast(why+'. No run is watching the board right now; say it in chat when one is.'); }
+    else if(can==='writers_only'){ toast(why+'. Only an editor of the board can send it to the run; say it in chat.'); }
+  }
+  let art=null; try{ art=await claude.use('artifact'); }catch(e){ art=null; }
+  const src=pristineSource();
+  if(!art||!src){ toast(why+'. The pipeline will see it on its next check.'); return false; }
+  try{ await art.publish(buildDocument(src)); toast(why+'. The pipeline has been signalled.', 'ok'); return true; }
+  catch(e){ toast(why+'. Signal not sent ('+((e&&e.code)||'error')+'); the pipeline will see it on its next check.'); return false; }
+}
+// The ratio every card and placeholder takes: the first drawn panel's own pixel size (push-panels.js sends width and height), else the project's aspect ratio from intake, else 16/9. Change the ratio mid-job and the cards follow on the next push.
+function panelRatio(){ const p=panels.find(x=>Number(x.width)>0&&Number(x.height)>0); if(p) return Number(p.width)+'/'+Number(p.height); const r=String((project&&project.aspectRatio)||'').match(/^(\d+):(\d+)$/); return r?r[1]+'/'+r[2]:'16/9'; }
+function panelList(){ return [...panels].sort((a,b)=>(a.storyOrder||0)-(b.storyOrder||0) || String(a.id).localeCompare(String(b.id))); }
+function openGenerate(){ return inbox.find(r=>r.type==='generate' && r.status==='open') || null; }
+async function requestGenerate(scope){
+  const ps=panelList(); const sample=ps.find(p=>p.sample);
+  const todo = scope==='sample' ? (sample?[sample.id]:[]) : ps.filter(p=>!p.thumb).map(p=>p.id);
+  if(!todo.length){ toast('Nothing left to draw'); return; }
+  const id='g-'+Date.now().toString(36);
+  await write('projects/'+project.id+'/inbox/'+id,{type:'generate',item:'storyboard',scope,panels:todo,credits:todo.length,text:(scope==='sample'?'Generate the sample panel '+todo[0]:'Generate the batch: '+todo.length+' panels')+' ('+todo.length+' credit'+(todo.length===1?'':'s')+')',from:me,status:'open',createdAt:now()});
+  await log(`Generate requested: ${scope}, ${todo.length} panel${todo.length===1?'':'s'}, ${todo.length} credit${todo.length===1?'':'s'}.`, 'storyboard');
+  await signalPipeline('Generate '+scope+' requested');
+}
+async function approvePanel(id){
+  const p=panels.find(x=>x.id===id); if(!p||!p.thumb) return;
+  await write('projects/'+project.id+'/panels/'+id,{...p, approvedBy:me, approvedAt:now()});
+  await log(`Sample panel ${id} approved; the batch may be generated.`, 'storyboard');
+  toast('Sample '+id+' approved', 'ok');
+}
+async function redoPanel(id, note){
+  await write('projects/'+project.id+'/inbox/'+('r-'+Date.now().toString(36)),{type:'change',item:'storyboard',panel:id,text:'Redo '+id+': '+note,from:me,status:'open',createdAt:now()});
+  await log(`Redo asked for panel ${id}: ${note}`, 'storyboard');
+  toast('Redo note sent for '+id, 'ok');
+}
+function panelsHtml(it){
+  const ps=panelList(); const total=ps.length; const drawn=ps.filter(p=>p.thumb).length; const sample=ps.find(p=>p.sample);
+  const gen=openGenerate(); const sampleApproved=!!(sample&&sample.approvedBy);
+  let cta='';
+  if(!total) cta='<span class="num">The pipeline pushes the panel table here once the storyboard is drafted.</span>';
+  else if(gen) cta=`<button disabled>${ic('gate')} Drawing ${esc(gen.scope||'')} · ${gen.credits||''} credit${gen.credits===1?'':'s'}…</button><span class="num">The pipeline is working; this updates itself.</span>`;
+  else if(sample&&!sample.thumb) cta=isArmed('gen-sample')?`<button class="primary" data-gen="sample">${ic('check')} Confirm: generate ${esc(sample.id)} (1 credit)</button>`:`<button class="tape" data-gen="sample">${ic('gate')} Generate sample ${esc(sample.id)} (1 credit)</button>`;
+  else if(sample&&!sampleApproved) cta=`<span class="num">Approve the sample panel below, then the batch can be drawn.</span>`;
+  else if(drawn<total){ const n=total-drawn; cta=isArmed('gen-batch')?`<button class="primary" data-gen="batch">${ic('check')} Confirm: generate ${n} panel${n===1?'':'s'} (${n} credit${n===1?'':'s'})</button>`:`<button class="tape" data-gen="batch">${ic('gate')} Generate the batch (${n} credit${n===1?'':'s'})</button>`; }
+  else cta=`<span class="num">${ic('check')} All ${total} panels drawn.</span>`;
+  const grid = total ? `<div class="sb-grid" style="--panel-ar:${panelRatio()}">${ps.map(p=>`<div class="sb-card ${p.sample?'sample':''}">${p.thumb?`<button class="sb-thumb" style="background-image:url(${p.thumb});background-size:contain;background-repeat:no-repeat;background-position:center" data-lightbox="${esc(p.id)}" aria-label="Enlarge ${esc(p.id)}"></button>`:`<div class="sb-ph"><span>${esc(p.id)}</span><span>${p.status==='rejected'?'rejected':'not drawn'}</span></div>`}<div class="sb-cap"><span><b>${esc(p.id)}</b> · ${esc(p.scene||'')}${p.storyOrder?` · #${p.storyOrder}`:''} ${p.sample?'<span class="sb-tag">sample</span>':''}${p.approvedBy?' <span class="sb-tag" style="background:var(--go);color:#03140d">approved</span>':''}</span><span>${esc((p.caption||'').slice(0,90))}</span>${p.thumb?`<span class="row">${p.sample&&!p.approvedBy?`<button class="primary" data-approve-panel="${esc(p.id)}">${ic('check')} Approve sample</button>`:''}<button class="ghost" data-redo="${esc(p.id)}">Redo</button></span>`:''}${redoFor===p.id?`<form data-redo-form="${esc(p.id)}" class="note"><textarea name="text" id="redo-${esc(p.id)}" aria-label="What to change on ${esc(p.id)}" placeholder="What should change on ${esc(p.id)}? One credit."></textarea><div class="row"><button type="button" class="ghost" data-redo-cancel>Cancel</button><button type="submit" class="primary">Send</button></div></form>`:''}</div></div>`).join('')}</div>` : '';
+  return `<div class="sb-head"><span class="num">${drawn}/${total} panels drawn${sample?` · sample ${esc(sample.id)}${sampleApproved?' approved':''}`:''}${it.style?` · ${esc(it.style)}`:''}</span>${cta}</div>${grid}`;
+}
+const SHEET_ITEMS = ['shot_list','budget_sheet','timeline','concept_breakdown'];
+function sheetTsv(sh){ const cell=v=>String(v==null?'':v).replace(/\t/g,' ').replace(/\r?\n/g,' '); return [sh.columns||[]].concat(sh.rows||[]).map(r=>r.map(cell).join(String.fromCharCode(9))).join(String.fromCharCode(10)); }
+async function copySheet(id){ const sh=sheets[id]; if(!sh) return; const text=sheetTsv(sh);
+  try { await navigator.clipboard.writeText(text); toast('Copied '+(sh.rows||[]).length+' rows. Paste into Excel or Sheets.', 'ok'); }
+  catch(e){ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); toast('Copied for Excel', 'ok'); }catch(e2){ toast('Copy blocked by the browser'); } ta.remove(); } }
+function openExport(id){ return inbox.find(r=>r.type==='export' && r.item===id && r.status==='open') || null; }
+function lastExport(id){ return inbox.find(r=>r.type==='export' && r.item===id && r.status==='answered') || null; }
+async function requestExport(id){ const it=itemOf(id); const rid='x-'+Date.now().toString(36);
+  await write('projects/'+project.id+'/inbox/'+rid,{type:'export',item:id,text:'Export '+it.name+' v'+(it.version||0)+' to Excel in the client template',from:me,status:'open',createdAt:now()});
+  await log(`Excel export requested for ${it.name} v${it.version||0}.`, id);
+  await signalPipeline('Export requested'); }
+function sheetHtml(it){ const sh=sheets[it.id]; const pend=openExport(it.id); const done=lastExport(it.id);
+  const head=`<div class="sb-head"><span class="num">${sh?`${(sh.rows||[]).length} rows · ${(sh.columns||[]).length} columns${sh.template?' · client template':''}${sh.updatedAt?' · '+fmt(sh.updatedAt):''}`:'Nothing pushed in the client format yet.'}</span><span class="row" style="display:flex;gap:6px;flex-wrap:wrap">${sh?`<button class="ghost" data-copy-sheet="${it.id}">${ic('copy')} Copy for Excel</button>`:''}${pend?`<button disabled>${ic('send')} Exporting to Google Sheets…</button>`:`<button data-export="${it.id}" ${busy.has('x'+it.id)?'disabled':''}>${ic('send')} ${sh&&sh.link?'Re-export':'Export to Google Sheets'}</button>`}</span></div>`;
+  const link=(sh&&sh.link)||(done&&done.link)||null;
+  const where = link ? `<div class="runmeta"><a class="primary" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;padding:5px 11px;border-radius:var(--r2);background:var(--paper);color:var(--ink);font-weight:600" href="${esc(link)}" target="_blank" rel="noopener">${ic('open')} Open in Google Sheets</a><span>${done?fmt(done.answeredAt):''}</span></div>` : done ? `<div class="runmeta"><span class="mono">${esc(done.driveCopy||done.exportPath||done.answer||'')}</span><span>${fmt(done.answeredAt)}</span></div>` : '';
+  if(!sh) return head+where+`<p class="empty">The pipeline pushes this sheet in the client's columns once the item is delivered against the client template.</p>`;
+  const cols=sh.columns||[]; const rows=(sh.rows||[]).slice(0,400);
+  return head+where+`<div class="sheet-wrap"><table class="sheet"><thead><tr>${cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${cols.map((c,i)=>{ const v=r[i]==null?'':String(r[i]); return `<td class="${v.trim().toLowerCase()==='unknown'?'unk':''}">${esc(v)}</td>`; }).join('')}</tr>`).join('')}</tbody></table></div>${(sh.rows||[]).length>400?`<p class="empty">Showing the first 400 rows; the Excel has all ${sh.rowCount||sh.rows.length}.</p>`:''}`; }
+function lightboxHtml(){ const p=panels.find(x=>x.id===lightbox); if(!p||!p.thumb) return ''; return `<div class="sb-lb" data-lightbox-close role="dialog" aria-label="${esc(p.id)}"><img src="${p.thumb}" alt="${esc(p.id)}"><div class="cap"><b>${esc(p.id)}</b> · ${esc(p.scene||'')} — ${esc(p.caption||'')}</div></div>`; }
+async function answer(req, value){
+  await write('projects/'+project.id+'/inbox/'+req.id, {...req, status:'answered', answer:value, answeredBy:me, answeredAt:now()});
+  await log(`Answered: ${req.text} → ${value}`, req.item||null);
+  toast('Answer sent to the pipeline', 'ok');
+}
+async function addRow(kind, form){
+  const row={}; for(const f of REG_FIELDS[kind]) row[f]=(form.querySelector('[name='+f+']').value||'').trim();
+  if(!row.name){ toast('A name is needed'); form.querySelector('[name=name]').focus(); return; }
+  await write('projects/'+project.id+'/'+kind+'/'+Date.now().toString(36), {...row, by:me, at:now()});
+  const it=itemOf(kind); if(['pending','needs_input','na'].includes(it.status)) await setItem(kind,{status:'draft'});
+  form.reset(); form.querySelector('[name=name]').focus(); toast('Row added', 'ok');
+}
+async function createProject(form){
+  const title=form.querySelector('[name=title]').value.trim(); if(!title){ toast('Give the project a title'); form.querySelector('[name=title]').focus(); return; }
+  const id=slug(title)+'-'+Date.now().toString(36).slice(-4); const base='projects/'+id;
+  const doc={title, client:form.querySelector('[name=client]').value.trim(), driveFolder:form.querySelector('[name=drive]').value.trim(), scriptFormat:form.querySelector('[name=format]').value, storyboardStyle:form.querySelector('[name=style]').value, status:'intake', createdAt:now(), createdBy:me};
+  if(!await write(base, doc)) return;
+  for(const it of ITEMS) await write(base+'/items/'+it.id, {status:'pending', version:0, summary:'', updatedAt:now(), updatedBy:me});
+  await write(base+'/messages/'+Date.now().toString(36), {by:me, text:'Project opened. Waiting for the Drive folder to be read.', at:now()});
+  location.hash='#/p/'+encodeURIComponent(id);
+}
+function chatSummary(){
+  const open=inbox.filter(r=>r.status==='open');
+  const lines=[`1-22 · ${project.title}${project.client?' · '+project.client:''}`, `Status: ${statusWord(project.status)}`, ''];
+  for(const g of ['A','B','C']){ const v=gateView(g); lines.push(`Gate ${g} ${GATES[g].name}: ${v.st==='passed'?'locked by '+humanName(v.decidedBy)+' '+fmt(v.decidedAt):v.st==='ready'?'ready to lock':v.st==='reopened'?'reopened ('+(v.reason||'')+')':'not yet'}`); }
+  lines.push('', 'Items:');
+  for(const d of ITEMS){ const it=itemOf(d.id); lines.push(`- ${it.name}${it.xx?' [XX]':''}: ${STATUS_LABEL[it.status]} v${it.version||0}${it.approvedBy?' (approved by '+humanName(it.approvedBy)+')':''}${it.changeNote?' — change: '+it.changeNote:''}`); }
+  for(const k of Object.keys(REG_FIELDS)) if(regs[k].length) lines.push(`- ${itemOf(k).name} register: ${regs[k].length} row(s), ${regUnknowns(k)} with blanks`);
+  if(open.length){ lines.push('', 'Open in the inbox:'); for(const r of open) lines.push(`- [${r.type}] ${r.text}${r.item?' ('+itemOf(r.item).name+')':''}`); }
+  const answered=inbox.filter(r=>r.status==='answered'&&r.type==='question');
+  if(answered.length){ lines.push('', 'Answered:'); for(const r of answered) lines.push(`- ${r.text} → ${r.answer} (${humanName(r.answeredBy)})`); }
+  if(messages.length){ lines.push('', 'Council log, newest first:'); for(const m of messages.slice(0,6)) lines.push(`- ${fmt(m.at)} ${humanName(m.by)}: ${m.text}`); }
+  return lines.join('\n');
+}
+async function copyForChat(){
+  const text=chatSummary();
+  try { await navigator.clipboard.writeText(text); toast('Board summary copied. Paste it into the chat.', 'ok'); }
+  catch(e){ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); toast('Board summary copied', 'ok'); }catch(e2){ toast('Copy blocked by the browser. Select the text in the log instead.'); } ta.remove(); }
+}
+
+/* ---------- render ---------- */
+function render(){
+  const r=route(); const app=$('#app');
+  app.innerHTML = topbar() + (r.page==='project' ? projectPage(r.id) : slatePage()) + footer() + (drawer?drawerHtml():'');
+  wire();
+}
+function topbar(){
+  const p=route().page==='project'&&project&&!project.missing?` / <b>${esc(project.title)}</b>`:'';
+  return `<div class="top">
+    <div class="brand"><a href="#/"><h1>1-22 Control</h1></a><span class="sub">One Dash pre-production${p}</span></div>
+    <div class="who">
+      <span class="conn ${dbState==='on'?'on':''}"><i></i>${dbState==='on'?'Board connected':dbState==='connecting'?'Connecting to the board…':'Model view only'}</span>
+      <label>Acting as <select id="me" aria-label="Acting as">${HUMANS.map(h=>`<option value="${h.id}" ${h.id===me?'selected':''}>${h.label}</option>`).join('')}</select></label>
+    </div>
+  </div>
+  <div class="rules">
+    <span><b>XX</b> means a human enters or approves it. The pipeline never fills an XX for you.</span>
+    <span><b>Unknown is not N/A.</b> A blank stays a question; not applicable is a decision.</span>
+    <span><b>One style per storyboard.</b> Sketches, live pictures or cartoon, never mixed.</span>
+    <span><b>The client's templates, never invented.</b></span>
+  </div>`;
+}
+function statusWord(s){ return {intake:'Intake',stage1:'Stage 1',gate_a:'At Gate A',stage2:'Stage 2',gate_b:'At Gate B',stage3:'Stage 3',gate_c:'At Gate C',released:'Released',killed:'Killed'}[s]||s||''; }
+function slatePage(){
+  const cards = projects.length ? projects.map(p=>{
+    const g = p.gatesSummary || null;
+    return `<button class="pcard" data-open="${esc(p.id)}">
+      <div class="row"><h3>${esc(p.title)}</h3><span class="pill ${p.status==='released'?'approved':'plain'}">${esc(statusWord(p.status))}</span></div>
+      <div class="row meta"><span>${esc(p.client||'')}${p.client&&(p.scriptFormat||p.storyboardStyle)?' · ':''}${esc(p.scriptFormat||'')}${p.scriptFormat&&p.storyboardStyle?' · ':''}${esc(p.storyboardStyle||'')}</span><span class="gchips" aria-label="Gates">${['A','B','C'].map(x=>`<span class="gchip ${gateChipState(p,x)}">${x}</span>`).join('')}</span></div>
+      <div class="meta">Opened ${fmt(p.createdAt)} by ${esc(humanName(p.createdBy))}${p.example?' · example data':''}</div>
+    </button>`; }).join('')
+    : `<p class="empty">${dbState==='on'?'No projects on the board yet. Open one below, or let the pipeline open it when a Drive folder lands.':dbState==='connecting'?'Connecting to the board…':'This is the pipeline model. Open the page in claude.ai to connect the board.'}</p>`;
+  return `<div class="sect"><h2>Slate</h2><span class="meta">${projects.length} project${projects.length===1?'':'s'}</span></div>
+  <div class="slate">${cards}</div>
+  <form class="newp" id="newp">
+    <label>Project title<input name="title" id="np-title" placeholder="HTF Night Shift" required autocomplete="off"></label>
+    <label>Client<input name="client" id="np-client" placeholder="HTF"></label>
+    <label>Drive folder<input name="drive" id="np-drive" placeholder="One Dash / Projects / …"></label>
+    <label>Script format<select name="format" id="np-format"><option>Screenplay</option><option>AV script</option></select></label>
+    <label>Storyboard style<select name="style" id="np-style"><option>Sketches</option><option>Live pictures</option><option>Cartoon / animation</option></select></label>
+    <button class="primary" type="submit">Open project</button>
+  </form>
+  ${modelPreview()}`;
+}
+function gateChipState(p, g){ const order={intake:0,stage1:1,gate_a:1,stage2:2,gate_b:2,stage3:3,gate_c:3,released:4}; const n=order[p.status]??0; const after={A:1,B:2,C:3}[g]; return n>after?'passed':n===after&&p.status.startsWith('gate')?'ready':''; }
+function modelPreview(){
+  return `<div class="sect"><h2>The pipeline</h2><span class="meta">Drive folder in, call sheets out. Four stages, three gates, six XX items.</span></div>
+  <div class="gates">${['A','B','C'].map(g=>`<button class="gate ${gateOpen===g?'sel':''}" data-gate="${g}" aria-expanded="${gateOpen===g}"><span class="letter">${g}</span><span class="name">${GATES[g].name}<span class="chev">${ic('chev')}</span></span><span class="cond">${esc(GATES[g].cond)}</span><span class="approver">${esc(GATES[g].approver)}</span></button>`).join('')}</div>
+  ${gateOpen?gateDetail(gateOpen):''}
+  <div class="box"><h2>Seats <span>Ten new directors wrap the client's own skills</span></h2><div class="seats">${SEATS.map(s=>`<div class="seat-row"><span class="mono">${s.n}</span><span><b>${esc(s.label)}</b> · ${esc(s.note)}</span><span class="st ${s.kind==='human'?'human':'new'}">${s.kind==='new'?'new':s.kind}</span></div>`).join('')}</div></div>`;
+}
+function gateDetail(g){
+  const G=GATES[g]; const done=G.items.filter(id=>['approved','na'].includes(itemOf(id).status)).length;
+  return `<div class="gatedetail" data-gate-detail="${g}" role="region" aria-label="Gate ${g} details">
+    <h3>Gate ${g} · ${esc(G.name)} <span class="num">${route().page==='project'?`${done} of ${G.items.length} ready`:`${G.items.length} items`}</span></h3>
+    <div>${G.items.map(id=>{ const it=itemOf(id); return `<div class="gi"><span><b>${esc(it.name)}</b>${it.xx?' <span class="xx">XX</span>':''}</span><span class="pill ${it.status}">${STATUS_LABEL[it.status]}</span><span class="who">${esc(seatLabel(it.seat))}</span><span class="what">${esc(it.produces)}</span></div>`; }).join('')}</div>
+    <dl>
+      <dt>Passes when</dt><dd>${esc(G.cond)}</dd>
+      <dt>Approver</dt><dd>${esc(G.approver)}</dd>
+      <dt>Releases</dt><dd>${esc(GATE_RELEASES[g])}</dd>
+      <dt>Reopens</dt><dd>${esc(GATE_ROLLBACK[g])}</dd>
+      <dt>Not applicable</dt><dd>${g==='B'?'Allowed on talents, props and locations. A decision, recorded with who made it.':'Never accepted at this gate.'}</dd>
+    </dl>
+  </div>`;
+}
+function projectPage(id){
+  if(dbState==='off') return `<p class="empty" style="margin-top:20px">The board database is not reachable from this view. <a href="#/">Back to the slate</a>.</p>`;
+  if(!project) return `<div class="gates" aria-busy="true">${[0,1,2].map(()=>'<div class="skel" style="height:104px"></div>').join('')}</div><div class="board"><div class="stages">${[0,1,2].map(()=>'<div class="stage"><div class="skel" style="height:34px"></div><div class="skel" style="height:120px"></div><div class="skel" style="height:120px"></div></div>').join('')}</div><div class="rail"><div class="skel" style="height:180px"></div><div class="skel" style="height:220px"></div></div></div>`;
+  if(project.missing) return `<p class="empty" style="margin-top:20px">No project called ${esc(id)}. <a href="#/">Back to the slate</a>.</p>`;
+  const openReqs=inbox.filter(r=>r.status==='open' && r.type==='question');
+  return `<div class="gates">${['A','B','C'].map(gateCard).join('')}</div>
+  ${gateOpen?gateDetail(gateOpen):''}
+  <div class="board">
+    <div>
+      <div class="intake">${itemCard(itemOf('intake'))}</div>
+      <div class="stages">${STAGES.map(s=>{ const ids=ITEMS.filter(i=>i.stage===s.n); const ok=ids.filter(i=>['approved','na'].includes(itemOf(i.id).status)).length; return `<div class="stage"><div class="head"><h2>${s.name} <span>${s.sub}</span></h2><span class="cnt">${ok}/${ids.length} · Gate ${s.gate}</span></div>${ids.map(i=>itemCard(itemOf(i.id))).join('')}</div>`; }).join('')}</div>
+    </div>
+    <div class="rail">
+      <div class="box"><h2>Inbox <span>${openReqs.length} question${openReqs.length===1?'':'s'} waiting on you</span></h2>
+        ${inbox.length?inbox.slice(0,12).map(reqHtml).join(''):'<p class="empty">Questions from the pipeline and your change notes land here.</p>'}
+      </div>
+      <div class="box"><h2>Tell the council <span>read at every session start</span></h2>
+        <form id="msgf"><textarea name="text" id="msg-text" aria-label="Message to the council" placeholder="A ruling, a note, a heads-up for the next session"></textarea><div style="display:flex;justify-content:space-between;gap:6px;margin-top:6px;flex-wrap:wrap"><button type="button" class="ghost" data-copy title="Copy a plain-text summary of this board to paste into a Claude chat">${ic('copy')} Copy board for chat</button><button type="button" class="ghost" data-signal title="Wake the pipeline now, for example after answering questions">${ic('send')} Signal pipeline</button><button class="primary" type="submit">${ic('send')} Post</button></div></form>
+        ${messages.slice(0,15).map(m=>`<div class="msg"><div class="by"><span>${esc(humanName(m.by))}${m.item?` · ${esc(itemOf(m.item).name)}`:''}</span><span>${fmt(m.at)}</span></div>${esc(m.text)}</div>`).join('')}
+      </div>
+      <div class="box"><h2>Seats <span>what each one last did</span></h2><div class="seats">${SEATS.filter(s=>s.kind!=='human').map(s=>{ const r=lastRunOfSeat(s.id); const it=ITEMS.find(i=>i.seat===s.id); return `<button class="seat-row" ${r?`data-open-run="${esc(r.item)}" data-run="${esc(r.id)}"`:'disabled'}><span class="mono">${s.n}</span><span><b>${esc(s.label)}</b>${r?` · ${esc(itemOf(r.item).name)} v${r.version}`:it?` · ${esc(it.name)}`:''}</span><span class="st ${r?(r.status==='running'?'working':'done'):'new'}">${r?(r.status==='running'?'working':'done'):'idle'}</span></button>`; }).join('')}</div></div>
+      <div class="box"><h2>Project</h2><dl class="kv">
+        <dt>Client</dt><dd>${esc(project.client||'')}</dd>
+        <dt>Drive folder</dt><dd>${esc(project.driveFolder||'')}</dd>
+        <dt>Script format</dt><dd>${esc(project.scriptFormat||'')}</dd>
+        <dt>Storyboard</dt><dd>${esc(project.storyboardStyle||'')}</dd>
+        <dt>Status</dt><dd>${esc(statusWord(project.status))}</dd>
+        <dt>Opened</dt><dd>${fmt(project.createdAt)} by ${esc(humanName(project.createdBy))}</dd>
+      </dl></div>
+    </div>
+  </div>`;
+}
+function gateCard(g){
+  const v=gateView(g); const G=GATES[g];
+  const done=G.items.filter(id=>['approved','na'].includes(itemOf(id).status)).length;
+  const right = v.st==='passed' ? `<span class="pill approved">Locked · ${esc(humanName(v.decidedBy))}</span>`
+              : v.st==='ready' ? `<span class="pill needs_input">Ready to lock</span>`
+              : v.st==='reopened' ? `<span class="pill needs_review">Reopened</span>`
+              : `<span class="pill plain num">${done}/${G.items.length}</span>`;
+  const foot = v.st==='passed' ? `<span>${fmt(v.decidedAt)}</span>`
+             : v.st==='ready' ? (isArmed('lock'+g) ? `<button class="primary" data-lock="${g}" ${busy.has('lock'+g)?'disabled':''}>${ic('check')} Confirm: lock Gate ${g}</button>` : `<button class="tape" data-lock="${g}" ${busy.has('lock'+g)?'disabled':''}>${ic('gate')} Lock Gate ${g}</button>`)
+             : v.st==='reopened' ? `<span>${esc(v.reason||'')}</span>`
+             : `<span>${esc(G.approver)}</span>`;
+  return `<div class="gate ${v.st} ${gateOpen===g?'sel':''}" data-gate="${g}" role="button" tabindex="0" aria-expanded="${gateOpen===g}"><span class="letter">${g}</span><span class="name">${G.name}<span style="display:inline-flex;gap:6px;align-items:center">${right}<span class="chev">${ic('chev')}</span></span></span><span class="cond">${esc(G.cond)}</span><span class="approver">${foot}</span></div>`;
+}
+function itemCard(it){
+  const st=it.status; const isReg=!!REG_FIELDS[it.id];
+  const regNote = isReg ? `<div class="s num">${regs[it.id].length} row${regs[it.id].length===1?'':'s'}${regUnknowns(it.id)?` · <span style="color:var(--tape)">${regUnknowns(it.id)} with blanks</span>`:''}</div>`:'';
+  const canApprove = !['approved','na'].includes(st) && !(it.id==='intake' && st==='pending');
+  const naAllowed = it.stage===2 && it.xx && st!=='approved';
+  const gl = gateOpen ? (GATES[gateOpen].items.includes(it.id)?'hl':'dimmed') : '';
+  const who = st==='approved'&&it.approvedBy?`Approved by ${humanName(it.approvedBy)}`: st==='na'&&it.naBy?`By ${humanName(it.naBy)}`: seatLabel(it.seat);
+  return `<div class="item ${st==='needs_review'?'nr':''} ${gl}" data-item="${it.id}">
+    <div class="t"><h3>${esc(it.name)}${it.xx?'<span class="xx">XX</span>':''}</h3><span class="v">v${it.version||0}</span></div>
+    <div class="s">${esc(it.summary||it.produces)}</div>${regNote}
+    ${st==='needs_review'&&it.changeNote?`<div class="s" style="color:var(--hold)">${esc(it.changeNote)}</div>`:''}
+    <div class="foot"><span class="pill ${st}">${STATUS_LABEL[st]||st}</span><span class="seat">${esc(who)}</span></div>
+    <div class="actions">
+      <button data-open-item="${it.id}">${ic('open')} Open</button>
+      ${sheets[it.id]?`<button data-open-item="${it.id}" data-open-tab="sheet">${ic('open')} Sheet</button>`:''}
+      ${it.id==='storyboard'?`<button data-open-item="storyboard" data-open-tab="panels">${ic('gate')} Storyboard${panels.length?` <span class="cnt">${panels.filter(p=>p.thumb).length}/${panels.length}</span>`:''}</button>`:''}
+      ${canApprove?`<button data-approve="${it.id}" ${busy.has('ap'+it.id)?'disabled':''}>${ic('check')} Approve v${it.version||0}</button>`:''}
+      ${st!=='pending'?`<button class="ghost" data-change="${it.id}">${ic('change')} Change</button>`:''}
+      ${naAllowed?(isArmed('na'+it.id)?`<button class="primary" data-na="${it.id}">Confirm N/A</button>`:`<button class="ghost" data-na="${it.id}">N/A</button>`):''}
+    </div>
+  </div>`;
+}
+function reqHtml(r){
+  const opts = r.type==='question' && r.status==='open' ? `<div class="opts">${(r.options||[]).map(o=>`<button data-answer="${esc(r.id)}" data-value="${esc(o)}">${esc(o)}</button>`).join('')}<button class="ghost" data-answer-text="${esc(r.id)}">Type an answer</button></div>${answerFor===r.id?`<form class="opts" data-answer-form="${esc(r.id)}" style="width:100%"><input name="text" id="ans-${esc(r.id)}" aria-label="Your answer" placeholder="Your answer" style="flex:1;min-width:140px"><button type="submit" class="primary">Send</button></form>`:''}` : '';
+  const kind = r.type==='question'?'Question':r.type==='change'?'Change note':r.type==='gate'?'Gate':r.type==='generate'?'Generate':r.type==='export'?'Export':r.type||'';
+  const icon = r.type==='question'?'q':r.type==='change'?'change':'gate';
+  return `<div class="req ${esc(r.type||'')} ${r.status==='answered'?'answered':''}"><span class="ic">${ic(icon)}</span><div class="from">${esc(kind)}${r.item?` · ${esc(itemOf(r.item).name)}`:''} · ${esc(humanName(r.from))} · ${fmt(r.createdAt)}</div><div class="body">${esc(r.text)}</div>${r.status==='answered'?`<div class="from">${r.type==='question'?'Answered':'Handled'} by ${esc(humanName(r.answeredBy))}: ${esc(r.answer||'')}</div>`:opts}</div>`;
+}
+function drawerHtml(){
+  const it=itemOf(drawer); const isReg=!!REG_FIELDS[it.id]; const vs=versions[it.id]||[]; const rs=runsOf(it.id);
+  const run = rs.find(r=>r.id===runSel) || rs[0] || null;
+  const tabs=[...(it.id==='storyboard'?[['panels','Storyboard']]:[]),...(SHEET_ITEMS.includes(it.id)?[['sheet','Sheet']]:[]),['output','Output'],['prompt','Prompt'],['trace','Trace'],...(isReg?[['register','Register']]:[]),['about','About']];
+  const tab = tabs.some(t=>t[0]===drawerTab)?drawerTab:(it.id==='storyboard'?'panels':SHEET_ITEMS.includes(it.id)&&sheets[it.id]?'sheet':'output');
+  const runPick = rs.length>1?`<select id="runsel" aria-label="Which run" style="width:auto;min-height:28px;padding:3px 26px 3px 8px;font-size:12px">${rs.map(r=>`<option value="${esc(r.id)}" ${run&&r.id===run.id?'selected':''}>v${r.version} · ${fmt(r.startedAt)} · ${esc(r.status||'')}</option>`).join('')}</select>`:'';
+  let body='';
+  if(tab==='output'){
+    body = run ? `<div class="runmeta"><span class="pill ${run.status==='done'?'approved':run.status==='running'?'running':'draft'}">${esc(run.status||'')}</span><span class="num">${esc(seatLabel(run.seat))} · ${esc(run.model||'')}${run.turns!=null?' · '+run.turns+' turns':''}${run.tokens!=null?' · '+Number(run.tokens).toLocaleString()+' tokens':''}</span><span class="mono">${esc(run.artifactPath||it.artifactPath||'')}</span></div>
+      <div class="out">${run.output?md(run.output):'<span class="empty">This run wrote its file to disk without a board copy. Open the file path above.</span>'}</div>
+      <form id="notef" data-item="${it.id}" class="note"><textarea name="text" id="note-text" aria-label="Note for the seat" placeholder="Note for ${esc(seatLabel(it.seat))} on this output. It lands in the pipeline inbox as a change note."></textarea><div class="row"><button type="submit">${ic('send')} Send to ${esc(seatLabel(it.seat))}</button></div></form>`
+      : `<p class="empty">${it.status==='pending'?'Nothing has run for this item yet.':'No run record on the board. The file is at '+esc(it.artifactPath||'(not set)')+'.'}</p>`;
+  } else if(tab==='prompt'){
+    body = run ? `<div class="runmeta"><span>Spawn prompt the orchestrator gave ${esc(seatLabel(run.seat))}</span><span class="mono">${(run.skills||[]).map(esc).join(' · ')}</span></div><pre class="pre">${esc(run.prompt||'(prompt not recorded)')}</pre>${run.system?`<div class="subh" style="margin-top:10px">Agent file, first lines</div><pre class="pre">${esc(run.system)}</pre>`:''}` : '<p class="empty">No run to show a prompt for.</p>';
+  } else if(tab==='trace'){
+    body = run && (run.trace||[]).length ? `<div class="trace">${run.trace.map(s=>`<div class="tr"><span class="mono">${esc(s.t||'')}</span><span class="mono" style="color:var(--wait)">${esc(s.tool||'')}</span><span>${esc(s.note||'')}</span></div>`).join('')}</div>` : '<p class="empty">No tool trace recorded for this run.</p>';
+  } else if(tab==='register'){
+    body = regHtml(it.id);
+  } else if(tab==='panels'){
+    body = panelsHtml(it);
+  } else if(tab==='sheet'){
+    body = sheetHtml(it);
+  }
+  return `${lightboxHtml()}<div class="scrim" data-close></div><aside class="drawer" role="dialog" aria-modal="true" aria-label="${esc(it.name)}">
+    <div class="dh"><div><h2>${esc(it.name)} <span class="mono" style="font-size:13px;color:var(--faint)">v${it.version||0}</span></h2><div class="meta">Stage ${it.stage} · ${esc(seatLabel(it.seat))}${it.xx?' · <span class="xx">XX</span>':''} · <span class="pill ${it.status}">${STATUS_LABEL[it.status]}</span></div></div><button class="ghost" data-close aria-label="Close">${ic('x')}</button></div>
+    <div class="tabs" role="tablist">${tabs.map(t=>`<button role="tab" aria-selected="${t[0]===tab}" class="${t[0]===tab?'on':''}" data-tab="${t[0]}">${t[1]}${t[0]==='output'&&rs.length?` <span class="cnt">${rs.length}</span>`:''}</button>`).join('')}<span style="flex:1"></span>${runPick}</div>
+    ${tab!=='about'?`<div>${body}</div>`:''}
+    ${tab==='about'?`<dl class="kv">
+      <dt>Produces</dt><dd>${esc(it.produces)}</dd>
+      <dt>Summary</dt><dd>${esc(it.summary||'Nothing written yet.')}</dd>
+      <dt>File</dt><dd class="mono">${esc(it.artifactPath||'')}</dd>
+      <dt>Hash</dt><dd class="mono">${esc((it.hash||'').slice(0,16))}</dd>
+      <dt>Approved</dt><dd>${it.approvedVersion!=null?`v${it.approvedVersion} by ${esc(humanName(it.approvedBy))} ${fmt(it.approvedAt)}`:'Not yet'}</dd>
+      <dt>Depends on</dt><dd>${it.deps.map(d=>esc(itemOf(d).name)).join(', ')||'Drive folder'}</dd>
+      <dt>Feeds</dt><dd>${dependents(it.id).map(d=>esc(itemOf(d).name)).join(', ')||'Shoot day'}</dd>
+      <dt>Updated</dt><dd>${fmt(it.updatedAt)} ${esc(humanName(it.updatedBy))}</dd>
+    </dl>
+    <div><div class="subh">Versions</div><div class="versions">${vs.length?vs.map(v=>`<div class="vr ${v.n===it.approvedVersion?'sel':''}"><span class="mono">v${v.n}</span><span>${esc(v.note||'')}</span><span>${fmt(v.at)}</span></div>`).join(''):'<span class="empty">The pipeline records a version each time it delivers or revises.</span>'}</div></div>`:''}
+    <div class="actions">
+      ${!['approved','na'].includes(it.status)?`<button class="primary" data-approve="${it.id}" ${busy.has('ap'+it.id)?'disabled':''}>${ic('check')} Approve v${it.version||0}</button>`:''}
+      <button data-change="${it.id}">${ic('change')} Request change</button>
+      ${it.stage===2&&it.xx&&it.status!=='approved'?(isArmed('na'+it.id)?`<button class="primary" data-na="${it.id}">Confirm not applicable</button>`:`<button class="ghost" data-na="${it.id}">Not applicable</button>`):''}
+    </div>
+    ${changeFor===it.id?`<form id="changef" data-item="${it.id}" class="note"><textarea name="text" id="change-text" aria-label="What should change" placeholder="What should change on ${esc(it.name)}? Dependent items go back for review and the gate reopens."></textarea><div class="row" style="gap:6px"><button type="button" class="ghost" data-change-cancel>Cancel</button><button type="submit" class="primary">${ic('change')} Send change request</button></div></form>`:''}
+  </aside>`;
+}
+function regHtml(kind){
+  const F=REG_FIELDS[kind]; const rows=regs[kind];
+  return `<div><div class="subh num">Register · ${rows.length} row${rows.length===1?'':'s'}${regUnknowns(kind)?` · ${regUnknowns(kind)} with blanks`:''}</div>
+    <div style="overflow-x:auto"><table class="reg"><thead><tr>${F.map(f=>`<th>${f}</th>`).join('')}</tr></thead><tbody>
+    ${rows.length?rows.map(r=>`<tr>${F.map(f=>`<td class="${String(r[f]||'').trim()?'':'unk'}">${esc(r[f])||'unknown'}</td>`).join('')}</tr>`).join(''):`<tr><td colspan="${F.length}" class="empty">Nothing entered. ${kind==='talents'?'Six fields per talent; have or don\'t have is per job.':'Declared by a human, never guessed.'}</td></tr>`}
+    </tbody></table></div>
+    <form class="regform" data-reg="${kind}">${F.map(f=>`<label>${f}<input name="${f}" id="reg-${kind}-${f}" ${f==='cost'||f==='loading'||f==='age'?'inputmode="numeric"':''} autocomplete="off"></label>`).join('')}<div class="add"><button class="tape" type="submit">Add row</button></div></form>
+  </div>`;
+}
+function footer(){ return `<div class="foot-note"><span>1-22 · One Dash × 3echo · Gate A Creative lock · Gate B Logistics lock · Gate C Documents released</span><span>Every approval is a record on the board; the pipeline reads it, never assumes it.</span></div>`; }
+
+/* ---------- events ---------- */
+function wire(){
+  const app=$('#app');
+  app.onclick = async e=>{
+    const t=e.target.closest('[data-open],[data-open-item],[data-open-run],[data-tab],[data-approve],[data-change],[data-na],[data-lock],[data-answer],[data-answer-text],[data-close],[data-gate],[data-copy],[data-signal],[data-change-cancel],[data-gen],[data-approve-panel],[data-redo],[data-redo-cancel],[data-lightbox],[data-lightbox-close],[data-copy-sheet],[data-export]');
+    if(!t) return;
+    if(t.dataset.gate && !e.target.closest('[data-lock]')){ gateOpen = gateOpen===t.dataset.gate ? null : t.dataset.gate; render(); const d=document.querySelector('[data-gate-detail]'); if(d) d.scrollIntoView({block:'nearest',behavior:'smooth'}); return; }
+    if(t.dataset.open!=null){ location.hash='#/p/'+encodeURIComponent(t.dataset.open); return; }
+    if(t.dataset.close!=null){ drawer=null; changeFor=null; render(); return; }
+    if(t.dataset.lightboxClose!=null){ lightbox=null; render(); return; }
+    if(t.dataset.lightbox){ lightbox=t.dataset.lightbox; render(); return; }
+    if(t.dataset.openItem){ drawer=t.dataset.openItem; drawerTab=t.dataset.openTab||(t.dataset.openItem==='storyboard'?'panels':(sheets[t.dataset.openItem]?'sheet':'output')); runSel=null; render(); return; }
+    if(t.dataset.copySheet){ await copySheet(t.dataset.copySheet); return; }
+    if(t.dataset.openRun){ drawer=t.dataset.openRun; drawerTab='output'; runSel=t.dataset.run||null; render(); return; }
+    if(t.dataset.tab){ drawerTab=t.dataset.tab; render(); return; }
+    if(t.dataset.copy!=null){ await copyForChat(); return; }
+    if(t.dataset.signal!=null){ await signalPipeline('Signal sent'); return; }
+    if(!project) return;
+    if(t.dataset.approve){ await guarded('ap'+t.dataset.approve, ()=>approve(t.dataset.approve)); return; }
+    if(t.dataset.changeCancel!=null){ changeFor=null; render(); return; }
+    if(t.dataset.change){ drawer=t.dataset.change; drawerTab='output'; changeFor=t.dataset.change; render(); const ta=document.getElementById('change-text'); if(ta) ta.focus(); return; }
+    if(t.dataset.na){ const k='na'+t.dataset.na; if(!isArmed(k)){ arm(k); toast('Press again to confirm: not applicable is a decision, not a blank'); return; } armed=null; await markNA(t.dataset.na); return; }
+    if(t.dataset.lock){ const g=t.dataset.lock, k='lock'+g; if(!isArmed(k)){ arm(k); toast('Press again to confirm the lock. The pipeline continues from this record.'); return; } armed=null; await guarded(k, ()=>lockGate(g)); return; }
+    if(t.dataset.export){ await guarded('x'+t.dataset.export, ()=>requestExport(t.dataset.export)); return; }
+    if(t.dataset.gen){ const k='gen-'+t.dataset.gen; if(!isArmed(k)){ arm(k); toast('Press again to confirm. Credits are spent on 3echo.'); return; } armed=null; await guarded(k, ()=>requestGenerate(t.dataset.gen)); return; }
+    if(t.dataset.approvePanel){ await guarded('pp'+t.dataset.approvePanel, ()=>approvePanel(t.dataset.approvePanel)); return; }
+    if(t.dataset.redoCancel!=null){ redoFor=null; render(); return; }
+    if(t.dataset.redo){ redoFor = redoFor===t.dataset.redo ? null : t.dataset.redo; render(); const ta=document.getElementById('redo-'+t.dataset.redo); if(ta) ta.focus(); return; }
+    if(t.dataset.answer){ const r=inbox.find(x=>x.id===t.dataset.answer); if(r) await answer(r, t.dataset.value); return; }
+    if(t.dataset.answerText){ answerFor = answerFor===t.dataset.answerText ? null : t.dataset.answerText; render(); const inp=document.getElementById('ans-'+t.dataset.answerText); if(inp) inp.focus(); return; }
+  };
+  app.onkeydown = e=>{ if(e.key==='Escape' && lightbox){ lightbox=null; render(); return; } if((e.key==='Enter'||e.key===' ') && e.target.matches('[data-gate]:not(button)')){ e.preventDefault(); e.target.click(); } };
+  app.onsubmit = async e=>{
+    e.preventDefault(); const f=e.target;
+    if(f.id==='newp') return createProject(f);
+    if(f.id==='msgf'){ const v=f.text.value.trim(); if(!v) return; await log(v); f.reset(); toast('Posted to the council', 'ok'); return; }
+    if(f.dataset.reg) return addRow(f.dataset.reg, f);
+    if(f.dataset.redoForm){ const v=f.text.value.trim(); if(!v) return; redoFor=null; await redoPanel(f.dataset.redoForm, v); return; }
+    if(f.id==='changef'){ const v=f.text.value.trim(); if(!v) return; changeFor=null; await requestChange(f.dataset.item, v); return; }
+    if(f.dataset.answerForm){ const r=inbox.find(x=>x.id===f.dataset.answerForm); const v=f.text.value.trim(); if(r&&v){ answerFor=null; await answer(r, v); } return; }
+    if(f.id==='notef'){ const v=f.text.value.trim(); if(!v||!project) return; const id=f.dataset.item; const it=itemOf(id);
+      await write('projects/'+project.id+'/inbox/'+Date.now().toString(36),{type:'change',item:id,text:v,from:me,status:'open',createdAt:now()});
+      await log(`Note to ${seatLabel(it.seat)} on ${it.name} v${it.version||0}: ${v}`, id); f.reset(); toast('Sent to the pipeline inbox', 'ok'); return; }
+  };
+  const sel=$('#me'); if(sel) sel.onchange=()=>{ me=sel.value; try{localStorage.setItem('c122.me',me);}catch(e){} render(); };
+  const rsel=$('#runsel'); if(rsel) rsel.onchange=()=>{ runSel=rsel.value; render(); };
+}
+boot();
+</script>

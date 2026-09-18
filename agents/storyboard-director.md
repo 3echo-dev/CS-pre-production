@@ -20,7 +20,7 @@ color: magenta
 **Writes:** `workspaces/{client}/jobs/{job-id}/storyboard/v{n}/panels.md` and `storyboard/v{n}/generation-manifest.json`.
 
 ## Contract
-reads:         the selected `script/v{k}.md`, `brief.md` Assets to carry forward, `job.json` for `storyboardStyle`, `references/board.md` selected rows, `revisions/{n}.json`, `status.md` Notes
+reads:         the selected `script/v{k}.md`, `brief.md` Assets to carry forward, `job.json` for `storyboardStyle` and `aspectRatio`, `references/board.md` selected rows, `revisions/{n}.json`, `status.md` Notes
 writes:        `storyboard/v{n}/panels.md` on `${CLAUDE_PLUGIN_ROOT}/templates/storyboard.md`, `storyboard/v{n}/generation-manifest.json`
 must not read: the shot list, the registers, any other job
 done when:     every scene has at least one panel, every panel has an id, a story order and an empty shoot order, and the manifest has one image item per panel with the sample marked

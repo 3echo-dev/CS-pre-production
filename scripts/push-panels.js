@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 // Queue the storyboard panels for the board's Storyboard tab: one document per panel from the
-// latest generation manifest, with a review-size thumbnail for every panel whose image is on
-// disk. Run after the storyboard director writes the manifest (placeholders, so the Generate
-// button appears) and again after every landing from make-image (thumbnails).
+// latest generation manifest, with a review-size thumbnail and the pixel size for every panel
+// whose image is on disk. The size is what the board takes its card ratio from, so a 21:9 frame
+// is shown as 21:9 rather than cropped to a portrait box. Run after the storyboard director
+// writes the manifest (placeholders, so the Generate button appears) and again after every
+// landing from make-image (thumbnails).
 //
 //   node push-panels.js <client> <job-id> [--only P01,P02] [--json]
 //
@@ -44,6 +46,13 @@ function thumbOf(file) {
   return r.stdout.trim();
 }
 
+function sizeOf(file) {
+  const abs = path.join(dir, file);
+  const r = spawnSync('python', ['-c', 'import sys\nfrom PIL import Image\nim = Image.open(sys.argv[1])\nprint(im.size[0], im.size[1])', abs], { encoding: 'utf8' });
+  const m = String(r.stdout || '').trim().match(/^(\d+) (\d+)$/);
+  return m ? { width: Number(m[1]), height: Number(m[2]) } : null;
+}
+
 let queued = 0, withThumb = 0;
 const at = new Date().toISOString();
 (async () => {
@@ -51,11 +60,12 @@ for (const it of items) {
   const id = String(it.panel || '').toUpperCase();
   if (!id || (only && !only.has(id))) continue;
   const thumb = thumbOf(it.file);
+  const size = thumb ? sizeOf(it.file) : null;
   const payload = {
     key: jobId, id, scene: it.scene || '', storyOrder: it.storyOrder || null, shootOrder: it.shootOrder || null,
     sample: it.sample === true, status: thumb ? (it.status && it.status !== 'pending' ? it.status : 'generated') : (it.status || 'pending'),
     caption: captionOf(it), boardVersion: latest, credits: it.credits || 1, file: it.file || null,
-    ...(thumb ? { thumb } : {}), updatedAt: at,
+    ...(thumb ? { thumb } : {}), ...(size ? { width: size.width, height: size.height } : {}), updatedAt: at,
   };
   await board.call('panel', payload, { argv });
   queued++; if (thumb) withThumb++;

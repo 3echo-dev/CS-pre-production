@@ -64,6 +64,8 @@ try {
   assert.strictEqual(writes.length, 1);
   assert.strictEqual(writes[0].op, 'update', 'a delivery updates so approvedBy survives');
   assert.match(writes[0].data.thumb, /^data:image\/jpeg;base64,/);
+  assert.strictEqual(writes[0].data.width, 540, 'the panel carries its pixel width, so the board can show its own ratio');
+  assert.strictEqual(writes[0].data.height, 960);
   assert.ok(writes[0].data.thumb.length < 120000, 'thumbnail stays small: ' + writes[0].data.thumb.length);
   assert.ok(out.pins.some(p => p.doc_id === 'P01'), 'the update is pinned');
   assert.strictEqual(run('board-sync.js', ['push', 'htf', jobId, '--ack'], tmp).status, 0);

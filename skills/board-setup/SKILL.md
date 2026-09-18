@@ -2,8 +2,8 @@
 name: board-setup
 description: >
   Publishes this account's own copy of the 1-22 Control board, the page that ships with the
-  plugin at board/1-22-control.html, as a claude.ai artifact with the db and artifact
-  capabilities, and records its address for the workspace. Use once per account or workspace,
+  plugin at board/1-22-control.html, as a claude.ai artifact with the db, artifact and
+  comments capabilities, and records its address for the workspace. Use once per account or workspace,
   when set-board.js --show says no board is set, or when the user asks for a fresh board.
 argument-hint: "[--new]"
 metadata:
@@ -13,7 +13,7 @@ user-invocable: true
 
 # Skill: Board setup
 
-**Purpose:** give the account that runs the pipeline a board it owns. The plugin carries the page; the artifact belongs to whoever publishes it, and only an owner's session can write its database and be woken by its gate locks.
+**Purpose:** give the account that runs the pipeline a board it owns. The plugin carries the page; the artifact belongs to whoever publishes it, only an owner's session can write its database, and only a session watching it is woken by its decisions.
 
 ## Steps
 
@@ -25,7 +25,7 @@ user-invocable: true
 
    Exit 0 prints the board in use and where the setting came from: say so in one line and stop, unless the user asked for a new one (`--new`). Exit 3: continue.
 
-2. **Publish the page** with the Artifact tool, `file_path` set to `${CLAUDE_PLUGIN_ROOT}/board/1-22-control.html`, `title` "1-22 Control", `favicon` "🎬", `capabilities` `{"db": {}, "artifact": {}}`, and a one-line description ("Pre-production board: gates, registers, storyboard, inbox"). Publish it as it is: never edit the page, never strip the base64 copy at its end, never pass `contract`. The artifact starts private; sharing it is the owner's choice, later.
+2. **Publish the page** with the Artifact tool, `file_path` set to `${CLAUDE_PLUGIN_ROOT}/board/1-22-control.html`, `title` "1-22 Control", `favicon` "🎬", `capabilities` `{"db": {}, "artifact": {}, "comments": {}}`, and a one-line description ("Pre-production board: gates, registers, storyboard, inbox"). Publish it as it is: never edit the page, never strip the base64 copy at its end, never pass `contract`. The artifact starts private; `comments` keeps it inside the organization, which a board is anyway. The publish result says whether this session now watches the board: note the answer for step 5.
 
 3. **Record the address** the publish result returned:
 
@@ -37,7 +37,9 @@ user-invocable: true
 
 4. **Prove the session can write it.** One `ArtifactData` set on the new artifact, collection `meta`, document `board`, data `{"installedBy": "cs-pre-production", "pluginVersion": "{version from plugin.json}", "installedAt": "{now}"}`. The first write asks the person for consent once; a refusal means the board cannot be driven from this session, say that and stop.
 
-5. **Open it** the usual way, `pane.js "home" "1-22"`, and say one line: the board is published, private to this account, and every project in this workspace opens on it. The publish result already showed the link; do not repeat the address.
+5. **Say who is watching.** A decision on the board reaches the run as a comment sent to Claude, which reaches only sessions watching the artifact. If this session watches it, say the session running jobs must be this one, or must watch the board with the ArtifactComments tool at the start of every job. If not, say plainly that every decision on the board must also be said in chat until one does.
+
+6. **Open it** the usual way, `pane.js "home" "1-22"`, and say one line: the board is published, private to this account, and every project in this workspace opens on it. The publish result already showed the link; do not repeat the address.
 
 ## Rules
 
@@ -46,11 +48,11 @@ The shared rules in `${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md` apply.
 1. One board per workspace root. A second `board-setup` without `--new` changes nothing.
 2. The page is published unmodified. Changes to the board are a plugin release, not a per-account edit.
 3. `--new` publishes a fresh, empty board; projects on the old one stay there. Say that before publishing.
-4. Never point a workspace at a board this account does not own: the gate locks would not wake the pipeline and the writes would be refused.
+4. Never point a workspace at a board this account does not own: its decisions would wake nobody and the writes would be refused.
 
 ## Output contract
 
-A private artifact of the board page with capabilities db and artifact; `boardUrl` and `boardSetAt` in `<root>/.creative-studio-pipeline/config.json`; the `meta/board` document on the artifact's database.
+A private artifact of the board page with capabilities db, artifact and comments; `boardUrl` and `boardSetAt` in `<root>/.creative-studio-pipeline/config.json`; the `meta/board` document on the artifact's database.
 
 ## Boundary
 
@@ -60,7 +62,8 @@ Does not push projects (`board-sync`), share the artifact, or edit the page.
 
 | Failure | Fix |
 |---|---|
-| Publish refused for the capabilities | Say which; the page needs both `db` and `artifact` |
+| Publish refused for the capabilities | Say which; the page needs `db`, `artifact` and `comments` |
+| A decision on the board wakes nobody | The job session is not watching the board: watch it with ArtifactComments, or land by hand |
 | The set-board.js address check fails | Use the artifact link exactly as the publish result printed it |
 | The consent for the first write is declined | Stop; the board stays published but unused until a session with consent writes it |
 | A board URL from another account was pasted | Refuse; run this skill to publish this account's own |
