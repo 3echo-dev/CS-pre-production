@@ -43,6 +43,16 @@ r = run('--show');
 assert.strictEqual(r.status, 0);
 assert.strictEqual(JSON.parse(r.stdout).url, url);
 
+// The short address the Artifact tool returns today is the same board, differently spelled.
+const shortUrl = 'https://claude.ai/artifact/18oZcPiecvHrLdzRe5MM9s';
+r = run(shortUrl);
+assert.strictEqual(r.status, 0, 'the short artifact address is recorded: ' + r.stderr);
+assert.strictEqual(JSON.parse(run('--show').stdout).url, shortUrl);
+r = run('https://claude.ai/artifact/');
+assert.strictEqual(r.status, 2, 'an artifact address with no id is still refused');
+r = run(url);
+assert.strictEqual(r.status, 0);
+
 // lib-board resolves it, and reports offline without it.
 const board = require(path.join(ROOT, 'scripts', 'lib-board.js'));
 delete process.env.CREATIVE_STUDIO_BOARD_URL;
