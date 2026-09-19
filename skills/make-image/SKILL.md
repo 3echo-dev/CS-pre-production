@@ -19,7 +19,7 @@ user-invocable: false
 
 1. `preflight-generation.js {client} {job-id}`. Exit 3: no panel table; exit 1: faults; exit 0 is the only permission to quote.
 2. Quote `count x 1 credit` for items with no file on disk. Over `credit_ceiling_per_job` (`CONFIG.md`) stop and ask what to cut.
-3. State the assumptions in one line: style, ratio from the brief, sample panel, reference assets, ceiling. `push-panels.js` puts a placeholder per panel on the board's Storyboard tab, whose Generate button files a `generate` request (landed as `generate[]`, scope sample or batch); that request, or the answer to `board-sync.js ask ... --item storyboard`, is the yes. **Wait for it.** The spend guard refuses without it.
+3. State the assumptions in one line: style, ratio, sample panel, reference assets, ceiling. `push-panels.js` puts a placeholder per panel on the board's Storyboard tab, whose Generate button files a `generate` request (landed as `generate[]`, scope sample or batch); that request, or the answer to `board-sync.js ask ... --item storyboard`, is the yes. **Wait for it.** The spend guard refuses without it. A landed request still needing an answer: `ask --blocks {request id}`.
 4. `list_workspaces` for id and balance, `check-3echo.js {client} {job-id} --credits {balance}` (or `--unreachable`), then `get_asset` and `preflight-media.js "<media-url>"`. Exit 0 from both is the permission to generate.
 5. Upload the client assets the manifest names (`upload_asset` or `import_asset_from_url`); record the ids in `manifest.referenceAssets` and each item's `assetIds`.
 6. **The sample panel only**: `create_image_job` (`workspaceId`, `prompt`, `aspectRatio`, `assetIds`, `idempotencyKey` spelled `{job-id}/v{n}/P{id}`), `wait_for_job`, `get_job_result`. Land it under rules 5 to 8. Record the version (`record-version.js {client} {job-id} --item storyboard --n {n} --file "storyboard/v{n}" --note "sample P{id}"`), `push-panels.js --only P{id}`, push, end the turn. The person approves the sample on the board; `board-sync.js pull --gate sample` writes `approvals/sample-{n}.json` with the batch ceiling (panels still to draw) from the generate request.
@@ -40,7 +40,7 @@ The shared rules in `${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md` apply.
 6. Validate every file: opens with Pillow, 200 px or more short side.
 7. Look at every panel: another brand, a wrong location, an uncast face.
 8. A real place matches the client's picture.
-9. `assetIds` takes 16 references. `aspectRatio` is one of `1:1 2:3 3:2 3:4 4:3 9:16 16:9 21:9`, from `job.json`, never assumed.
+9. `assetIds` takes 16 references. `aspectRatio` is `job.json`'s, never assumed; `preflight-generation.js` refuses without it.
 10. A redo is one panel, one credit: only the ids the person named, archived as `P{id}-r{k}.png`, their note verbatim as the prompt's last line, a yes to its own quote.
 11. Cutting a panel is a storyboard version, not generation.
 

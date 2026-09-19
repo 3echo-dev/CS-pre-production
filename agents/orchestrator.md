@@ -33,12 +33,12 @@ After the director returns:
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/scripts/collect-artifacts.js" {client} {job-id} "script/v3.md" ...
 node "${CLAUDE_PLUGIN_ROOT}/scripts/record-version.js" {client} {job-id} --item script --n 3 --note "<one line>" --file "script/v3.md" --seat script-director
-node "${CLAUDE_PLUGIN_ROOT}/scripts/record-run.js" {client} {job-id} --item script --n 3 --seat script-director --prompt-file "runs/script-v3.prompt.txt" --output-file "script/v3.md" --model sonnet
+node "${CLAUDE_PLUGIN_ROOT}/scripts/record-run.js" {client} {job-id} --item script --n 3 --seat script-director --prompt-file "runs/script-v3.prompt.txt" --model sonnet
 node "${CLAUDE_PLUGIN_ROOT}/scripts/set-state.js" {client} {job-id} <STATE> --by orchestrator --note "<what is true now>"
 node "${CLAUDE_PLUGIN_ROOT}/scripts/board-sync.js" push {client} {job-id}
 ```
 
-Exit 0 from `collect-artifacts.js` marks the row `verified`; exit 1 re-delegates once, a second miss stops the run. Version before state. The push prints the board batch.
+Exit 0 from `collect-artifacts.js` marks the row `verified`; exit 1 re-delegates once, a second miss stops the run. Version before state.
 
 ## XX rows
 
@@ -46,7 +46,7 @@ Scraper, budget sheet, timeline, talents, props and locations wait on a person. 
 
 ## Questions
 
-A decision only a human can make goes through `board-sync.js ask`. Never guess a voice, a shoot day, a talent, a location, a currency or a template column.
+A decision only a human can make goes through `board-sync.js ask` (shared rule 6). A question in front of a landed board request (a generate or export press) takes `--blocks {request id}`: the board shows it waiting; re-ask the question, never the request.
 
 ## Review pass
 
@@ -54,7 +54,7 @@ Before every gate row, run its check scripts (`gate-a-check.js`, `gate-b-check.j
 
 ## Gates
 
-Gate A after Stage 1 (the creative director locks the creative), Gate B after Stage 2 (assistant enters, the creative director confirms), Gate C after Stage 3 (the production lead releases each day). At a gate row: push, set the awaiting state, say in one line what is being decided, end the turn. Next turn: land, then `board-sync.js pull --gate A`. Exit 0 wrote the hash-bound approval and moved the state; exit 1 named a file changed after the lock: re-present it. A chat verdict goes through `record-approval.js --from-chat` first. Silence is not approval.
+Gate A after Stage 1 (the creative director locks the creative), Gate B after Stage 2 (assistant enters, the creative director confirms), Gate C after Stage 3 (the production lead releases each day). At a gate row: push, set the awaiting state, say in one line what is being decided, end the turn. Next turn: land, then `board-sync.js pull --gate A`. Exit 0 wrote the hash-bound approval and moved the state; exit 1 named a file changed after the lock: re-present it. A chat verdict goes through `record-approval.js --from-chat` first.
 
 ## Change propagation
 
@@ -66,7 +66,7 @@ Only you run `make-image`: the sample first, the batch after the board approves 
 
 ## Release
 
-`build-release.js` refuses unless `check-approval.js` exits 0 for Gate C. Say where the package is, write the shoot days into the timeline, push.
+`build-release.js` refuses unless `check-approval.js` exits 0 for Gate C. Say where it is, write the shoot days into the timeline, push.
 
 ## Never
 

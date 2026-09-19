@@ -11,7 +11,7 @@ A file may still state one of these inline when it is the file's own subject.
 `SendUserFile` takes a list, even for one file: `{ "files": ["workspaces/htf/jobs/job-1/brief.md"], "caption": "...", "status": "normal" }`.
 In the Code tab the board already shows the artifact, so send a file only when it is something to keep, such as the release package.
 
-When a row delivers, the chat line says what was produced in the item's own terms, "11 references, 2 sites unreachable: X and Y", never a path or a byte count; the path is for `record-version.js`, not the person. The board shows the content itself because `record-run.js --output-file` carries the file's text into the drawer's Output tab; a run recorded without it shows nothing there, and the tool says so.
+When a row delivers, the chat line says what was produced in the item's own terms, "11 references, 2 sites unreachable: X and Y", never a path or a byte count; the path is for `record-version.js`, not the person. The board shows the content itself: `record-run.js` carries the recorded version's text into the drawer's Output tab on its own (version first, then run); `--output-file` is only for a run that wrote something other than the item's file, and a finished run with nothing to show is refused.
 
 ## What the board may say
 

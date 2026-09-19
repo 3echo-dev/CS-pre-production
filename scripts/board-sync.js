@@ -35,7 +35,7 @@ const rest = argv.slice(argv.indexOf(cmd) + 1);
 const json = argv.includes('--json');
 const opt = name => { const i = argv.indexOf(name); return i >= 0 && argv[i + 1] ? argv[i + 1] : null; };
 const usage = () => {
-  console.error('usage: board-sync.js open|push|land|pull|ask|answer <client> <job-id> [args] [--json] [--ack] [--gate A|B|C|sample] [--item X --text "..." --options "a|b|c"] [--id <inbox id> --text "..." [--by <who>]]');
+  console.error('usage: board-sync.js open|push|land|pull|ask|answer <client> <job-id> [args] [--json] [--ack] [--gate A|B|C|sample] [--item X --text "..." --options "a|b|c" [--blocks <request id>]] [--id <inbox id> --text "..." [--by <who>]]');
   process.exit(2);
 };
 if (!['open', 'push', 'land', 'pull', 'ask', 'answer'].includes(cmd)) usage();
@@ -121,6 +121,11 @@ function toWrite(rec) {
       // was asking for (land closes a gate row when the gate is decided, a generate row when
       // the panels are drawn). Left open, the board goes on asking for what is already done.
       return { op: 'update', collection: base + '/inbox', doc_id: p.id, data: { status: 'answered', answer: p.answer || '', answeredBy: p.by || 'pipeline', answeredAt: at } };
+    case 'waiting':
+      // A request (generate, export) the run has landed and cannot finish until a question is
+      // answered. The inbox used to know only open and answered, so a landed request stayed a
+      // button: the person pressed it again and again while the real blocker sat unanswered.
+      return { op: 'update', collection: base + '/inbox', doc_id: p.id, data: { status: 'waiting', waitingOn: p.on || null, waitingText: p.text || '', waitingSince: at } };
     case 'question':
       return { op: 'set', collection: base + '/inbox', doc_id: p.id || ('q-' + Date.parse(at).toString(36)),
         data: { type: 'question', item: p.item || null, text: p.text, options: p.options || [], from: p.from || 'orchestrator', status: 'open', createdAt: at } };
@@ -195,7 +200,15 @@ function land() {
   if (!file) usage();
   let got;
   try { got = readJson(path.resolve(file)); } catch (e) { console.error('cannot read ' + file + ': ' + e.message); process.exit(3); }
-  const docs = Array.isArray(got) ? got : (Array.isArray(got.documents) ? got.documents : (Array.isArray(got.docs) ? got.docs : [got]));
+  // Any of the shapes a read is saved in: one document; one collection read ({collection,
+  // documents}); an array of documents; or an array of collection reads, which is the shape the
+  // board-sync skill asks for and which used to land as a single row with no id and exit 0.
+  const docs = [];
+  for (const g of (Array.isArray(got) ? got : [got])) {
+    const inner = g && (Array.isArray(g.documents) ? g.documents : Array.isArray(g.docs) ? g.docs : null);
+    if (inner) for (const d of inner) docs.push({ ...d, collection: d.collection || g.collection });
+    else docs.push(g);
+  }
   const landed = { gates: {}, questions: [], answers: [], registers: {}, panels: {}, generate: [], exports: [] };
   const changed = [];
   for (const d of docs) {
@@ -223,7 +236,12 @@ function land() {
   // twelve open rows when seven were live: a gate row after the gate was locked, a generate
   // row after the panels were drawn. Each is queued as answered and the next push closes it.
   for (const q of landed.questions) {
-    if (q.status !== 'open') continue;
+    // A request waiting on a question is live too: it closes when the thing it asked for is done.
+    if (q.status === 'waiting' && q.waitingOn) {
+      const on = landed.questions.find(x => x.id === q.waitingOn);
+      if (on && on.status === 'answered') changed.push('request ' + q.id + ' can proceed: ' + q.waitingOn + ' was answered (' + (on.answer || '') + ')');
+    }
+    if (q.status !== 'open' && q.status !== 'waiting') continue;
     let why = null;
     if (q.type === 'gate' && q.gate && landed.gates[q.gate] && landed.gates[q.gate].status) why = 'Gate ' + q.gate + ' was decided on the board';
     else if (q.type === 'generate' && Array.isArray(q.panels) && q.panels.length &&
@@ -272,10 +290,15 @@ async function ask() {
   const options = (opt('--options') || '').split('|').map(o => o.trim()).filter(Boolean);
   const id = 'q-' + Date.now().toString(36);
   await board.call('question', { key: jobId, id, item, text, options, from: opt('--from') || 'orchestrator', status: 'open', createdAt: now() }, { argv });
-  if (json) { console.log(JSON.stringify({ id, item, text, options })); return; }
+  // The request this question stands in front of, so the board shows it as waiting rather
+  // than as a button to press again, and the chat re-asks the blocker, never the request.
+  const blocks = opt('--blocks');
+  if (blocks) await board.call('waiting', { key: jobId, id: blocks, on: id, text }, { argv });
+  if (json) { console.log(JSON.stringify({ id, item, text, options, blocks: blocks || null })); return; }
   console.log(text);
   options.forEach((o, i) => console.log('  ' + (i + 1) + '. ' + o));
   if (options.length) console.log('  ' + (options.length + 1) + '. Something else (say what)');
+  if (blocks) console.log('Request ' + blocks + ' now waits on this answer; it is not re-asked.');
   console.log('Asked on the board too. Push, then end the turn; land the answer next turn.');
 }
 
@@ -289,7 +312,7 @@ function pullSample() {
   const sample = Object.values(panels).find(p => p.sample === true) || null;
   if (!sample) { console.error('No sample panel landed. Read projects/' + jobId + '/panels from the board and land it first.'); process.exit(3); }
   if (!sample.approvedBy) { console.error('Sample ' + sample.id + ' is on the board but nobody has approved it yet.'); process.exit(1); }
-  const open = (got.generate || []).find(g => g.status === 'open' && g.scope === 'batch');
+  const open = (got.generate || []).find(g => (g.status === 'open' || g.status === 'waiting') && g.scope === 'batch');
   let max = open ? Number(open.credits) : null;
   if (!Number.isInteger(max)) {
     try {

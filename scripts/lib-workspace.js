@@ -167,7 +167,32 @@ const fwd = p => String(p).split(path.sep).join('/');
 const clientsDir = brandsDir;
 const listClients = listBrands;
 
+// The client's intake folder holds Brief, Concept and Client Assets. Three runs in a row the
+// session was started inside that folder, the root defaulted to the current directory, and
+// the pipeline wrote workspaces/, inputs/ and .board/ beside the client's own material. The
+// folder is read-only client input; nothing of the pipeline's belongs in it. Any of the three
+// names is enough to say so: a person who names a folder "Brief" is not naming a workspace.
+const INTAKE_MARKS = ['brief', 'concept', 'client assets'];
+function intakeMarks(dir) {
+  try {
+    return fs.readdirSync(dir, { withFileTypes: true })
+      .filter(e => e.isDirectory() && INTAKE_MARKS.includes(e.name.toLowerCase()))
+      .map(e => e.name).sort();
+  } catch { return []; }
+}
+// The refusal every script that creates something at the root prints, or null when the root
+// is fine. Exit 3 is the caller's: a prerequisite (a root that is not the client's) is missing.
+function refuseIntakeRoot(argv) {
+  const { path: r, source } = rootWithSource(argv);
+  const marks = intakeMarks(r);
+  if (!marks.length) return null;
+  return 'REFUSED: the workspace root ' + fwd(r) + ' (set by ' + source + ') is the client\'s intake folder: it holds ' +
+    marks.join(', ') + '. The pipeline never writes into client material. Choose a root that is not the client\'s folder: ' +
+    'set-root.js <folder> from outside it, --root <folder>, or CREATIVE_STUDIO_ROOT. Nothing was created.';
+}
+
 module.exports = {
+  intakeMarks, refuseIntakeRoot,
   root, rootWithSource, brandsDir, clientsDir, wsDir, jobsDir, jobDir, inputsDir, listClients,
   listBrands, listJobs, positionals, resolveJobArgs, workspaceConfig, now, fwd,
   CONFIG_DIR, CONFIG_FILE,

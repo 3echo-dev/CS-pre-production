@@ -61,10 +61,20 @@ const PNG = Buffer.from('89504e470d0a1a0a0000000d4948445200000001000000010806000
   const item = (id, sample) => ({ panel: id, kind: 'image', sample, status: sample ? 'generated' : 'pending', file: 'storyboard/v1/' + id + '.png', credits: 1, prompt: 'Subject: something long enough to be a prompt for ' + id + '. Motion: none.' });
   write('storyboard/v1/generation-manifest.json', JSON.stringify({ schemaVersion: '1.0', items: ids.map((id, i) => item(id, i === 0)) }));
 
-  // Before any approval: the sample only, and the per-job ceiling from CONFIG.md applies to what remains.
+  // A job whose ratio was never asked is not safe to quote: the ratio decides every panel and
+  // what a redo costs, and it is an intake answer, not a question at the moment of spending.
   let r = run('preflight-generation.js', ['htf', jobId, '--json']);
   let out = JSON.parse(r.stdout);
+  assert.strictEqual(out.valid, false, 'no ratio, no quote: ' + r.stdout);
+  assert.ok(out.problems.some(p => /aspectRatio/.test(p)), 'and it names the field');
+  const jobFile = path.join(dir, 'job.json');
+  fs.writeFileSync(jobFile, JSON.stringify({ ...JSON.parse(fs.readFileSync(jobFile, 'utf8')), aspectRatio: '16:9' }, null, 2));
+
+  // Before any approval: the sample only, and the per-job ceiling from CONFIG.md applies to what remains.
+  r = run('preflight-generation.js', ['htf', jobId, '--json']);
+  out = JSON.parse(r.stdout);
   assert.strictEqual(out.valid, true, r.stdout);
+  assert.ok(out.notes.some(n => /16:9/.test(n)), 'the quote says what frame it draws in');
   assert.strictEqual(out.allowed, 'sample');
   assert.strictEqual(out.remaining, 4);
   assert.strictEqual(out.generated, 0);

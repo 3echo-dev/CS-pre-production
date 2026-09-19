@@ -51,6 +51,12 @@ assert.ok(queued.some(q => q.kind === 'progress' && q.payload.key === jobId && q
   'the progress record carries the job and the state');
 console.log('ok   every state change is queued for the board');
 
+// Run 3, R8: no card ever read Working. Entering a state marks the items its director holds.
+assert.ok(queued.some(q => q.kind === 'item' && q.payload.item === 'script' && q.payload.status === 'running'), 'entering the script state marks the script card Working');
+assert.ok(queued.some(q => q.kind === 'item' && q.payload.item === 'shot_list' && q.payload.status === 'running'), 'entering the shot-list state marks the shot list Working');
+assert.ok(!queued.some(q => q.kind === 'item' && q.payload.status === 'draft'), 'and set-state never says delivered; record-version does');
+console.log('ok   entering a state marks the items its director holds as Working');
+
 // A gate can be reached and rolled back to where "start over" sends it.
 for (const st of ['SHOT_LIST_DRAFTED', 'PLANNING_DRAFTED', 'AWAITING_GATE_A']) {
   const m = run('set-state.js', ['htf', jobId, st, '--by', 'bob'], tmp);

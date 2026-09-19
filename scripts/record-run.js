@@ -9,7 +9,14 @@
 // which is what the Output, Prompt and Trace tabs read. The spawn prompt is recorded exactly;
 // the output is the file's text when it is text, and empty with a path when it is not.
 //
-// Exit 0 recorded · 2 usage · 3 a named file is missing
+// The output file is the one record-version.js recorded for this item and number, read from
+// versions.jsonl; --output-file overrides it for a run that wrote something else. It used to be
+// optional and nothing else: a rule in a document that every director had to remember on every
+// row, and on the third test run it was forgotten, so the board's Output tab told the person
+// to open the file on their computer. A run of a delivered item with no output to show is
+// refused, not recorded empty.
+//
+// Exit 0 recorded · 2 usage · 3 a named file is missing, or no version to take the output from
 const fs = require('fs');
 const path = require('path');
 const ws = require('./lib-workspace.js');
@@ -30,7 +37,23 @@ const readOr = (p, what) => {
   return abs;
 };
 const promptPath = readOr(opt('--prompt-file'), 'prompt file');
-const outputPath = readOr(opt('--output-file'), 'output file');
+const status = opt('--status') || 'done';
+function versionOf(it, num) {
+  try {
+    return fs.readFileSync(path.join(dir, 'versions.jsonl'), 'utf8').split(/\r?\n/).filter(Boolean).map(l => JSON.parse(l))
+      .find(v => v.item === it && Number(v.n) === num) || null;
+  } catch { return null; }
+}
+let outputArg = opt('--output-file');
+if (!outputArg) {
+  const v = versionOf(item, n);
+  if (v && v.path) { outputArg = v.path; console.error('Output: ' + v.path + ', as recorded for ' + item + ' v' + n + '.'); }
+  else if (status === 'done') {
+    console.error('Nothing was recorded. ' + item + ' v' + n + ' is not in versions.jsonl, so there is no file to show on the board for this run. Run record-version.js first (version, then run), or pass --output-file <path> for a run that wrote something else.');
+    process.exit(3);
+  }
+}
+const outputPath = readOr(outputArg, 'output file');
 const tracePath = readOr(opt('--trace-file'), 'trace file');
 
 const TEXT = /\.(md|txt|csv|json|yaml|yml)$/i;
@@ -41,13 +64,13 @@ if (outputPath) {
 }
 // The drawer's Output tab renders `output`; a run without it shows an empty tab and a path,
 // which on the first test run left the person opening files to learn what a director made.
-if (!outputPath) console.error('Note: no --output-file, so the board\'s Output tab shows nothing for this run. Pass the file the director wrote.');
+if (!outputPath) console.error('Note: a running record carries no output yet; the board\'s Output tab fills when the run is recorded done.');
 else if (!output) console.error('Note: ' + path.basename(outputPath) + ' is not text, so the board\'s Output tab shows its path only.');
 let trace = [];
 if (tracePath) { try { trace = JSON.parse(fs.readFileSync(tracePath, 'utf8')); } catch { trace = []; } }
 
 const rec = {
-  item, seat, version: n, status: opt('--status') || 'done',
+  item, seat, version: n, status,
   model: opt('--model') || null,
   turns: opt('--turns') ? Number(opt('--turns')) : null,
   tokens: opt('--tokens') ? Number(opt('--tokens')) : null,
@@ -57,7 +80,7 @@ const rec = {
   trace: Array.isArray(trace) ? trace : [],
   artifactPath: outputPath ? path.relative(dir, outputPath).split(path.sep).join('/') : null,
   startedAt: opt('--started') || new Date().toISOString(),
-  finishedAt: (opt('--status') || 'done') === 'done' ? new Date().toISOString() : null,
+  finishedAt: status === 'done' ? new Date().toISOString() : null,
 };
 fs.mkdirSync(path.join(dir, 'runs'), { recursive: true });
 const out = path.join(dir, 'runs', item + '-v' + n + '.json');

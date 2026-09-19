@@ -222,7 +222,27 @@ async function reportProgress() {
   }, { argv });
 }
 
-reportProgress().catch(() => { /* the pane is never allowed to fail a state change */ }).then(() => {
+// The cards for the items this state works on. Until now a card read Not started for the
+// whole time a director was writing it, then jumped to Draft: the running pill on the page had
+// no writer. An item already delivered once (a revision pass) keeps its own status; the
+// change note has marked it, and delivery will mark it again.
+async function reportItems() {
+  const items = stages.itemsWorkedIn(target);
+  if (!items.length) return;
+  const delivered = new Set();
+  try {
+    for (const l of fs.readFileSync(path.join(dir, 'versions.jsonl'), 'utf8').split(/\r?\n/)) {
+      if (l.trim()) delivered.add(JSON.parse(l).item);
+    }
+  } catch { /* nothing delivered yet */ }
+  for (const item of items) {
+    if (delivered.has(item)) continue;
+    await gate.call('item', { key: jobId, item, status: 'running', updatedBy: by }, { argv });
+  }
+}
+
+reportProgress().catch(() => { /* the pane is never allowed to fail a state change */ })
+  .then(() => reportItems().catch(() => { /* same rule */ })).then(() => {
   if (json) { console.log(JSON.stringify(result, null, 2)); process.exit(0); }
   console.log('Now: ' + wording.sentence(target));
   // The mirror to a connected folder is triggered by a state change, so say so here rather

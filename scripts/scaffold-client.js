@@ -16,6 +16,10 @@ if (!slug || !/^[a-z0-9][a-z0-9-]*$/.test(slug)) {
   process.exit(2);
 }
 const name = (pos.slice(1).join(' ') || slug).trim();
+// The first thing written at a root. A root that is the client's intake folder is refused
+// here, before a folder exists, because every later script only finds the root this one made.
+const badRoot = ws.refuseIntakeRoot(argv);
+if (badRoot) { console.error(badRoot); process.exit(3); }
 const dest = ws.wsDir(slug, argv);
 if (fs.existsSync(dest)) {
   console.error('REFUSED: ' + ws.fwd(dest) + ' already exists. Edit it rather than overwriting.');

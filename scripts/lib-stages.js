@@ -35,6 +35,24 @@ const STAGE_OF = {
   CANCELLED: null,
 };
 
+// The board items a director is holding while the job sits in a state. Entering the state
+// marks them Working on the board; delivery (record-version.js) marks them Draft. Until this
+// existed no item ever read Working: the pill and its blinking dot were on the page, the stage
+// status was tracked here, and nothing carried one to the other, so a card said Not started
+// for the whole time a director was writing it. set-state.js posts it, so no director remembers.
+const ITEMS_OF = {
+  PLANNED:             ['intake'],
+  BRIEF_READY:         ['scraper'],
+  REFERENCES_READY:    ['script'],
+  SCRIPT_DRAFTED:      ['storyboard'],
+  STORYBOARD_DRAFTED:  ['shot_list'],
+  SHOT_LIST_DRAFTED:   ['budget_sheet', 'timeline'],
+  LOGISTICS_OPEN:      ['audio', 'talents', 'props', 'locations'],
+  GATE_B_PASSED:       ['concept_breakdown'],
+  BREAKDOWN_DRAFTED:   ['call_sheet'],
+};
+const itemsWorkedIn = id => ITEMS_OF[id] || [];
+
 // The eight stage ids, in the order the board draws them.
 const STAGE_IDS = [
   'opening', 'stage-1-creative', 'gate-a', 'stage-2-logistics', 'gate-b',
@@ -107,4 +125,4 @@ function walkedStages(stateIds) {
   return STAGE_IDS.filter(id => seen.has(id));
 }
 
-module.exports = { STAGE_OF, STAGE_IDS, APPROVAL_STAGE_IDS, nextRunning, walkedStages, BRAND_STAGE_IDS, SHORT_OF, ACCEPTED_STAGE_IDS, forState, resolveStage };
+module.exports = { STAGE_OF, STAGE_IDS, ITEMS_OF, itemsWorkedIn, APPROVAL_STAGE_IDS, nextRunning, walkedStages, BRAND_STAGE_IDS, SHORT_OF, ACCEPTED_STAGE_IDS, forState, resolveStage };

@@ -26,6 +26,8 @@ if (!target) {
   console.log('Projects and clients are saved in ' + ws.fwd(ws.clientsDir()) + '.');
   console.log('That comes from: ' + source + '.');
   console.log(brands.length ? 'Clients here: ' + brands.join(', ') : 'No clients here yet.');
+  const marks = ws.intakeMarks(p);
+  if (marks.length) console.log('WARNING: that is the client\'s intake folder (it holds ' + marks.join(', ') + '). Scaffolding there is refused; set-root.js <folder> from outside it first.');
   const here = guards.peek(process.cwd());
   console.log(here
     ? 'The guards are on, so a spend without an approval on disk is refused.'
@@ -39,6 +41,12 @@ const abs = path.resolve(target);
 if (fs.existsSync(abs) && !fs.statSync(abs).isDirectory()) {
   console.error(ws.fwd(abs) + ' is a file, not a folder.');
   process.exit(2);
+}
+// The client's folder is what gets pulled, never where the pipeline lives.
+const marks = ws.intakeMarks(abs);
+if (marks.length) {
+  console.error('REFUSED: ' + ws.fwd(abs) + ' is the client\'s intake folder (it holds ' + marks.join(', ') + '). The pipeline never writes into client material. Name a folder of its own, beside it or anywhere else. Nothing was changed.');
+  process.exit(3);
 }
 try {
   fs.mkdirSync(path.join(abs, 'workspaces'), { recursive: true });

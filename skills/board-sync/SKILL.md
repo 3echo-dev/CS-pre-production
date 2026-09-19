@@ -38,7 +38,7 @@ A rejected batch is not acknowledged; fix what it names, push again.
 Read the board with the Artifact tool, `action: read_db`:
 
 1. `db_op: get`, `collection: projects/{job-id}/gates`, `doc_id` A, B or C.
-2. `db_op: query`, `collection: projects/{job-id}/inbox`, `query.where` `[["status", "==", "open"]]`.
+2. `db_op: list`, `collection: projects/{job-id}/inbox` (open, waiting and answered rows together, so a waiting request meets its answer).
 3. `db_op: list` on `/talents`, `/props`, `/locations`, `/days`, `/panels` past Gate A.
 
 One JSON array under `.board/landed/`, each `{"collection": "projects/{job-id}/gates", "documents": [...]}` as returned. Then:
@@ -47,7 +47,7 @@ One JSON array under `.board/landed/`, each `{"collection": "projects/{job-id}/g
 node "${CLAUDE_PLUGIN_ROOT}/scripts/board-sync.js" land {client} {job-id} ".board/landed/{file}.json"
 ```
 
-It writes `.board/inbox.json` and `registers/*.json` and prints what changed; a file with no board record exits 1. Inbox rows you acted on are marked answered in the next push.
+It writes `.board/inbox.json` and `registers/*.json` and prints what changed; a file with no board record exits 1.
 
 ## Pull, once a gate is locked
 
@@ -65,7 +65,9 @@ A question only a person can answer goes to the board and the chat:
 node "${CLAUDE_PLUGIN_ROOT}/scripts/board-sync.js" ask {client} {job-id} --item audio --text "Which VO voice for scenes 1, 4 and 9?" --options "Male, warm, 40s|Female, neutral, 30s|Send me three samples"
 ```
 
-Copy the printed text into your next message unchanged, push; the answer arrives with the next `land`.
+Copy the printed text into chat unchanged, push; the answer arrives with the next `land`.
+
+`--blocks {request id}` on a question that blocks a landed generate or export request: the board shows the request waiting, and `land` prints `request {id} can proceed` once answered. Re-ask the question, never the request.
 
 ## Excel export
 
@@ -77,8 +79,6 @@ The shared rules in `${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md` apply.
 
 1. Push before ending any turn; an unpushed version is a person waiting for nothing.
 2. Land before deciding anything on a resume; the decision is usually already there.
-3. The plugin never writes `approved`, `na` or a gate document; those are the person's.
-4. Register rows and day assignments come only from a landing. Never typed.
 
 ## Output contract
 

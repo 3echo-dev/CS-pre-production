@@ -139,6 +139,7 @@ svg.i{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stro
 .pill.needs_review{color:var(--hold);border-color:var(--hold-dim)}
 .pill.running{color:var(--wait);border-color:var(--wait-dim)}
 .pill.running::before{animation:blink 1.2s ease-in-out infinite}
+.req.waiting .body{color:var(--wait)}
 .pill.draft{color:var(--paper);border-color:var(--line2)}
 .pill.pending{color:var(--faint)}
 .pill.plain::before{display:none}
@@ -377,6 +378,11 @@ function bindProject(){
 
 /* ---------- derived ---------- */
 function itemOf(id){ const def=ITEMS.find(i=>i.id===id); return Object.assign({status:'pending',version:0,summary:''}, def, items[id]||{}); }
+// What a card says. The item document knows pending, running, draft and the human statuses;
+// it does not know that the pipeline has a question open about it, the inbox does. So a card
+// that is not started or working, with an open question of its own, reads Your input here,
+// without the pipeline having to write a status it would then have to unwrite.
+function shownStatus(it){ if(['pending','running'].includes(it.status) && inbox.some(r=>r.type==='question'&&r.status==='open'&&r.item===it.id)) return 'needs_input'; return it.status; }
 function gateReady(g){ return GATES[g].items.every(id=>['approved','na'].includes(itemOf(id).status)); }
 function gateView(g){ const rec=gates[g]||{}; const ready=gateReady(g); const st = rec.status==='passed'?'passed': rec.status==='reopened'?'reopened': ready?'ready':'locked'; return {...rec, st, ready}; }
 function dependents(id){ const out=new Set(); const walk=x=>ITEMS.filter(i=>i.deps.includes(x)).forEach(i=>{ if(!out.has(i.id)){out.add(i.id); walk(i.id);} }); walk(id); return [...out]; }
@@ -478,6 +484,9 @@ async function signalPipeline(why){
 function panelRatio(){ const p=panels.find(x=>Number(x.width)>0&&Number(x.height)>0); if(p) return Number(p.width)+'/'+Number(p.height); const r=String((project&&project.aspectRatio)||'').match(/^(\d+):(\d+)$/); return r?r[1]+'/'+r[2]:'16/9'; }
 function panelList(){ return [...panels].sort((a,b)=>(a.storyOrder||0)-(b.storyOrder||0) || String(a.id).localeCompare(String(b.id))); }
 function openGenerate(){ return inbox.find(r=>r.type==='generate' && r.status==='open') || null; }
+// Landed by the run, not finished: it waits on a question in the inbox. Shown as waiting, never
+// as a button, so nobody presses it a fourth time while the real blocker sits unanswered.
+function waitingGenerate(){ return inbox.find(r=>r.type==='generate' && r.status==='waiting') || null; }
 async function requestGenerate(scope){
   const ps=panelList(); const sample=ps.find(p=>p.sample);
   const todo = scope==='sample' ? (sample?[sample.id]:[]) : ps.filter(p=>!p.thumb).map(p=>p.id);
@@ -500,9 +509,10 @@ async function redoPanel(id, note){
 }
 function panelsHtml(it){
   const ps=panelList(); const total=ps.length; const drawn=ps.filter(p=>p.thumb).length; const sample=ps.find(p=>p.sample);
-  const gen=openGenerate(); const sampleApproved=!!(sample&&sample.approvedBy);
+  const gen=openGenerate(); const wait=waitingGenerate(); const sampleApproved=!!(sample&&sample.approvedBy);
   let cta='';
   if(!total) cta='<span class="num">The pipeline pushes the panel table here once the storyboard is drafted.</span>';
+  else if(wait) cta=`<span class="num">${ic('q')} Picked up; waiting on your answer in the inbox: ${esc(wait.waitingText||'a question')}</span>`;
   else if(gen) cta=`<button disabled>${ic('gate')} Drawing ${esc(gen.scope||'')} · ${gen.credits||''} credit${gen.credits===1?'':'s'}…</button><span class="num">The pipeline is working; this updates itself.</span>`;
   else if(sample&&!sample.thumb) cta=isArmed('gen-sample')?`<button class="primary" data-gen="sample">${ic('check')} Confirm: generate ${esc(sample.id)} (1 credit)</button>`:`<button class="tape" data-gen="sample">${ic('gate')} Generate sample ${esc(sample.id)} (1 credit)</button>`;
   else if(sample&&!sampleApproved) cta=`<span class="num">Approve the sample panel below, then the batch can be drawn.</span>`;
@@ -516,7 +526,7 @@ function sheetTsv(sh){ const cell=v=>String(v==null?'':v).replace(/\t/g,' ').rep
 async function copySheet(id){ const sh=sheets[id]; if(!sh) return; const text=sheetTsv(sh);
   try { await navigator.clipboard.writeText(text); toast('Copied '+(sh.rows||[]).length+' rows. Paste into Excel or Sheets.', 'ok'); }
   catch(e){ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); toast('Copied for Excel', 'ok'); }catch(e2){ toast('Copy blocked by the browser'); } ta.remove(); } }
-function openExport(id){ return inbox.find(r=>r.type==='export' && r.item===id && r.status==='open') || null; }
+function openExport(id){ return inbox.find(r=>r.type==='export' && r.item===id && (r.status==='open'||r.status==='waiting')) || null; }
 function lastExport(id){ return inbox.find(r=>r.type==='export' && r.item===id && r.status==='answered') || null; }
 async function requestExport(id){ const it=itemOf(id); const rid='x-'+Date.now().toString(36);
   await write('projects/'+project.id+'/inbox/'+rid,{type:'export',item:id,text:'Export '+it.name+' v'+(it.version||0)+' to Excel in the client template',from:me,status:'open',createdAt:now()});
@@ -556,13 +566,13 @@ async function createProject(form){
   location.hash='#/p/'+encodeURIComponent(id);
 }
 function chatSummary(){
-  const open=inbox.filter(r=>r.status==='open');
+  const open=inbox.filter(r=>r.status==='open'||r.status==='waiting');
   const lines=[`1-22 · ${project.title}${project.client?' · '+project.client:''}`, `Status: ${statusWord(project.status)}`, ''];
   for(const g of ['A','B','C']){ const v=gateView(g); lines.push(`Gate ${g} ${GATES[g].name}: ${v.st==='passed'?'locked by '+humanName(v.decidedBy)+' '+fmt(v.decidedAt):v.st==='ready'?'ready to lock':v.st==='reopened'?'reopened ('+(v.reason||'')+')':'not yet'}`); }
   lines.push('', 'Items:');
-  for(const d of ITEMS){ const it=itemOf(d.id); lines.push(`- ${it.name}${it.xx?' [XX]':''}: ${STATUS_LABEL[it.status]} v${it.version||0}${it.approvedBy?' (approved by '+humanName(it.approvedBy)+')':''}${it.changeNote?' — change: '+it.changeNote:''}`); }
+  for(const d of ITEMS){ const it=itemOf(d.id); lines.push(`- ${it.name}${it.xx?' [XX]':''}: ${STATUS_LABEL[shownStatus(it)]} v${it.version||0}${it.approvedBy?' (approved by '+humanName(it.approvedBy)+')':''}${it.changeNote?' — change: '+it.changeNote:''}`); }
   for(const k of Object.keys(REG_FIELDS)) if(regs[k].length) lines.push(`- ${itemOf(k).name} register: ${regs[k].length} row(s), ${regUnknowns(k)} with blanks`);
-  if(open.length){ lines.push('', 'Open in the inbox:'); for(const r of open) lines.push(`- [${r.type}] ${r.text}${r.item?' ('+itemOf(r.item).name+')':''}`); }
+  if(open.length){ lines.push('', 'Open in the inbox:'); for(const r of open) lines.push(`- [${r.type}] ${r.text}${r.item?' ('+itemOf(r.item).name+')':''}${r.status==='waiting'?' — picked up, waiting on: '+(r.waitingText||'a question'):''}`); }
   const answered=inbox.filter(r=>r.status==='answered'&&r.type==='question');
   if(answered.length){ lines.push('', 'Answered:'); for(const r of answered) lines.push(`- ${r.text} → ${r.answer} (${humanName(r.answeredBy)})`); }
   if(messages.length){ lines.push('', 'Council log, newest first:'); for(const m of messages.slice(0,6)) lines.push(`- ${fmt(m.at)} ${humanName(m.by)}: ${m.text}`); }
@@ -604,6 +614,7 @@ function slatePage(){
       <div class="row"><h3>${esc(p.title)}</h3><span class="pill ${p.status==='released'?'approved':'plain'}">${esc(statusWord(p.status))}</span></div>
       <div class="row meta"><span>${esc(p.client||'')}${p.client&&(p.scriptFormat||p.storyboardStyle)?' · ':''}${esc(p.scriptFormat||'')}${p.scriptFormat&&p.storyboardStyle?' · ':''}${esc(p.storyboardStyle||'')}</span><span class="gchips" aria-label="Gates">${['A','B','C'].map(x=>`<span class="gchip ${gateChipState(p,x)}">${x}</span>`).join('')}</span></div>
       <div class="meta">Opened ${fmt(p.createdAt)} by ${esc(humanName(p.createdBy))}${p.example?' · example data':''}</div>
+      ${p.activity&&!['released','killed'].includes(p.status)?`<div class="meta"><span class="pill running">Working</span> ${esc(p.activity)}${p.heartbeatAt?' · '+fmt(p.heartbeatAt):''}</div>`:''}
     </button>`; }).join('')
     : `<p class="empty">${dbState==='on'?'No projects on the board yet. Open one below, or let the pipeline open it when a Drive folder lands.':dbState==='connecting'?'Connecting to the board…':'This is the pipeline model. Open the page in claude.ai to connect the board.'}</p>`;
   return `<div class="sect"><h2>Slate</h2><span class="meta">${projects.length} project${projects.length===1?'':'s'}</span></div>
@@ -695,7 +706,7 @@ function itemCard(it){
     <div class="t"><h3>${esc(it.name)}${it.xx?'<span class="xx">XX</span>':''}</h3><span class="v">v${it.version||0}</span></div>
     <div class="s">${esc(it.summary||it.produces)}</div>${regNote}
     ${st==='needs_review'&&it.changeNote?`<div class="s" style="color:var(--hold)">${esc(it.changeNote)}</div>`:''}
-    <div class="foot"><span class="pill ${st}">${STATUS_LABEL[st]||st}</span><span class="seat">${esc(who)}</span></div>
+    <div class="foot"><span class="pill ${shownStatus(it)}">${STATUS_LABEL[shownStatus(it)]||st}</span><span class="seat">${esc(who)}</span></div>
     <div class="actions">
       <button data-open-item="${it.id}">${ic('open')} Open</button>
       ${sheets[it.id]?`<button data-open-item="${it.id}" data-open-tab="sheet">${ic('open')} Sheet</button>`:''}
@@ -710,7 +721,10 @@ function reqHtml(r){
   const opts = r.type==='question' && r.status==='open' ? `<div class="opts">${(r.options||[]).map(o=>`<button data-answer="${esc(r.id)}" data-value="${esc(o)}">${esc(o)}</button>`).join('')}<button class="ghost" data-answer-text="${esc(r.id)}">Type an answer</button></div>${answerFor===r.id?`<form class="opts" data-answer-form="${esc(r.id)}" style="width:100%"><input name="text" id="ans-${esc(r.id)}" aria-label="Your answer" placeholder="Your answer" style="flex:1;min-width:140px"><button type="submit" class="primary">Send</button></form>`:''}` : '';
   const kind = r.type==='question'?'Question':r.type==='change'?'Change note':r.type==='gate'?'Gate':r.type==='generate'?'Generate':r.type==='export'?'Export':r.type||'';
   const icon = r.type==='question'?'q':r.type==='change'?'change':'gate';
-  return `<div class="req ${esc(r.type||'')} ${r.status==='answered'?'answered':''}"><span class="ic">${ic(icon)}</span><div class="from">${esc(kind)}${r.item?` · ${esc(itemOf(r.item).name)}`:''} · ${esc(humanName(r.from))} · ${fmt(r.createdAt)}</div><div class="body">${esc(r.text)}</div>${r.status==='answered'?`<div class="from">${r.type==='question'?'Answered':'Handled'} by ${esc(humanName(r.answeredBy))}: ${esc(r.answer||'')}</div>`:opts}</div>`;
+  const tail = r.status==='answered' ? `<div class="from">${r.type==='question'?'Answered':'Handled'} by ${esc(humanName(r.answeredBy))}: ${esc(r.answer||'')}</div>`
+             : r.status==='waiting' ? `<div class="from">Picked up by the pipeline · waiting on your answer: ${esc(r.waitingText||'a question in the inbox')}</div>`
+             : opts;
+  return `<div class="req ${esc(r.type||'')} ${r.status==='answered'?'answered':r.status==='waiting'?'waiting':''}"><span class="ic">${ic(icon)}</span><div class="from">${esc(kind)}${r.item?` · ${esc(itemOf(r.item).name)}`:''} · ${esc(humanName(r.from))} · ${fmt(r.createdAt)}</div><div class="body">${esc(r.text)}</div>${tail}</div>`;
 }
 function drawerHtml(){
   const it=itemOf(drawer); const isReg=!!REG_FIELDS[it.id]; const vs=versions[it.id]||[]; const rs=runsOf(it.id);
@@ -736,7 +750,7 @@ function drawerHtml(){
     body = sheetHtml(it);
   }
   return `${lightboxHtml()}<div class="scrim" data-close></div><aside class="drawer" role="dialog" aria-modal="true" aria-label="${esc(it.name)}">
-    <div class="dh"><div><h2>${esc(it.name)} <span class="mono" style="font-size:13px;color:var(--faint)">v${it.version||0}</span></h2><div class="meta">Stage ${it.stage} · ${esc(seatLabel(it.seat))}${it.xx?' · <span class="xx">XX</span>':''} · <span class="pill ${it.status}">${STATUS_LABEL[it.status]}</span></div></div><button class="ghost" data-close aria-label="Close">${ic('x')}</button></div>
+    <div class="dh"><div><h2>${esc(it.name)} <span class="mono" style="font-size:13px;color:var(--faint)">v${it.version||0}</span></h2><div class="meta">Stage ${it.stage} · ${esc(seatLabel(it.seat))}${it.xx?' · <span class="xx">XX</span>':''} · <span class="pill ${shownStatus(it)}">${STATUS_LABEL[shownStatus(it)]}</span></div></div><button class="ghost" data-close aria-label="Close">${ic('x')}</button></div>
     <div class="tabs" role="tablist">${tabs.map(t=>`<button role="tab" aria-selected="${t[0]===tab}" class="${t[0]===tab?'on':''}" data-tab="${t[0]}">${t[1]}${t[0]==='output'&&rs.length?` <span class="cnt">${rs.length}</span>`:''}</button>`).join('')}<span style="flex:1"></span>${runPick}</div>
     ${tab!=='about'?`<div>${body}</div>`:''}
     ${tab==='about'?`<dl class="kv">

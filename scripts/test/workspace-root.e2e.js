@@ -82,4 +82,23 @@ assert.strictEqual(diff.count, 1, 'only the changed file should be listed');
 assert.match(diff.files[0].path, /sites\.md$/);
 console.log('ok   the sync manifest lists only what changed since the last copy');
 
-for (const d of [tmp, elsewhere, away, flagged, project]) fs.rmSync(d, { recursive: true, force: true });
+// Run 1 F13, run 2 R1, run 3 again: the session started inside the client's intake folder, the
+// root defaulted to it, and the pipeline wrote its own state beside Brief, Concept and Client
+// Assets. The client's folder is read-only input; a root that is it is refused before a file lands.
+const intake = fs.mkdtempSync(path.join(os.tmpdir(), 'od-intake-'));
+for (const d of ['Brief', 'Concept', 'Client Assets']) fs.mkdirSync(path.join(intake, d));
+r = run('scaffold-client.js', ['htf', 'HTF'], { cwd: intake, env: clean });
+assert.strictEqual(r.status, 3, 'the client folder is refused as a root: ' + r.stdout + r.stderr);
+assert.match(r.stderr, /intake folder: it holds Brief, Client Assets, Concept/);
+assert.match(r.stderr, /Nothing was created/);
+assert.ok(!fs.existsSync(path.join(intake, 'workspaces')) && !fs.existsSync(path.join(intake, 'inputs')), 'nothing is written into the client folder');
+r = run('set-root.js', [intake], { cwd: away, env: clean });
+assert.strictEqual(r.status, 3, 'set-root refuses to point at it: ' + r.stdout);
+assert.match(r.stderr, /intake folder/);
+assert.match(run('set-root.js', [], { cwd: intake, env: clean }).stdout, /WARNING: that is the client's intake folder/, 'set-root with no argument warns when the current folder is the client\'s');
+const beside = fs.mkdtempSync(path.join(os.tmpdir(), 'od-beside-'));
+r = run('scaffold-client.js', ['htf', 'HTF', '--root', beside], { cwd: intake, env: clean });
+assert.strictEqual(r.status, 0, 'a root of its own, named from inside the client folder, is fine: ' + r.stderr);
+console.log('ok   the client\'s intake folder is refused as a workspace root, and a root beside it is fine');
+
+for (const d of [tmp, elsewhere, away, flagged, project, intake, beside]) fs.rmSync(d, { recursive: true, force: true });

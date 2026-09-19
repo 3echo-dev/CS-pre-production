@@ -15,6 +15,8 @@ if (!client || !slug || !/^[a-z0-9][a-z0-9-]*$/.test(slug)) {
   console.error('usage: scaffold-job.js <client> <job-slug> [title...]   (slug: lowercase, hyphens)');
   process.exit(2);
 }
+const badRoot = ws.refuseIntakeRoot(argv);
+if (badRoot) { console.error(badRoot); process.exit(3); }
 const clientDir = ws.wsDir(client, argv);
 if (!fs.existsSync(path.join(clientDir, 'workspace.json'))) {
   console.error('REFUSED: ' + ws.fwd(clientDir) + '/workspace.json not found. Run scaffold-client.js first.');
@@ -76,6 +78,9 @@ delete jobT._enums;
 const requestedAt = now.replace(' ', 'T').replace(/ ([+-]\d\d:\d\d)$/, ':00$1');
 const job = {
   schemaVersion: '1.0', kind: 'preproduction', driveFolder: '', scriptFormat: null, storyboardStyle: null,
+  // The frame every panel is drawn in. Asked at intake with the format and the style, never at
+  // the moment of spending: it decides what every panel looks like and what a redo costs.
+  aspectRatio: null,
   hasTrailer: false, shootDays: null, inputs: { brief: [], concept: [], assets: [] },
   approvers: { creative: 'creative-director', logistics: 'assistant', release: 'lead' },
   ...jobT,

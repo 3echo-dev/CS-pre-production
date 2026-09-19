@@ -96,6 +96,10 @@ const FORMATS = ['screenplay', 'av_script'];
 const STYLES = ['sketches', 'live_pictures', 'cartoon_animation'];
 if (!FORMATS.includes(job.scriptFormat)) missing('scriptFormat (one of ' + FORMATS.join(', ') + ')');
 if (!STYLES.includes(job.storyboardStyle)) missing('storyboardStyle (one of ' + STYLES.join(', ') + ')');
+// The panel ratio is an intake answer like the other two. On the third test run it was still
+// asked at generation time, after the spend had been approved, because nothing here required it.
+const RATIOS = ['16:9', '9:16', '1:1', '4:3', '3:4', '21:9', '2:3', '3:2'];
+if (!RATIOS.includes(job.aspectRatio)) missing('aspectRatio (one of ' + RATIOS.join(', ') + ')');
 if (R.missingFields.length) say('Rule 1: missing or invalid fields: ' + R.missingFields.join(', '));
 else say('Rule 1: job.json is complete');
 

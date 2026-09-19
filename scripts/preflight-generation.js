@@ -82,6 +82,14 @@ for (const it of items) {
 }
 for (const id of panelIds) if (!seen.has(id)) fail('board panel ' + id + ' has no manifest item');
 
+// 2b. The frame. It decides what all the panels look like and what a redo costs, so it is an
+// intake answer in job.json, never a question at the moment of spending.
+const RATIOS = ['16:9', '9:16', '1:1', '4:3', '3:4', '21:9', '2:3', '3:2'];
+let job = {};
+try { job = readJson(path.join(dir, 'job.json')); } catch { job = {}; }
+if (!RATIOS.includes(job.aspectRatio)) fail('job.json has no aspectRatio (one of ' + RATIOS.join(', ') + '); it is an intake answer, so ask it on the board and write it there before quoting');
+else note('panels are drawn at ' + job.aspectRatio);
+
 // 3. The sample first.
 const apDir = path.join(dir, 'approvals');
 let sampleApproval = null;

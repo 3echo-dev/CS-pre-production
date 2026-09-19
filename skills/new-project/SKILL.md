@@ -22,7 +22,7 @@ The whole message arrives as `$ARGUMENTS`. The client is the first word matching
 
 1. **Resolve the client.** None named: list the folders under `workspaces/` and ask which. None exist: onboard first (the `1-22` skill says how).
 
-2. **Get the folder.** If the message does not name it, ask on the board and in chat: "Where is the folder with the brief, concept and client assets? A path on this computer or a Google Drive folder link." Check `<root>/inputs/{client}/` silently first: a folder already pulled is not pulled again. Then `set-root.js` (no argument) prints where the work lives; say it beside the folder to pull before creating anything. If the pull is or holds that root, `set-root.js <folder>` from outside the client's folder first; the pull is refused otherwise.
+2. **Get the folder.** If the message does not name it, ask on the board and in chat: "Where is the folder with the brief, concept and client assets? A path on this computer or a Google Drive folder link." Check `<root>/inputs/{client}/` silently first: a folder already pulled is not pulled again. Then `set-root.js` (no argument) prints where the work lives; say it beside the folder to pull before creating anything. If the pull is or holds that root, `set-root.js <folder>` from outside the client's folder first; the pull is refused otherwise, and so is scaffolding (exit 3) when the root is the client's.
 
 3. **Derive a slug**, lowercase and hyphenated, three words at most:
 
@@ -59,7 +59,6 @@ The shared rules in `${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md` apply.
 2. Never invent a file the folder does not hold, and never drop one it does.
 3. Never pass a gate. Silence is not approval.
 4. Never generate a panel here. Nothing is spent before the sample panel is approved on the board.
-5. Never search Drive. The person names the folder; `drive-pull` copies it.
 
 ## Output contract
 

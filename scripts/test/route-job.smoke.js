@@ -32,7 +32,7 @@ try {
   const inputs = path.join(tmp, 'inputs', 'htf', jobId, 'Brief');
   fs.mkdirSync(inputs, { recursive: true });
   fs.writeFileSync(path.join(inputs, 'HTF_Brief_v2.pdf'), 'brief bytes');
-  Object.assign(job, { kind: 'preproduction', scriptFormat: 'screenplay', storyboardStyle: 'live_pictures', hasTrailer: true, shootDays: 2,
+  Object.assign(job, { kind: 'preproduction', scriptFormat: 'screenplay', storyboardStyle: 'live_pictures', aspectRatio: '16:9', hasTrailer: true, shootDays: 2,
     driveFolder: 'the studio / Projects / HTF Night Shift', inputs: { brief: ['Brief/HTF_Brief_v2.pdf'], concept: [], assets: [] } });
   fs.writeFileSync(jobFile, JSON.stringify(job, null, 2));
   let r = run('route-job.js', [jobFile], tmp);
@@ -83,6 +83,15 @@ try {
   assert.strictEqual(r.status, 3);
   assert.match(r.stdout, /scriptFormat/);
   console.log('ok   a missing script format is asked for, not guessed');
+
+  // 5. The panel ratio is the third such field. Run 3 asked it at generation time, after the
+  // spend was approved, because the router let a job through without it.
+  job.scriptFormat = 'screenplay'; delete job.aspectRatio;
+  fs.writeFileSync(jobFile, JSON.stringify(job, null, 2));
+  r = run('route-job.js', [jobFile], tmp);
+  assert.strictEqual(r.status, 3, 'no ratio, no route: ' + r.stdout);
+  assert.match(r.stdout, /aspectRatio \(one of 16:9/);
+  console.log('ok   a missing panel ratio is asked for at intake, not at the moment of spending');
 
   console.log('route verification passed');
 } finally {

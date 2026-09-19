@@ -52,11 +52,22 @@ try {
 
   // A run record, for the board's Output and Prompt tabs.
   fs.writeFileSync(path.join(tmp, 'prompt.txt'), 'You are the Scriptwriter for job ' + jobId + '.');
-  r = run('record-run.js', ['htf', jobId, '--item', 'script', '--n', '1', '--seat', 'script-director', '--prompt-file', path.join(tmp, 'prompt.txt'), '--output-file', 'script/v1.md', '--model', 'opus', '--turns', '9'], tmp);
+  // Run 3, R5: --output-file was optional and got forgotten, so the drawer showed nothing. The
+  // output now comes from the version recorded for the item, and a delivered item with no
+  // version to read is refused rather than recorded empty.
+  r = run('record-run.js', ['htf', jobId, '--item', 'script', '--n', '1', '--seat', 'script-director', '--prompt-file', path.join(tmp, 'prompt.txt'), '--model', 'opus', '--turns', '9'], tmp);
   assert.strictEqual(r.status, 0, r.stderr);
+  assert.match(r.stderr, /as recorded for script v1/, 'it says where the output came from');
   const runRec = JSON.parse(fs.readFileSync(path.join(dir, 'runs', 'script-v1.json'), 'utf8'));
   assert.ok(runRec.prompt.includes('Scriptwriter') && runRec.output.includes('NIGHT SHIFT'), 'the run keeps the prompt and the output');
-  console.log('ok   record-run keeps the spawn prompt and the output for the board');
+  assert.strictEqual(runRec.artifactPath, 'script/v1.md', 'the output path is the recorded version');
+  r = run('record-run.js', ['htf', jobId, '--item', 'audio', '--n', '1', '--seat', 'audio-supervisor', '--prompt-file', path.join(tmp, 'prompt.txt')], tmp);
+  assert.strictEqual(r.status, 3, 'a run of an item with no version and no output is refused');
+  assert.match(r.stderr, /^Nothing was recorded\. audio v1 is not in versions\.jsonl/m);
+  assert.ok(!fs.existsSync(path.join(dir, 'runs', 'audio-v1.json')), 'and nothing is written');
+  r = run('record-run.js', ['htf', jobId, '--item', 'audio', '--n', '1', '--seat', 'audio-supervisor', '--prompt-file', path.join(tmp, 'prompt.txt'), '--status', 'running'], tmp);
+  assert.strictEqual(r.status, 0, 'a running record needs no output yet: ' + r.stderr);
+  console.log('ok   record-run takes its output from the recorded version, and refuses a finished run with nothing to show');
 
   // 3. push --json folds the outbox into batches with the right collections and no approval.
   // An outbox line that tries to approve is dropped with a warning, never sent.
@@ -138,6 +149,35 @@ try {
   assert.match(r.stderr, /STALE: script: the board approved v1, disk is at v2/);
   assert.ok(!fs.existsSync(path.join(dir, 'approvals', 'A-2.json')), 'and nothing is recorded');
   console.log('ok   a gate passed on a stale version is refused and records nothing');
+
+  // 6. Run 3, R6: a request the run landed but could not finish stayed open, so the person
+  // pressed it again while the real blocker, a question, sat unanswered. A question asked with
+  // --blocks marks the request waiting; landing the answer says the request can proceed; and
+  // the request closes like an open one once what it asked for is done.
+  assert.strictEqual(run('board-sync.js', ['push', 'htf', jobId, '--ack'], tmp).status, 0);
+  r = run('board-sync.js', ['ask', 'htf', jobId, '--item', 'storyboard', '--text', 'Which frame for the panels?', '--options', '16:9|9:16', '--blocks', 'g-sample', '--json'], tmp);
+  assert.strictEqual(r.status, 0, r.stderr);
+  const asked = JSON.parse(r.stdout);
+  assert.strictEqual(asked.blocks, 'g-sample');
+  r = run('board-sync.js', ['push', 'htf', jobId, '--json'], tmp);
+  const w6 = [].concat(...JSON.parse(r.stdout).batches).filter(w => /\/inbox$/.test(w.collection));
+  const waiting = w6.find(w => w.doc_id === 'g-sample');
+  assert.ok(waiting && waiting.op === 'update' && waiting.data.status === 'waiting' && waiting.data.waitingOn === asked.id, 'the request is marked waiting on the question: ' + JSON.stringify(waiting));
+  assert.ok(w6.some(w => w.doc_id === asked.id && w.data.status === 'open'), 'and the question itself is open');
+  assert.strictEqual(run('board-sync.js', ['push', 'htf', jobId, '--ack'], tmp).status, 0);
+  const inbox6 = { collection: 'projects/' + jobId + '/inbox', documents: [
+    { id: 'g-sample', data: { type: 'generate', item: 'storyboard', scope: 'sample', panels: ['P01'], credits: 1, status: 'waiting', waitingOn: asked.id, waitingText: 'Which frame for the panels?', createdAt: '2026-09-19T12:00:00Z' } },
+    { id: asked.id, data: { type: 'question', item: 'storyboard', text: 'Which frame for the panels?', status: 'answered', answer: '16:9', answeredBy: 'creative-director', createdAt: '2026-09-19T12:01:00Z' } } ] };
+  fs.writeFileSync(path.join(tmp, 'waiting.json'), JSON.stringify([inbox6]));
+  r = run('board-sync.js', ['land', 'htf', jobId, path.join(tmp, 'waiting.json')], tmp);
+  assert.strictEqual(r.status, 0, r.stderr);
+  assert.match(r.stdout, /request g-sample can proceed: q-\w+ was answered \(16:9\)/, 'landing names the request the answer unblocks');
+  assert.ok(!/closed generate g-sample/.test(r.stdout), 'the request is not closed until the panel is drawn');
+  const drawn = [inbox6, { collection: 'projects/' + jobId + '/panels', documents: [{ id: 'P01', data: { sample: true, status: 'generated', file: 'storyboard/v1/P01.png' } }] }];
+  fs.writeFileSync(path.join(tmp, 'drawn.json'), JSON.stringify(drawn));
+  r = run('board-sync.js', ['land', 'htf', jobId, path.join(tmp, 'drawn.json')], tmp);
+  assert.match(r.stdout, /closed generate g-sample \(the panels were drawn\)/, 'a waiting request closes once the panels are drawn');
+  console.log('ok   a request the run cannot finish waits on its question, is named when the answer lands, and closes when done');
 
   // 6. Registers land on disk from a board read; the registrar never types them.
   const regs = { collection: 'projects/' + jobId + '/talents', documents: [{ id: 't1', data: { name: 'Nurse', picture: 'x', age: '34', availability: 'weekdays', cost: '', loading: '' } }] };

@@ -31,4 +31,10 @@ const answerFn = src.slice(src.indexOf('async function answer('), src.indexOf('a
 assert.ok(answerFn.includes('signalPipeline('), 'answering a question rings the bell');
 const addRowFn = src.slice(src.indexOf('async function addRow('), src.indexOf('async function createProject('));
 assert.ok(addRowFn.includes('signalPipeline('), 'starting a register rings the bell');
-console.log('ok   the shipped board is the build of its source, panels keep their ratio, and a decision rings the bell');
+// Run 3, R6 and R8: a request the run has picked up reads as waiting, never as a button to
+// press again; a card with an open question of its own reads Your input; and the slate says
+// what the run is doing, not only which stage it is at.
+assert.ok(src.includes("r.status==='waiting'") && src.includes('function waitingGenerate()'), 'a landed request that waits on a question is shown as waiting');
+assert.ok(src.includes('function shownStatus(') && src.includes('pill ${shownStatus(it)}'), 'a card with an open question of its own reads Your input');
+assert.ok(src.includes('p.activity'), 'the slate card carries what the run is doing');
+console.log('ok   the shipped board is the build of its source, panels keep their ratio, a decision rings the bell, and waiting and working are visible');
