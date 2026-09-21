@@ -45,4 +45,10 @@ for (const [fn, next] of [['approve(', 'async function markNA('], ['markNA(', 'a
   assert.ok(start > 0 && end > start, fn + ' is found');
   assert.ok(src.slice(start, end).includes('signalPipeline('), fn + ' rings the bell');
 }
-console.log('ok   the shipped board is the build of its source, panels keep their ratio, every decision rings the bell, and waiting and working are visible');
+// Run 4 prep: a project opened on the slate wrote a card and rang nothing, and nothing on disk
+// ever read it, so the person waited for a run that had not been told. It rings, and once the
+// pipeline adopts it the card hides behind the job's own page.
+const createFn = src.slice(src.indexOf('async function createProject('), src.indexOf('function chatSummary('));
+assert.ok(createFn.includes('signalPipeline('), 'opening a project on the slate rings the bell');
+assert.ok(src.includes("projects.filter(p=>p.status!=='moved')"), 'a slate card the pipeline adopted is hidden');
+console.log('ok   the shipped board is the build of its source, panels keep their ratio, every decision rings the bell, a slate project rings and is adopted, and waiting and working are visible');

@@ -112,6 +112,10 @@ Hand the printed batch to the board (`board-sync` skill), then `--ack`. A versio
 
 A `PostToolUse` hook queues one short line after a tool call, at most one every fifteen seconds, and the next push carries it. A heartbeat never moves the stage or replaces the workers; reporting a stage is still the run's job.
 
+### A project opened on the slate
+
+The slate's form opens a project on the board with a title, a client, a folder, a script format and a storyboard style, and rings the bell with them. That project has a board id and no folder. On that turn, or on any resume that finds such a card, run `new-project` with those fields as answers already given, ask nothing they answer, and once the job id exists: `board-sync.js adopt {client} {job-id} --from {slate id}`, then push. The card the person opened points at the job and hides; the job's own page carries on. A folder the form left blank is asked for like any other question.
+
 ## Never show a state id
 
 The ids in `lib-states.js` are for the files, never for a person. `scripts/lib-wording.js` holds the sentence to say instead, and `set-state.js` and `list-jobs.js` already print it. Quote what they printed rather than the id, in chat, on the board and in a summary of `status.md`.

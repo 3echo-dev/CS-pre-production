@@ -563,6 +563,7 @@ async function createProject(form){
   if(!await write(base, doc)) return;
   for(const it of ITEMS) await write(base+'/items/'+it.id, {status:'pending', version:0, summary:'', updatedAt:now(), updatedBy:me});
   await write(base+'/messages/'+Date.now().toString(36), {by:me, text:'Project opened. Waiting for the Drive folder to be read.', at:now()});
+  signalPipeline('New project opened: '+title+(doc.client?' for '+doc.client:'')+(doc.driveFolder?', folder '+doc.driveFolder:'')+', '+doc.scriptFormat+', '+doc.storyboardStyle);
   location.hash='#/p/'+encodeURIComponent(id);
 }
 function chatSummary(){
@@ -608,7 +609,7 @@ function topbar(){
 }
 function statusWord(s){ return {intake:'Intake',stage1:'Stage 1',gate_a:'At Gate A',stage2:'Stage 2',gate_b:'At Gate B',stage3:'Stage 3',gate_c:'At Gate C',released:'Released',killed:'Killed'}[s]||s||''; }
 function slatePage(){
-  const cards = projects.length ? projects.map(p=>{
+  const live=projects.filter(p=>p.status!=='moved'); const cards = live.length ? live.map(p=>{
     const g = p.gatesSummary || null;
     return `<button class="pcard" data-open="${esc(p.id)}">
       <div class="row"><h3>${esc(p.title)}</h3><span class="pill ${p.status==='released'?'approved':'plain'}">${esc(statusWord(p.status))}</span></div>
@@ -617,7 +618,7 @@ function slatePage(){
       ${p.activity&&!['released','killed'].includes(p.status)?`<div class="meta"><span class="pill running">Working</span> ${esc(p.activity)}${p.heartbeatAt?' · '+fmt(p.heartbeatAt):''}</div>`:''}
     </button>`; }).join('')
     : `<p class="empty">${dbState==='on'?'No projects on the board yet. Open one below, or let the pipeline open it when a Drive folder lands.':dbState==='connecting'?'Connecting to the board…':'This is the pipeline model. Open the page in claude.ai to connect the board.'}</p>`;
-  return `<div class="sect"><h2>Slate</h2><span class="meta">${projects.length} project${projects.length===1?'':'s'}</span></div>
+  return `<div class="sect"><h2>Slate</h2><span class="meta">${live.length} project${live.length===1?'':'s'}</span></div>
   <div class="slate">${cards}</div>
   <form class="newp" id="newp">
     <label>Project title<input name="title" id="np-title" placeholder="HTF Night Shift" required autocomplete="off"></label>

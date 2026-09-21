@@ -5,6 +5,7 @@
 //   node board-sync.js push <client> <job-id> [--json] [--ack] fold the outbox into write batches
 //   node board-sync.js land <client> <job-id> <read.json>       store what the orchestrator read
 //   node board-sync.js pull <client> <job-id> --gate A|B|C      turn a landed gate record into an approval
+//   node board-sync.js adopt <client> <job-id> --from <slate id> the card a person opened on the slate now points at this job
 //
 // A script cannot reach the board's database; only the orchestrator can, through the Artifact
 // tool's write_db and read_db. So `push` prints the batch and the orchestrator hands it over,
@@ -35,10 +36,10 @@ const rest = argv.slice(argv.indexOf(cmd) + 1);
 const json = argv.includes('--json');
 const opt = name => { const i = argv.indexOf(name); return i >= 0 && argv[i + 1] ? argv[i + 1] : null; };
 const usage = () => {
-  console.error('usage: board-sync.js open|push|land|pull|ask|answer <client> <job-id> [args] [--json] [--ack] [--gate A|B|C|sample] [--item X --text "..." --options "a|b|c" [--blocks <request id>]] [--id <inbox id> --text "..." [--by <who>]]');
+  console.error('usage: board-sync.js open|push|land|pull|ask|answer|adopt <client> <job-id> [args] [--from <slate project id>] [--json] [--ack] [--gate A|B|C|sample] [--item X --text "..." --options "a|b|c" [--blocks <request id>]] [--id <inbox id> --text "..." [--by <who>]]');
   process.exit(2);
 };
-if (!['open', 'push', 'land', 'pull', 'ask', 'answer'].includes(cmd)) usage();
+if (!['open', 'push', 'land', 'pull', 'ask', 'answer', 'adopt'].includes(cmd)) usage();
 const { brand: client, jobId, dir, rest: more } = ws.resolveJobArgs(rest, argv);
 if (!client || !jobId) usage();
 if (!fs.existsSync(dir)) { console.error('No project at ' + ws.fwd(dir) + '.'); process.exit(3); }
@@ -126,6 +127,10 @@ function toWrite(rec) {
       // answered. The inbox used to know only open and answered, so a landed request stayed a
       // button: the person pressed it again and again while the real blocker sat unanswered.
       return { op: 'update', collection: base + '/inbox', doc_id: p.id, data: { status: 'waiting', waitingOn: p.on || null, waitingText: p.text || '', waitingSince: at } };
+    case 'moved':
+      // A project a person opened on the slate, now scaffolded on disk under its job id. The card
+      // they made points at the job and hides; the job's own page carries on.
+      return { op: 'update', collection: 'projects', doc_id: p.from, data: { status: 'moved', movedTo: jobId, movedAt: at } };
     case 'question':
       return { op: 'set', collection: base + '/inbox', doc_id: p.id || ('q-' + Date.parse(at).toString(36)),
         data: { type: 'question', item: p.item || null, text: p.text, options: p.options || [], from: p.from || 'orchestrator', status: 'open', createdAt: at } };
@@ -375,8 +380,18 @@ function answer() {
   console.log('Queued: question ' + id + ' answered in chat (' + text + '). Push next, and act on it.');
 }
 
+// A project opened on the slate has a board id of its own and no folder. Once new-project has
+// scaffolded the job from its fields, the slate card is pointed at the job and hidden.
+async function adopt() {
+  const from = opt('--from');
+  if (!from || from === jobId) { console.error('adopt needs --from <the slate project id the person opened>'); process.exit(2); }
+  await board.call('moved', { key: jobId, from }, { argv });
+  console.log('Queued: slate project ' + from + ' now points at ' + jobId + '. Push next.');
+}
+
 (async () => {
   if (cmd === 'open') await open();
+  else if (cmd === 'adopt') await adopt();
   else if (cmd === 'push') push();
   else if (cmd === 'land') land();
   else if (cmd === 'answer') answer();

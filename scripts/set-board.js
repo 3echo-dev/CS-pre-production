@@ -9,7 +9,7 @@
 // artifact) and records the address here, so the pipeline never points at somebody else's
 // private board. CREATIVE_STUDIO_BOARD_URL in the environment wins over the config file.
 //
-// Exit 0 done · 2 usage or not an artifact address · 3 no board set (--show)
+// Exit 0 done · 2 usage or not an artifact address · 3 no board set (--show), or the root is the client's intake folder
 const fs = require('fs');
 const path = require('path');
 const ws = require('./lib-workspace.js');
@@ -48,6 +48,10 @@ if (!ARTIFACT.test(url.replace(/[?#].*$/, ''))) {
   console.error('Not a claude.ai artifact address: ' + url + '. The board is an artifact published from board/1-22-control.html.');
   process.exit(2);
 }
+// The client's folder is what gets pulled, never where the board's address lives: R1 from the
+// other side, a session started inside the intake folder wrote the config there.
+const badRoot = ws.refuseIntakeRoot(argv);
+if (badRoot) { console.error(badRoot); process.exit(3); }
 const clean = url.replace(/[?#].*$/, '');
 let cfg = {};
 try { cfg = JSON.parse(fs.readFileSync(cfgPath(), 'utf8')) || {}; } catch { /* first write */ }

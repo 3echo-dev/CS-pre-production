@@ -16,11 +16,11 @@ metadata:
 
 ## Read the request
 
-The whole message arrives as `$ARGUMENTS`. The client is the first word matching a folder under the workspace root (`list-jobs.js --json` lists them), case-insensitively. The rest names the folder: a path on this computer or a Google Drive folder link. Never guess a client not on disk.
+The whole message arrives as `$ARGUMENTS`. The client is the first word matching a folder under the workspace root (`list-jobs.js --json` lists them), case-insensitively. The rest names the folder: a path on this computer or a Google Drive folder link. 
 
 ## Steps
 
-1. **Resolve the client.** None named: list the folders under `workspaces/` and ask which. None exist: onboard first (the `1-22` skill says how).
+1. **Resolve the client.** None named: list the folders under `workspaces/` and ask which. None exist: onboard first (the `1-22` skill says how). Opened on the slate: its card gives the fields, adopt it (SHARED-RULES, "A project opened on the slate").
 
 2. **Get the folder.** If the message does not name it, ask on the board and in chat: "Where is the folder with the brief, concept and client assets? A path on this computer or a Google Drive folder link." A folder already under `<root>/inputs/{client}/` is not pulled again. Then `set-root.js` (no argument) prints where the work lives; say it beside the folder to pull before creating anything. If the pull is or holds that root, `set-root.js <folder>` from outside the client's folder first; the pull is refused otherwise, and so is scaffolding (exit 3) when the root is the client's.
 
@@ -73,7 +73,6 @@ Does not onboard a client, decide a gate, or build the release. `resume-project`
 | Failure | Fix |
 |---|---|
 | Asking the client and the folder in one message | Client, then scaffold, then the folder |
-| Announcing you "will" create the folder | Create it, then say it exists |
 | Opening the board after the first stage has run | Open it the moment the id exists |
 | Pulling a folder twice | Check `inputs/` first |
 | The root defaulted to the client's folder | Say the root beside the folder first; `set-root.js` moves it |
