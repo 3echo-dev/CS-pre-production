@@ -39,7 +39,7 @@ user-invocable: true
 
 5. **Say who is watching.** A decision reaches the run as a comment sent to Claude, only in a session watching the artifact with replies armed; publishing from this session arms it. `ArtifactComments` `action: "watch"` with no `url` lists the watches: if the board's row is connected and armed, the session running jobs must be this one, or must watch it as "Watching the board" in SHARED-RULES says. Otherwise say plainly that every decision on the board must also be said in chat.
 
-6. **Open it** the usual way, `pane.js "home" "1-22"`, and say one line: the board is published, private to this account, and every project in this workspace opens on it. The publish result already showed the link; do not repeat the address.
+6. **Open it** with `pane.js "home" "1-22"`, then ask the person to press **Signal pipeline** on the board once and approve the prompt that lets the page message this session. A turn headed as a comment sent to Claude arrives: reply in its thread in one line. That press is the proof; until it is approved every decision on the board falls back to a silent republish. Never repeat the address.
 
 ## Rules
 
@@ -63,7 +63,6 @@ Does not push projects (`board-sync`), share the artifact, or edit the page.
 | Failure | Fix |
 |---|---|
 | Publish refused for the capabilities | Say which; the page needs `db`, `artifact` and `comments` |
-| A decision on the board wakes nobody | The job session is not watching the board: watch it with ArtifactComments, or land by hand |
-| The set-board.js address check fails | Use the artifact link exactly as the publish result printed it |
+| A decision on the board wakes nobody | The page was never allowed to message a session: press Signal pipeline and approve |
 | The consent for the first write is declined | Stop; the board stays published but unused until a session with consent writes it |
 | A board URL from another account was pasted | Refuse; run this skill to publish this account's own |

@@ -49,6 +49,6 @@ for (const [fn, next] of [['approve(', 'async function markNA('], ['markNA(', 'a
 // ever read it, so the person waited for a run that had not been told. It rings, and once the
 // pipeline adopts it the card hides behind the job's own page.
 const createFn = src.slice(src.indexOf('async function createProject('), src.indexOf('function chatSummary('));
-assert.ok(createFn.includes('signalPipeline('), 'opening a project on the slate rings the bell');
+assert.ok(createFn.includes("await signalPipeline('New project opened"), 'opening a project on the slate rings the bell, and waits for the consent prompt before leaving the slate');
 assert.ok(src.includes("projects.filter(p=>p.status!=='moved')"), 'a slate card the pipeline adopted is hidden');
 console.log('ok   the shipped board is the build of its source, panels keep their ratio, every decision rings the bell, a slate project rings and is adopted, and waiting and working are visible');

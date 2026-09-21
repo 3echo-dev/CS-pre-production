@@ -152,6 +152,8 @@ The bell reaches only a session that watches the board with comment replies arme
 2. `ArtifactComments` with `action: "watch"` and no `url` lists this session's watches. The board's row must say the watch is connected and auto-replies armed. Quote that line, without the address.
 3. If the row is missing or not armed, say so once in plain words: "The board cannot wake this run. Either run board-setup from this session, or paste the board link here and I will watch it." Then carry on; every decision must be said in chat until it is armed. Never claim to be watching unless that listing said so.
 
+4. The page needs a one-time consent per board and per viewer before it may message a session. The first send shows "Let this artifact send messages to your Claude session?" and, until it is approved, every decision falls back to a republish that starts no turn. oard-setup asks for the press once; on a new board, a new viewer or a toast that says the run could not be told, ask the person to press **Signal pipeline** and approve. The turn it starts is the proof.
+
 A subagent never holds a watch; the orchestrator does, in the main session, and a director never asks the board for anything itself.
 
 ## Where a project really is

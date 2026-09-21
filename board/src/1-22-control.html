@@ -563,7 +563,7 @@ async function createProject(form){
   if(!await write(base, doc)) return;
   for(const it of ITEMS) await write(base+'/items/'+it.id, {status:'pending', version:0, summary:'', updatedAt:now(), updatedBy:me});
   await write(base+'/messages/'+Date.now().toString(36), {by:me, text:'Project opened. Waiting for the Drive folder to be read.', at:now()});
-  signalPipeline('New project opened: '+title+(doc.client?' for '+doc.client:'')+(doc.driveFolder?', folder '+doc.driveFolder:'')+', '+doc.scriptFormat+', '+doc.storyboardStyle);
+  await signalPipeline('New project opened: '+title+(doc.client?' for '+doc.client:'')+(doc.driveFolder?', folder '+doc.driveFolder:'')+', '+doc.scriptFormat+', '+doc.storyboardStyle);
   location.hash='#/p/'+encodeURIComponent(id);
 }
 function chatSummary(){
