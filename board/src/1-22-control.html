@@ -119,6 +119,25 @@ svg.i{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stro
 .stage .head h2 span{color:var(--dim);font-weight:500}
 .stage .head .cnt{font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums}
 .intake{margin-bottom:12px}
+/* pending response: the questions the run is waiting on, front and centre */
+.pending{background:var(--panel);border:1px solid var(--tape);border-radius:var(--r3);padding:12px 14px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.pending .ph{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.pending .ph h2{font-size:18px;display:flex;align-items:center;gap:8px}
+.pending .ph h2 .n{font-family:var(--mono);font-size:12px;color:var(--tape-ink);background:var(--tape);border-radius:999px;padding:1px 8px}
+.pending.quiet{border-color:var(--line)}
+.pq{border-top:1px solid var(--line);padding-top:10px;display:grid;grid-template-columns:1fr;gap:6px}
+.pq:first-of-type{border-top:0;padding-top:0}
+.pq .qm{font-size:11px;color:var(--faint);display:flex;gap:8px;flex-wrap:wrap}
+.pq .qt{font-size:14px;line-height:1.45}
+.pq .qo{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.pq .qo button{min-height:32px}
+.pq .qo button.first{border-color:var(--tape);color:var(--paper)}
+.pq form.qf{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.pq form.qf input{flex:1;min-width:200px}
+.pq.waiting .qt{color:var(--wait)}
+.pq .qa{font-size:12px;color:var(--go)}
+.pending .hist{font-size:12px;color:var(--faint);border-top:1px dashed var(--line);padding-top:8px;display:flex;flex-direction:column;gap:3px}
+.pending .hist b{color:var(--dim);font-weight:500}
 .item{background:var(--panel);border:1px solid var(--line);border-radius:var(--r3);padding:11px 12px 10px;display:flex;flex-direction:column;gap:7px;min-width:0;transition:border-color 150ms ease,opacity 200ms ease,background-color 150ms ease}
 .item:hover{border-color:var(--line2)}
 .item .t{display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -524,7 +543,7 @@ function panelsHtml(it){
   const gen=openGenerate(); const wait=waitingGenerate(); const sampleApproved=!!(sample&&sample.approvedBy);
   let cta='';
   if(!total) cta='<span class="num">The pipeline pushes the panel table here once the storyboard is drafted.</span>';
-  else if(wait) cta=`<span class="num">${ic('q')} Picked up; waiting on your answer in the inbox: ${esc(wait.waitingText||'a question')}</span>`;
+  else if(wait) cta=`<span class="num">${ic('q')} Picked up; waiting on your answer under Pending response: ${esc(wait.waitingText||'a question')}</span>`;
   else if(gen) cta=`<button disabled>${ic('gate')} Drawing ${esc(gen.scope||'')} · ${gen.credits||''} credit${gen.credits===1?'':'s'}…</button><span class="num">The pipeline is working; this updates itself.</span>`;
   else if(sample&&!sample.thumb) cta=isArmed('gen-sample')?`<button class="primary" data-gen="sample">${ic('check')} Confirm: generate ${esc(sample.id)} (1 credit)</button>`:`<button class="tape" data-gen="sample">${ic('gate')} Generate sample ${esc(sample.id)} (1 credit)</button>`;
   else if(sample&&!sampleApproved) cta=`<span class="num">Approve the sample panel below, then the batch can be drawn.</span>`;
@@ -675,13 +694,10 @@ function projectPage(id){
   ${gateOpen?gateDetail(gateOpen):''}
   <div class="board">
     <div>
-      <div class="intake">${itemCard(itemOf('intake'))}</div>
-      <div class="stages">${STAGES.map(s=>{ const ids=ITEMS.filter(i=>i.stage===s.n); const ok=ids.filter(i=>['approved','na'].includes(itemOf(i.id).status)).length; return `<div class="stage"><div class="head"><h2>${s.name} <span>${s.sub}</span></h2><span class="cnt">${ok}/${ids.length} · Gate ${s.gate}</span></div>${ids.map(i=>itemCard(itemOf(i.id))).join('')}</div>`; }).join('')}</div>
+      ${pendingHtml()}
+      <div class="stages">${STAGES.map(s=>{ const ids=ITEMS.filter(i=>i.stage===s.n); const ok=ids.filter(i=>['approved','na'].includes(itemOf(i.id).status)).length; return `<div class="stage"><div class="head"><h2>${s.name} <span>${s.sub}</span></h2><span class="cnt">${ok}/${ids.length} · Gate ${s.gate}</span></div>${s.n===1?itemCard(itemOf('intake')):''}${ids.map(i=>itemCard(itemOf(i.id))).join('')}</div>`; }).join('')}</div>
     </div>
     <div class="rail">
-      <div class="box"><h2>Inbox <span>${openReqs.length} question${openReqs.length===1?'':'s'} waiting on you</span></h2>
-        ${inbox.length?inbox.slice(0,12).map(reqHtml).join(''):'<p class="empty">Questions from the pipeline and your change notes land here.</p>'}
-      </div>
       <div class="box"><h2>Tell the council <span>read at every session start</span></h2>
         <form id="msgf"><textarea name="text" id="msg-text" aria-label="Message to the council" placeholder="A ruling, a note, a heads-up for the next session"></textarea><div style="display:flex;justify-content:space-between;gap:6px;margin-top:6px;flex-wrap:wrap"><button type="button" class="ghost" data-copy title="Copy a plain-text summary of this board to paste into a Claude chat">${ic('copy')} Copy board for chat</button><button type="button" class="ghost" data-signal title="Wake the pipeline now, for example after answering questions">${ic('send')} Signal pipeline</button><button class="primary" type="submit">${ic('send')} Post</button></div></form>
         ${messages.slice(0,15).map(m=>`<div class="msg"><div class="by"><span>${esc(humanName(m.by))}${m.item?` · ${esc(itemOf(m.item).name)}`:''}</span><span>${fmt(m.at)}</span></div>${esc(m.text)}</div>`).join('')}
@@ -733,12 +749,28 @@ function itemCard(it){
     </div>
   </div>`;
 }
+// The questions the run is waiting on, in the main column where the work is, each with its
+// options and a text box; one press answers and rings the bell. The rail inbox is gone: a
+// change note shows on its item, a gate on its card, a generate request on the storyboard.
+function pendingHtml(){
+  const open=inbox.filter(r=>r.type==='question'&&['open','waiting'].includes(r.status));
+  const done=inbox.filter(r=>r.type==='question'&&r.status==='answered').slice(0,4);
+  const others=inbox.filter(r=>r.type!=='question'&&['open','waiting','requested','quoted'].includes(r.status));
+  const q=open.map(r=>{
+    const opts=(r.options||[]).map((o,i)=>`<button data-answer="${esc(r.id)}" data-value="${esc(o)}" class="${i===0?'first':''}">${esc(o)}</button>`).join('');
+    const tail = r.status==='waiting' ? `<div class="qa">Picked up by the run · waiting on: ${esc(r.waitingText||'this answer')}</div>` : '';
+    return `<div class="pq ${r.status==='waiting'?'waiting':''}"><div class="qm"><span>${r.item?esc(itemOf(r.item).name):'Project'}</span><span>asked by ${esc(humanName(r.from))}</span><span>${fmt(r.createdAt)}</span></div><div class="qt">${esc(r.text)}</div>${opts?`<div class="qo">${opts}</div>`:''}<form class="qf" data-answer-form="${esc(r.id)}"><input name="text" id="ans-${esc(r.id)}" aria-label="Your answer" placeholder="${opts?'Something else: say what':'Your answer'}"><button type="submit" class="primary">${ic('send')} Answer</button></form>${tail}</div>`;
+  }).join('');
+  const hist = done.length ? `<div class="hist">${done.map(r=>`<div><b>${esc(r.text)}</b> → ${esc(r.answer||'')} · ${esc(humanName(r.answeredBy))} ${fmt(r.answeredAt)}</div>`).join('')}</div>` : '';
+  const pend = others.length ? `<div class="hist">${others.map(r=>`<div>${esc(r.type)} · ${esc(r.text)}${r.status==='waiting'?' · waiting on '+esc(r.waitingText||'a question'):r.status==='quoted'?' · quoted '+esc(r.credits||'?')+' credits':''}</div>`).join('')}</div>` : '';
+  return `<div class="pending ${open.length?'':'quiet'}"><div class="ph"><h2>Pending response ${open.length?`<span class="n">${open.length}</span>`:''}</h2><span class="meta">${open.length?'The run is waiting on you; one press answers and wakes it.':'Nothing waiting on you.'}</span></div>${q||'<p class="empty" style="margin:0">Questions the run cannot answer itself appear here with their options.</p>'}${pend}${hist}</div>`;
+}
 function reqHtml(r){
   const opts = r.type==='question' && r.status==='open' ? `<div class="opts">${(r.options||[]).map(o=>`<button data-answer="${esc(r.id)}" data-value="${esc(o)}">${esc(o)}</button>`).join('')}<button class="ghost" data-answer-text="${esc(r.id)}">Type an answer</button></div>${answerFor===r.id?`<form class="opts" data-answer-form="${esc(r.id)}" style="width:100%"><input name="text" id="ans-${esc(r.id)}" aria-label="Your answer" placeholder="Your answer" style="flex:1;min-width:140px"><button type="submit" class="primary">Send</button></form>`:''}` : '';
   const kind = r.type==='question'?'Question':r.type==='change'?'Change note':r.type==='gate'?'Gate':r.type==='generate'?'Generate':r.type==='export'?'Export':r.type||'';
   const icon = r.type==='question'?'q':r.type==='change'?'change':'gate';
   const tail = r.status==='answered' ? `<div class="from">${r.type==='question'?'Answered':'Handled'} by ${esc(humanName(r.answeredBy))}: ${esc(r.answer||'')}</div>`
-             : r.status==='waiting' ? `<div class="from">Picked up by the pipeline · waiting on your answer: ${esc(r.waitingText||'a question in the inbox')}</div>`
+             : r.status==='waiting' ? `<div class="from">Picked up by the pipeline · waiting on your answer: ${esc(r.waitingText||'a question under Pending response')}</div>`
              : opts;
   return `<div class="req ${esc(r.type||'')} ${r.status==='answered'?'answered':r.status==='waiting'?'waiting':''}"><span class="ic">${ic(icon)}</span><div class="from">${esc(kind)}${r.item?` · ${esc(itemOf(r.item).name)}`:''} · ${esc(humanName(r.from))} · ${fmt(r.createdAt)}</div><div class="body">${esc(r.text)}</div>${tail}</div>`;
 }
