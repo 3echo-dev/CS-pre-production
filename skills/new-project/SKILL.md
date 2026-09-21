@@ -20,7 +20,7 @@ The whole message arrives as `$ARGUMENTS`. The client is the first word matching
 
 ## Steps
 
-1. **Resolve the client.** None named: list the folders under `workspaces/` and ask which. None exist: onboard first (the `1-22` skill says how). Opened on the slate: its card gives the fields, adopt it (SHARED-RULES, "A project opened on the slate").
+1. **Resolve the client.** None named: list the folders under `workspaces/` and ask which. None exist: onboard first (the `1-22` skill says how). Opened on the slate: its card gives the fields, adopt it (SHARED-RULES, "A project opened on the slate"). The client the slate names is a word a person typed, never a folder name: match it against the existing workspaces, folder name or the `name` in `workspace.json`, case-insensitively and as a prefix ("HTF" matches `htf26`, "Home Team Festival 2026"). One match: use it. None, with workspaces present: ask on the board and in chat which client it is, with the existing ones as options and "a new client" last, before scaffolding anything. A new client scaffolded from a slate press has an empty site roster and no templates, and the run stops at the scraper and the budget row.
 
 2. **Get the folder.** If the message does not name it, ask on the board and in chat: "Where is the folder with the brief, concept and client assets? A path on this computer or a Google Drive folder link." A folder already under `<root>/inputs/{client}/` is not pulled again. Then `set-root.js` (no argument) prints where the work lives; say it beside the folder to pull before creating anything. If the pull is or holds that root, `set-root.js <folder>` from outside the client's folder first; the pull is refused otherwise, and so is scaffolding (exit 3) when the root is the client's.
 
