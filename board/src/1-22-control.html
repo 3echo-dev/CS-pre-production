@@ -752,7 +752,7 @@ function modelPreview(){
   return `<div class="sect"><h2>The pipeline</h2><span class="meta">Drive folder in, call sheets out. Four stages, three gates, six XX items.</span></div>
   <div class="gates">${['A','B','C'].map(g=>`<button class="gate ${gateOpen===g?'sel':''}" data-gate="${g}" aria-expanded="${gateOpen===g}"><span class="letter">${g}</span><span class="name">${GATES[g].name}<span class="chev">${ic('chev')}</span></span><span class="cond">${esc(GATES[g].cond)}</span><span class="approver">${esc(GATES[g].approver)}</span></button>`).join('')}</div>
   ${gateOpen?gateDetail(gateOpen):''}
-  <div class="box"><h2>Seats <span>Ten new directors wrap the client's own skills</span></h2><div class="seats">${SEATS.map(s=>`<div class="seat-row"><span class="mono">${s.n}</span><span style="display:flex;align-items:center;gap:8px;min-width:0">${blob(s.id, r?(r.status==='running'?'thinking':'happy'):'idle', 22)}<span><b>${esc(s.label)}</b> · ${esc(s.note)}</span><span class="st ${s.kind==='human'?'human':'new'}">${s.kind==='new'?'new':s.kind}</span></div>`).join('')}</div></div>`;
+  <div class="box"><h2>Seats <span>Ten new directors wrap the client's own skills</span></h2><div class="seats">${SEATS.map(s=>`<div class="seat-row"><span class="mono">${s.n}</span><span style="display:flex;align-items:center;gap:8px;min-width:0">${blob(s.id, 'idle', 22)}<span><b>${esc(s.label)}</b> · ${esc(s.note)}</span><span class="st ${s.kind==='human'?'human':'new'}">${s.kind==='new'?'new':s.kind}</span></div>`).join('')}</div></div>`;
 }
 function gateDetail(g){
   const G=GATES[g]; const done=G.items.filter(id=>['approved','na'].includes(itemOf(id).status)).length;
