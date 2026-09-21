@@ -65,4 +65,3 @@ Does not push projects (`board-sync`), share the artifact, or edit the page.
 | Publish refused for the capabilities | Say which; the page needs `db`, `artifact` and `comments` |
 | A decision on the board wakes nobody | The page was never allowed to message a session: press Signal pipeline and approve |
 | The consent for the first write is declined | Stop; the board stays published but unused until a session with consent writes it |
-| A board URL from another account was pasted | Refuse; run this skill to publish this account's own |
