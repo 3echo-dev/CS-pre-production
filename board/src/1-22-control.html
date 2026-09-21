@@ -379,18 +379,27 @@ let refs = [], refsel = {}; // the scout's reference rows, and which ones the pe
 // implies. The module is ESM from jsdelivr, loaded after first paint; cards render without a
 // face until it lands and without one at all if the CDN cannot be reached.
 let BLOB = null; const blobCache = new Map();
+// Faces are on unless the person turned them off here (kept per browser). Static faces are one
+// <svg> each and cost nothing; the animated ones (breathing, blinking, glancing) are reserved for
+// the seats with something happening, so a board of twenty faces is not twenty live animations.
+function facesOn(){ try{ return localStorage.getItem('c122.faces')!=='off'; }catch(e){ return true; } }
+function setFaces(on){ try{ localStorage.setItem('c122.faces', on?'on':'off'); }catch(e){} blobCache.clear(); }
+const BLOB_LIVE = new Set(['thinking','surprised','sad','sick','scared']);
 const BLOB_MOOD = {approved:'happy', needs_input:'surprised', needs_review:'sad', running:'thinking', draft:'idle', pending:'sleepy', na:'wink', working:'thinking', done:'happy', idle:'idle', intake:'idle', stage1:'thinking', stage2:'thinking', stage3:'thinking', gate_a:'surprised', gate_b:'surprised', gate_c:'surprised', released:'happy', killed:'sick', moved:'sleepy'};
 (async()=>{ try{ const [core, ex]=await Promise.all([import('https://cdn.jsdelivr.net/npm/blobatar@2.7.0/dist/internal.js'), import('https://cdn.jsdelivr.net/npm/blobatar@2.7.0/dist/expression.js')]); BLOB={parts:core._parts, ex}; blobCache.clear(); if(document.getElementById('app')) render(); }catch(e){ BLOB=null; } })();
-function blob(name, mood, size){
+function blob(name, mood, size, live){
   const px=size||34;
+  if(!facesOn()) return '';
   if(!BLOB) return `<span class="blob ph" style="width:${px}px;height:${px}px" aria-hidden="true"></span>`;
-  const key=name+'|'+(mood||'idle')+'|'+px; let s=blobCache.get(key);
+  const animate = live===true || (live!==false && BLOB_LIVE.has(mood||''));
+  const key=name+'|'+(mood||'idle')+'|'+px+'|'+(animate?'a':'s'); let s=blobCache.get(key);
   if(!s){
     const ex=BLOB.ex[mood]||BLOB.ex.idle; let p=null;
-    try{ p=BLOB.parts(String(name||'seat'),{animate:'always', expression:ex}); }catch(e){ p=null; }
+    try{ p=BLOB.parts(String(name||'seat'), animate?{animate:'always', expression:ex}:{expression:ex}); }catch(e){ p=null; }
     if(!p) return `<span class="blob ph" style="width:${px}px;height:${px}px" aria-hidden="true"></span>`;
     const style=Object.entries(p.vars||{}).map(([k,v])=>k+':'+v).join(';');
-    s=`<span class="blob" style="width:${px}px;height:${px}px" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" style="${esc(style)}">${p.bg?`<path d="${p.bg.d}" fill="${p.bg.fill}"/>`:''}<g class="${p.cls}">${p.inner}</g></svg></span>`;
+    const body = animate ? `<g class="${p.cls}">${p.inner}</g>` : p.inner;
+    s=`<span class="blob" style="width:${px}px;height:${px}px" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"${style?` style="${esc(style)}"`:''}>${p.bg?`<path d="${p.bg.d}" fill="${p.bg.fill}"/>`:''}${body}</svg></span>`;
     blobCache.set(key,s);
   }
   return s;
@@ -689,8 +698,14 @@ async function copyForChat(){
 /* ---------- render ---------- */
 function render(){
   const r=route(); const app=$('#app');
-  app.innerHTML = topbar() + (r.page==='project' ? projectPage(r.id) : slatePage()) + footer() + (drawer?drawerHtml():'');
-  wire();
+  try{
+    app.innerHTML = topbar() + (r.page==='project' ? projectPage(r.id) : slatePage()) + footer() + (drawer?drawerHtml():'');
+    wire();
+  }catch(e){
+    // An error here used to leave the page blank. It is shown instead, with a way back.
+    app.innerHTML = `<div style="padding:24px;max-width:720px"><h2 style="font-size:20px">The board hit an error while drawing</h2><p class="meta" style="margin:8px 0 10px">Copy this into the chat so it can be fixed. Reloading usually clears it.</p><pre class="pre">${esc((e&&e.stack)||e)}</pre><div style="display:flex;gap:8px;margin-top:10px"><button class="primary" data-reload>Reload the board</button><button class="ghost" data-faces>${facesOn()?'Turn faces off':'Turn faces on'}</button></div></div>`;
+    app.onclick = ev=>{ const t=ev.target.closest('[data-reload],[data-faces]'); if(!t) return; if(t.dataset.reload!=null) location.reload(); if(t.dataset.faces!=null){ setFaces(!facesOn()); location.reload(); } };
+  }
 }
 function topbar(){
   const p=route().page==='project'&&project&&!project.missing?` / <b>${esc(project.title)}</b>`:'';
@@ -698,6 +713,7 @@ function topbar(){
     <div class="brand"><a href="#/"><h1>1-22 Control</h1></a><span class="sub">One Dash pre-production${p}</span></div>
     <div class="who">
       <span class="conn ${dbState==='on'?'on':''}"><i></i>${dbState==='on'?'Board connected':dbState==='connecting'?'Connecting to the board…':'Model view only'}</span>
+      <button class="ghost" data-faces title="Faces on the cards: static by default, animated where something is happening">${facesOn()?'Faces on':'Faces off'}</button>
       <label>Acting as <select id="me" aria-label="Acting as">${HUMANS.map(h=>`<option value="${h.id}" ${h.id===me?'selected':''}>${h.label}</option>`).join('')}</select></label>
     </div>
   </div>
@@ -869,7 +885,7 @@ function drawerHtml(){
     body = sheetHtml(it);
   }
   return `${lightboxHtml()}<div class="scrim" data-close></div><aside class="drawer" role="dialog" aria-modal="true" aria-label="${esc(it.name)}">
-    <div class="dh"><div style="display:flex;align-items:center;gap:12px">${blob(it.seat, BLOB_MOOD[shownStatus(it)]||'idle', 44)}<div><h2>${esc(it.name)} <span class="mono" style="font-size:13px;color:var(--faint)">v${it.version||0}</span></h2><div class="meta">Stage ${it.stage} · ${esc(seatLabel(it.seat))}${it.xx?' · <span class="xx">XX</span>':''} · <span class="pill ${shownStatus(it)}">${STATUS_LABEL[shownStatus(it)]}</span></div></div></div><button class="ghost" data-close aria-label="Close">${ic('x')}</button></div>
+    <div class="dh"><div style="display:flex;align-items:center;gap:12px">${blob(it.seat, BLOB_MOOD[shownStatus(it)]||'idle', 44, true)}<div><h2>${esc(it.name)} <span class="mono" style="font-size:13px;color:var(--faint)">v${it.version||0}</span></h2><div class="meta">Stage ${it.stage} · ${esc(seatLabel(it.seat))}${it.xx?' · <span class="xx">XX</span>':''} · <span class="pill ${shownStatus(it)}">${STATUS_LABEL[shownStatus(it)]}</span></div></div></div><button class="ghost" data-close aria-label="Close">${ic('x')}</button></div>
     <div class="tabs" role="tablist">${tabs.map(t=>`<button role="tab" aria-selected="${t[0]===tab}" class="${t[0]===tab?'on':''}" data-tab="${t[0]}">${t[1]}${t[0]==='output'&&rs.length?` <span class="cnt">${rs.length}</span>`:''}</button>`).join('')}<span style="flex:1"></span>${runPick}</div>
     ${tab!=='about'?`<div>${body}</div>`:''}
     ${tab==='about'?`<dl class="kv">
@@ -906,7 +922,7 @@ function footer(){ return `<div class="foot-note"><span>1-22 · One Dash × 3ech
 function wire(){
   const app=$('#app');
   app.onclick = async e=>{
-    const t=e.target.closest('[data-open],[data-open-item],[data-open-run],[data-tab],[data-approve],[data-change],[data-na],[data-lock],[data-answer],[data-answer-text],[data-close],[data-gate],[data-copy],[data-signal],[data-change-cancel],[data-gen],[data-approve-panel],[data-ref-toggle],[data-redo],[data-redo-cancel],[data-lightbox],[data-lightbox-close],[data-copy-sheet],[data-export]');
+    const t=e.target.closest('[data-open],[data-open-item],[data-open-run],[data-tab],[data-approve],[data-change],[data-na],[data-lock],[data-answer],[data-answer-text],[data-close],[data-gate],[data-copy],[data-signal],[data-change-cancel],[data-gen],[data-approve-panel],[data-ref-toggle],[data-faces],[data-redo],[data-redo-cancel],[data-lightbox],[data-lightbox-close],[data-copy-sheet],[data-export]');
     if(!t) return;
     if(t.dataset.gate && !e.target.closest('[data-lock]')){ gateOpen = gateOpen===t.dataset.gate ? null : t.dataset.gate; render(); const d=document.querySelector('[data-gate-detail]'); if(d) d.scrollIntoView({block:'nearest',behavior:'smooth'}); return; }
     if(t.dataset.open!=null){ location.hash='#/p/'+encodeURIComponent(t.dataset.open); return; }
@@ -929,6 +945,7 @@ function wire(){
     if(t.dataset.gen){ const k='gen-'+t.dataset.gen; if(!isArmed(k)){ arm(k); toast('Press again to confirm. Credits are spent on 3echo.'); return; } armed=null; await guarded(k, ()=>requestGenerate(t.dataset.gen)); return; }
     if(t.dataset.approvePanel){ await guarded('pp'+t.dataset.approvePanel, ()=>approvePanel(t.dataset.approvePanel)); return; }
     if(t.dataset.refToggle){ await guarded('rf'+t.dataset.refToggle, ()=>toggleRef(t.dataset.refToggle)); return; }
+    if(t.dataset.faces!=null){ setFaces(!facesOn()); render(); toast(facesOn()?'Faces on':'Faces off', 'ok'); return; }
     if(t.dataset.redoCancel!=null){ redoFor=null; render(); return; }
     if(t.dataset.redo){ redoFor = redoFor===t.dataset.redo ? null : t.dataset.redo; render(); const ta=document.getElementById('redo-'+t.dataset.redo); if(ta) ta.focus(); return; }
     if(t.dataset.answer){ const r=inbox.find(x=>x.id===t.dataset.answer); if(r) await answer(r, t.dataset.value); return; }
