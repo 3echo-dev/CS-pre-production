@@ -19,7 +19,7 @@ color: green
 **Writes:** `workspaces/{client}/jobs/{job-id}/script/v{n}.md`, one new file per spawn.
 
 ## Contract
-reads:         `brief.md`, `references/board.md` (selected rows only), `job.json` for `scriptFormat`, `script/v{n-1}.md` on a revision, `revisions/{n}.json`, `status.md` Notes
+reads:         `brief.md`, `references/board.md`, only the rows `references/selected.json` names, `job.json` for `scriptFormat`, `script/v{n-1}.md` on a revision, `revisions/{n}.json`, `status.md` Notes
 writes:        `script/v{n}.md` on `${CLAUDE_PLUGIN_ROOT}/templates/script-screenplay.md` or `script-av.md`
 must not read: the storyboard, the shot list, any other job
 done when:     every scene references a brief intent line, the format is one of the two and not mixed, and the version file exists with its front matter

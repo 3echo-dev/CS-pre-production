@@ -229,6 +229,23 @@ svg.i{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stro
 .sb-cap b{color:var(--paper);font-family:var(--mono);font-size:11px}
 .sb-cap .row{display:flex;gap:4px;flex-wrap:wrap}
 .sb-cap .row button{min-height:24px;padding:2px 7px;font-size:11px}
+/* references: the scout's rows, the person ticks */
+.refsites{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;font-size:12px}
+.refsite{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:baseline;padding:5px 8px;border:1px solid var(--line);border-radius:var(--r2);background:var(--panel)}
+.refsite .st{font-family:var(--cond);text-transform:uppercase;letter-spacing:.06em;font-size:11px;font-weight:600}
+.refsite.found .st{color:var(--go)}.refsite.gap .st{color:var(--hold)}.refsite.none .st,.refsite.not_searched .st{color:var(--faint)}
+.refsite .nt{color:var(--dim);grid-column:1/-1;font-size:11px}
+.reflist{display:flex;flex-direction:column;gap:8px}
+.ref{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r3);background:var(--panel)}
+.ref.on{border-color:var(--go)}
+.ref .tick{width:26px;height:26px;border-radius:var(--r1);border:1px solid var(--line2);display:inline-flex;align-items:center;justify-content:center;padding:0;min-height:0;grid-row:1/4;color:transparent}
+.ref.on .tick{background:var(--go);border-color:var(--go);color:var(--ink)}
+.ref .rt{font-size:13.5px;font-weight:500}
+.ref .rt a{color:var(--paper);text-decoration:none;border-bottom:1px solid var(--line2)}
+.ref .rm{font-size:11px;color:var(--faint);display:flex;gap:8px;flex-wrap:wrap}
+.ref .rw{font-size:12.5px;color:var(--dim);line-height:1.45}
+.item .sites{font-size:11.5px;color:var(--dim);display:flex;gap:4px 10px;flex-wrap:wrap}
+.item .sites .ok{color:var(--go)}.item .sites .gap{color:var(--hold)}.item .sites .none{color:var(--faint)}
 .sb-tag{display:inline-block;font-family:var(--cond);text-transform:uppercase;letter-spacing:.06em;font-size:10px;padding:1px 5px;border-radius:var(--r1);background:var(--tape);color:var(--tape-ink);font-weight:700}
 .sb-lb{position:fixed;inset:0;z-index:calc(var(--z-drawer) + 2);background:rgba(6,8,10,.9);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;padding:20px;cursor:zoom-out}
 .sb-lb img{max-height:82vh;max-width:min(92vw,1100px);border:1px solid var(--line2);border-radius:var(--r2)}
@@ -350,6 +367,7 @@ function arm(key){ armed={key, until:Date.now()+8000}; render(); setTimeout(()=>
 let changeFor = null; // item id whose change form is open
 let answerFor = null; // inbox id whose typed-answer form is open
 let panels = []; // storyboard panels the pipeline pushed, with thumbnails
+let refs = [], refsel = {}; // the scout's reference rows, and which ones the person ticked
 let sheets = {}; // item id -> {columns, rows, exportPath, driveCopy, template}
 let lightbox = null; // panel id shown large
 let redoFor = null; // panel id whose redo note is open
@@ -380,7 +398,7 @@ async function boot(){
 }
 function bindProject(){
   unsubs.forEach(u=>{try{u()}catch(e){}}); unsubs=[];
-  items={}; gates={}; inbox=[]; messages=[]; regs={talents:[],props:[],locations:[]}; versions={}; runs={}; project=null; panels=[]; lightbox=null; redoFor=null; sheets={};
+  items={}; gates={}; inbox=[]; messages=[]; regs={talents:[],props:[],locations:[]}; versions={}; runs={}; project=null; panels=[]; lightbox=null; redoFor=null; sheets={}; refs=[]; refsel={};
   const r=route(); if(r.page!=='project'||!db) return;
   const base='projects/'+r.id;
   unsubs.push(db.doc(base).onSnapshot(s=>{ project=s.exists?{id:s.id,...s.data()}:{id:r.id,missing:true}; render(); }));
@@ -392,6 +410,8 @@ function bindProject(){
   unsubs.push(db.collection(base+'/versions').orderBy('at','desc').limit(100).onSnapshot(q=>{ versions={}; q.docs.forEach(d=>{const v=d.data(); (versions[v.item]=versions[v.item]||[]).push({id:d.id,...v});}); render(); }));
   unsubs.push(db.collection(base+'/sheets').onSnapshot(q=>{ sheets={}; q.docs.forEach(d=>sheets[d.id]=d.data()); render(); }));
   unsubs.push(db.collection(base+'/panels').onSnapshot(q=>{ panels=q.docs.map(d=>({id:d.id,...d.data()})); render(); }));
+  unsubs.push(db.collection(base+'/references').onSnapshot(q=>{ refs=q.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.n||0)-(b.n||0)); render(); }));
+  unsubs.push(db.collection(base+'/refsel').onSnapshot(q=>{ refsel={}; q.docs.forEach(d=>refsel[d.id]=d.data()); render(); }));
   unsubs.push(db.collection(base+'/runs').orderBy('startedAt','desc').limit(120).onSnapshot(q=>{ runs={}; q.docs.forEach(d=>{const v=d.data(); (runs[v.item]=runs[v.item]||[]).push({id:d.id,...v});}); render(); }));
 }
 
@@ -444,6 +464,7 @@ async function setItem(id, patch, note){
 }
 async function approve(id){
   const it=itemOf(id); if(['approved','na'].includes(it.status)) return;
+  if(id==='scraper' && refs.length && !chosenCount()){ drawer='scraper'; drawerTab='references'; render(); toast('Tick at least one reference first; the script is written from those only'); return; }
   await setItem(id,{status:'approved', approvedBy:me, approvedAt:now(), approvedVersion:it.version||0}, `${it.name} v${it.version||0} approved.`);
   toast(`${it.name} v${it.version||0} approved`, 'ok'); signalPipeline(`${it.name} v${it.version||0} approved`);
 }
@@ -537,6 +558,25 @@ async function redoPanel(id, note){
   await write('projects/'+project.id+'/inbox/'+('r-'+Date.now().toString(36)),{type:'change',item:'storyboard',panel:id,text:'Redo '+id+': '+note,from:me,status:'open',createdAt:now()});
   await log(`Redo asked for panel ${id}: ${note}`, 'storyboard');
   toast('Redo note sent for '+id, 'ok'); signalPipeline('Redo asked for panel '+id);
+}
+/* ---------- references: the scout's rows, ticked by the creative director ---------- */
+function chosenCount(){ return refs.filter(r=>refsel[r.id]&&refsel[r.id].selected).length; }
+async function toggleRef(id){
+  const on=!(refsel[id]&&refsel[id].selected);
+  await write('projects/'+project.id+'/refsel/'+id, {selected:on, by:me, at:now()});
+  toast(on?'Chosen. Approve the Scraper card when you are done.':'Unchosen', on?'ok':undefined);
+}
+function sitesLine(it){
+  const ss=Array.isArray(it.sites)?it.sites:[]; if(!ss.length) return '';
+  return `<div class="sites">${ss.map(s=>`<span class="${s.status==='found'?'ok':s.status==='gap'?'gap':'none'}" title="${esc(s.note||'')}">${s.status==='found'?'\u2713':s.status==='gap'?'\u2717':'\u2013'} ${esc(s.name)}${s.status==='found'?' '+s.count:s.status==='gap'?' gap':s.status==='none'?' none':' not searched'}</span>`).join('')}</div>`;
+}
+function referencesHtml(it){
+  const ss=Array.isArray(it.sites)?it.sites:[];
+  const sites = ss.length ? `<div class="subh">Your sites</div><div class="refsites">${ss.map(s=>`<div class="refsite ${esc(s.status)}"><span class="st">${s.status==='found'?'searched':s.status==='gap'?'could not':s.status==='none'?'nothing found':'not searched'}</span><span>${s.url?`<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.name)}</a>`:esc(s.name)}</span><span class="num">${s.status==='found'?s.count+' reference'+(s.count===1?'':'s'):''}</span>${s.note?`<span class="nt">${esc(s.note)}</span>`:''}</div>`).join('')}</div>` : '';
+  if(!refs.length) return sites + '<p class="empty">The scout has not pushed its references yet. They appear here, one row each, once the scraper row has run.</p>';
+  const n=chosenCount();
+  const list = refs.map(r=>{ const on=!!(refsel[r.id]&&refsel[r.id].selected); return `<div class="ref ${on?'on':''}"><button class="tick" data-ref-toggle="${esc(r.id)}" aria-pressed="${on}" aria-label="${on?'Unchoose':'Choose'} ${esc(r.title)}" ${busy.has('rf'+r.id)?'disabled':''}>${ic('check')}</button><div class="rt">${r.n?'#'+r.n+' ':''}${r.url?`<a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title||r.url)}</a>`:esc(r.title)}</div><div class="rm"><span>${esc(r.site||'')}</span><span>${esc(r.retrieved||'')}</span>${on?`<span style="color:var(--go)">chosen by ${esc(humanName(refsel[r.id].by))}</span>`:''}</div><div class="rw">${esc(r.why||'')}</div></div>`; }).join('');
+  return `${sites}<div class="sb-head"><span class="num">${refs.length} reference${refs.length===1?'':'s'} · ${n} chosen</span><span class="num">${it.status==='approved'?'Approved: the script is written from the chosen ones.':'Tick the ones to build from, then Approve the Scraper card.'}</span></div><div class="reflist">${list}</div>`;
 }
 function panelsHtml(it){
   const ps=panelList(); const total=ps.length; const drawn=ps.filter(p=>p.thumb).length; const sample=ps.find(p=>p.sample);
@@ -731,17 +771,19 @@ function itemCard(it){
   const st=it.status; const isReg=!!REG_FIELDS[it.id];
   const regNote = isReg ? `<div class="s num">${regs[it.id].length} row${regs[it.id].length===1?'':'s'}${regUnknowns(it.id)?` · <span style="color:var(--tape)">${regUnknowns(it.id)} with blanks</span>`:''}</div>`:'';
   const canApprove = !['approved','na'].includes(st) && !(it.id==='intake' && st==='pending');
+  const sitesNote = it.id==='scraper' ? sitesLine(it) : '';
   const naAllowed = it.stage===2 && it.xx && st!=='approved';
   const gl = gateOpen ? (GATES[gateOpen].items.includes(it.id)?'hl':'dimmed') : '';
   const who = st==='approved'&&it.approvedBy?`Approved by ${humanName(it.approvedBy)}`: st==='na'&&it.naBy?`By ${humanName(it.naBy)}`: seatLabel(it.seat);
   return `<div class="item ${st==='needs_review'?'nr':''} ${gl}" data-item="${it.id}">
     <div class="t"><h3>${esc(it.name)}${it.xx?'<span class="xx">XX</span>':''}</h3><span class="v">v${it.version||0}</span></div>
-    <div class="s">${esc(it.summary||it.produces)}</div>${regNote}
+    <div class="s">${esc(it.summary||it.produces)}</div>${regNote}${sitesNote}
     ${st==='needs_review'&&it.changeNote?`<div class="s" style="color:var(--hold)">${esc(it.changeNote)}</div>`:''}
     <div class="foot"><span class="pill ${shownStatus(it)}">${STATUS_LABEL[shownStatus(it)]||st}</span><span class="seat">${esc(who)}</span></div>
     <div class="actions">
       <button data-open-item="${it.id}">${ic('open')} Open</button>
       ${sheets[it.id]?`<button data-open-item="${it.id}" data-open-tab="sheet">${ic('open')} Sheet</button>`:''}
+      ${it.id==='scraper'?`<button data-open-item="scraper" data-open-tab="references">${ic('open')} References${refs.length?` <span class="cnt">${chosenCount()}/${refs.length}</span>`:''}</button>`:''}
       ${it.id==='storyboard'?`<button data-open-item="storyboard" data-open-tab="panels">${ic('gate')} Storyboard${panels.length?` <span class="cnt">${panels.filter(p=>p.thumb).length}/${panels.length}</span>`:''}</button>`:''}
       ${canApprove?`<button data-approve="${it.id}" ${busy.has('ap'+it.id)?'disabled':''}>${ic('check')} Approve v${it.version||0}</button>`:''}
       ${st!=='pending'?`<button class="ghost" data-change="${it.id}">${ic('change')} Change</button>`:''}
@@ -777,8 +819,8 @@ function reqHtml(r){
 function drawerHtml(){
   const it=itemOf(drawer); const isReg=!!REG_FIELDS[it.id]; const vs=versions[it.id]||[]; const rs=runsOf(it.id);
   const run = rs.find(r=>r.id===runSel) || rs[0] || null;
-  const tabs=[...(it.id==='storyboard'?[['panels','Storyboard']]:[]),...(SHEET_ITEMS.includes(it.id)?[['sheet','Sheet']]:[]),['output','Output'],['prompt','Prompt'],['trace','Trace'],...(isReg?[['register','Register']]:[]),['about','About']];
-  const tab = tabs.some(t=>t[0]===drawerTab)?drawerTab:(it.id==='storyboard'?'panels':SHEET_ITEMS.includes(it.id)&&sheets[it.id]?'sheet':'output');
+  const tabs=[...(it.id==='storyboard'?[['panels','Storyboard']]:[]),...(it.id==='scraper'?[['references','References']]:[]),...(SHEET_ITEMS.includes(it.id)?[['sheet','Sheet']]:[]),['output','Output'],['prompt','Prompt'],['trace','Trace'],...(isReg?[['register','Register']]:[]),['about','About']];
+  const tab = tabs.some(t=>t[0]===drawerTab)?drawerTab:(it.id==='storyboard'?'panels':it.id==='scraper'?'references':SHEET_ITEMS.includes(it.id)&&sheets[it.id]?'sheet':'output');
   const runPick = rs.length>1?`<select id="runsel" aria-label="Which run" style="width:auto;min-height:28px;padding:3px 26px 3px 8px;font-size:12px">${rs.map(r=>`<option value="${esc(r.id)}" ${run&&r.id===run.id?'selected':''}>v${r.version} · ${fmt(r.startedAt)} · ${esc(r.status||'')}</option>`).join('')}</select>`:'';
   let body='';
   if(tab==='output'){
@@ -794,6 +836,8 @@ function drawerHtml(){
     body = regHtml(it.id);
   } else if(tab==='panels'){
     body = panelsHtml(it);
+  } else if(tab==='references'){
+    body = referencesHtml(it);
   } else if(tab==='sheet'){
     body = sheetHtml(it);
   }
@@ -835,14 +879,14 @@ function footer(){ return `<div class="foot-note"><span>1-22 · One Dash × 3ech
 function wire(){
   const app=$('#app');
   app.onclick = async e=>{
-    const t=e.target.closest('[data-open],[data-open-item],[data-open-run],[data-tab],[data-approve],[data-change],[data-na],[data-lock],[data-answer],[data-answer-text],[data-close],[data-gate],[data-copy],[data-signal],[data-change-cancel],[data-gen],[data-approve-panel],[data-redo],[data-redo-cancel],[data-lightbox],[data-lightbox-close],[data-copy-sheet],[data-export]');
+    const t=e.target.closest('[data-open],[data-open-item],[data-open-run],[data-tab],[data-approve],[data-change],[data-na],[data-lock],[data-answer],[data-answer-text],[data-close],[data-gate],[data-copy],[data-signal],[data-change-cancel],[data-gen],[data-approve-panel],[data-ref-toggle],[data-redo],[data-redo-cancel],[data-lightbox],[data-lightbox-close],[data-copy-sheet],[data-export]');
     if(!t) return;
     if(t.dataset.gate && !e.target.closest('[data-lock]')){ gateOpen = gateOpen===t.dataset.gate ? null : t.dataset.gate; render(); const d=document.querySelector('[data-gate-detail]'); if(d) d.scrollIntoView({block:'nearest',behavior:'smooth'}); return; }
     if(t.dataset.open!=null){ location.hash='#/p/'+encodeURIComponent(t.dataset.open); return; }
     if(t.dataset.close!=null){ drawer=null; changeFor=null; render(); return; }
     if(t.dataset.lightboxClose!=null){ lightbox=null; render(); return; }
     if(t.dataset.lightbox){ lightbox=t.dataset.lightbox; render(); return; }
-    if(t.dataset.openItem){ drawer=t.dataset.openItem; drawerTab=t.dataset.openTab||(t.dataset.openItem==='storyboard'?'panels':(sheets[t.dataset.openItem]?'sheet':'output')); runSel=null; render(); return; }
+    if(t.dataset.openItem){ drawer=t.dataset.openItem; drawerTab=t.dataset.openTab||(t.dataset.openItem==='storyboard'?'panels':t.dataset.openItem==='scraper'?'references':(sheets[t.dataset.openItem]?'sheet':'output')); runSel=null; render(); return; }
     if(t.dataset.copySheet){ await copySheet(t.dataset.copySheet); return; }
     if(t.dataset.openRun){ drawer=t.dataset.openRun; drawerTab='output'; runSel=t.dataset.run||null; render(); return; }
     if(t.dataset.tab){ drawerTab=t.dataset.tab; render(); return; }
@@ -857,6 +901,7 @@ function wire(){
     if(t.dataset.export){ await guarded('x'+t.dataset.export, ()=>requestExport(t.dataset.export)); return; }
     if(t.dataset.gen){ const k='gen-'+t.dataset.gen; if(!isArmed(k)){ arm(k); toast('Press again to confirm. Credits are spent on 3echo.'); return; } armed=null; await guarded(k, ()=>requestGenerate(t.dataset.gen)); return; }
     if(t.dataset.approvePanel){ await guarded('pp'+t.dataset.approvePanel, ()=>approvePanel(t.dataset.approvePanel)); return; }
+    if(t.dataset.refToggle){ await guarded('rf'+t.dataset.refToggle, ()=>toggleRef(t.dataset.refToggle)); return; }
     if(t.dataset.redoCancel!=null){ redoFor=null; render(); return; }
     if(t.dataset.redo){ redoFor = redoFor===t.dataset.redo ? null : t.dataset.redo; render(); const ta=document.getElementById('redo-'+t.dataset.redo); if(ta) ta.focus(); return; }
     if(t.dataset.answer){ const r=inbox.find(x=>x.id===t.dataset.answer); if(r) await answer(r, t.dataset.value); return; }
@@ -873,7 +918,7 @@ function wire(){
     if(f.dataset.answerForm){ const r=inbox.find(x=>x.id===f.dataset.answerForm); const v=f.text.value.trim(); if(r&&v){ answerFor=null; await answer(r, v); } return; }
     if(f.id==='notef'){ const v=f.text.value.trim(); if(!v||!project) return; const id=f.dataset.item; const it=itemOf(id);
       await write('projects/'+project.id+'/inbox/'+Date.now().toString(36),{type:'change',item:id,text:v,from:me,status:'open',createdAt:now()});
-      await log(`Note to ${seatLabel(it.seat)} on ${it.name} v${it.version||0}: ${v}`, id); f.reset(); toast('Sent to the pipeline inbox', 'ok'); return; }
+      await log(`Note to ${seatLabel(it.seat)} on ${it.name} v${it.version||0}: ${v}`, id); f.reset(); toast('Sent to '+seatLabel(it.seat), 'ok'); await signalPipeline('Note to '+seatLabel(it.seat)+' on '+it.name+': '+v.slice(0,80)); return; }
   };
   const sel=$('#me'); if(sel) sel.onchange=()=>{ me=sel.value; try{localStorage.setItem('c122.me',me);}catch(e){} render(); };
   const rsel=$('#runsel'); if(rsel) rsel.onchange=()=>{ runSel=rsel.value; render(); };

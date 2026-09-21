@@ -38,8 +38,8 @@ A rejected batch is not acknowledged; fix what it names, push again.
 Read the board with the Artifact tool, `action: read_db`:
 
 1. `db_op: get`, `collection: projects/{job-id}/gates`, `doc_id` A, B or C.
-2. `db_op: list`, `collection: projects/{job-id}/inbox` (open, waiting and answered rows together, so a waiting request meets its answer).
-3. `db_op: list` on `/talents`, `/props`, `/locations`, `/days`, `/panels` past Gate A.
+2. `db_op: list`, `collection: projects/{job-id}/inbox` (open, waiting and answered rows, so a waiting request meets its answer).
+3. `db_op: list` on `/refsel` (the references ticked); past Gate A also `/talents`, `/props`, `/locations`, `/days`, `/panels`.
 
 One JSON array under `.board/landed/`, each `{"collection": "projects/{job-id}/gates", "documents": [...]}` as returned. Then:
 
@@ -47,7 +47,7 @@ One JSON array under `.board/landed/`, each `{"collection": "projects/{job-id}/g
 node "${CLAUDE_PLUGIN_ROOT}/scripts/board-sync.js" land {client} {job-id} ".board/landed/{file}.json"
 ```
 
-It writes `.board/inbox.json` and `registers/*.json` and prints what changed; a file with no board record exits 1.
+It writes `.board/inbox.json`, `registers/*.json` and `references/selected.json`, prints what changed; no board record exits 1.
 
 ## Pull, once a gate is locked
 

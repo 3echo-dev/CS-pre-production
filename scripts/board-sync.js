@@ -117,6 +117,16 @@ function toWrite(rec) {
       const data = { ...p }; delete data.key; delete data.id;
       return { op: p.thumb ? 'update' : 'set', collection: base + '/panels', doc_id: p.id, data };
     }
+    case 'reference': {
+      // One row of the scout's board. The person's choice lives in refsel/, never here, so a
+      // re-push after a revision cannot wipe what they ticked.
+      const data = { ...p }; delete data.key; delete data.id;
+      return { op: 'set', collection: base + '/references', doc_id: p.id, data };
+    }
+    case 'scraper-sites': {
+      const data = { ...p }; delete data.key;
+      return { op: 'update', collection: base + '/items', doc_id: 'scraper', data: { ...data, updatedAt: at } };
+    }
     case 'answered':
       // A question settled elsewhere: typed in chat (answer), or overtaken by the decision it
       // was asking for (land closes a gate row when the gate is decided, a generate row when
@@ -214,8 +224,9 @@ function land() {
     if (inner) for (const d of inner) docs.push({ ...d, collection: d.collection || g.collection });
     else docs.push(g);
   }
-  const landed = { gates: {}, questions: [], answers: [], registers: {}, panels: {}, generate: [], exports: [] };
+  const landed = { gates: {}, questions: [], answers: [], registers: {}, panels: {}, generate: [], exports: [], selected: [] };
   const changed = [];
+  let sawRefsel = false;
   for (const d of docs) {
     const id = d.id || d.doc_id || null;
     const data = d.data || d;
@@ -232,6 +243,9 @@ function land() {
       landed.questions.push(q);
       if (q.status === 'answered') landed.answers.push(q);
       changed.push((q.type || 'inbox') + ' ' + id + ' ' + (q.status || ''));
+    } else if (/\/refsel$/.test(coll)) {
+      sawRefsel = true;
+      if (data.selected) landed.selected.push({ id, n: Number(String(id).replace(/^r0*/, '')) || null, by: data.by || null, at: data.at || null });
     } else {
       const reg = REGISTERS.find(r => new RegExp('/' + r + '$').test(coll));
       if (reg) { (landed.registers[reg] = landed.registers[reg] || []).push({ ...data, id }); }
@@ -256,6 +270,13 @@ function land() {
     board.call('answered', { key: jobId, id: q.id, answer: why, by: 'pipeline' }, { argv });
     changed.push('closed ' + q.type + ' ' + q.id + ' (' + why + ')');
   }
+  // The references the person ticked on the board, the only list the scriptwriter reads.
+  if (sawRefsel) {
+    const rows = landed.selected.sort((a, b) => (a.n || 0) - (b.n || 0));
+    fs.mkdirSync(path.join(dir, 'references'), { recursive: true });
+    fs.writeFileSync(path.join(dir, 'references', 'selected.json'), JSON.stringify({ ids: rows.map(r => r.id), numbers: rows.map(r => r.n), rows, landedAt: now() }, null, 2) + '\n');
+    changed.push('references: ' + rows.length + ' chosen');
+  }
   // Registers land on disk as the directors read them: rows the board holds, never typed here.
   fs.mkdirSync(path.join(dir, 'registers'), { recursive: true });
   for (const reg of Object.keys(landed.registers)) {
@@ -267,7 +288,7 @@ function land() {
     // This used to print "Nothing recognisable" and exit 0, which is how a run lost a decision:
     // the orchestrator read success and moved on. It is a failure, and it names the shape it wants.
     const shape = '{"collection":"projects/' + jobId + '/gates","documents":[{"id":"A","data":{...}}]}';
-    const why = 'Nothing in ' + file + ' reads as a board record, so nothing was landed. land takes what read_db returned: ' + shape + ', or an array of such reads; collections end in /gates, /inbox, /panels, /talents, /props or /locations. The landed record this plugin keeps ({gates, questions, answers, ...}) is what land writes, not what it reads.';
+    const why = 'Nothing in ' + file + ' reads as a board record, so nothing was landed. land takes what read_db returned: ' + shape + ', or an array of such reads; collections end in /gates, /inbox, /panels, /refsel, /talents, /props or /locations. The landed record this plugin keeps ({gates, questions, answers, ...}) is what land writes, not what it reads.';
     if (json) console.log(JSON.stringify({ project: jobId, landed: [], problem: why }, null, 2));
     else console.error(why);
     process.exit(1);
@@ -278,6 +299,7 @@ function land() {
     questions: landed.questions.length ? landed.questions : (prev.questions || []),
     answers: landed.answers.length ? landed.answers : (prev.answers || []),
     panels: { ...(prev.panels || {}), ...landed.panels },
+    selected: sawRefsel ? landed.selected : (prev.selected || []),
     generate: landed.generate.length ? landed.generate : (prev.generate || []),
     exports: landed.exports.length ? landed.exports : (prev.exports || []),
   });

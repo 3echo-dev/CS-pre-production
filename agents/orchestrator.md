@@ -42,7 +42,7 @@ Exit 0 from `collect-artifacts.js` marks the row `verified`; exit 1 re-delegates
 
 ## XX rows
 
-Scraper, budget sheet, timeline, talents, props and locations wait on a person. The scraper waits twice: while `sites-check.js {client}` exits 1 ask where to research; land typed sites with `--add`, a links file from the folder with `--from`, then spawn. The director prepares the skeleton; record it with `--status needs_input`, ask on the board (`register-forms`), and carry on with rows that do not need the answer. Register rows come only from `board-sync.js land`.
+Scraper, budget sheet, timeline, talents, props and locations wait on a person. The scraper waits twice: while `sites-check.js {client}` exits 1 ask where to research; land sites with `--add` or `--from`, then spawn. With `references/board.md` on disk: `push-references.js {client} {job-id}`, push; `land` writes the chosen rows to `references/selected.json`. The director prepares the skeleton; record `--status needs_input`, ask on the board (`register-forms`), carry on. Register rows come only from `board-sync.js land`.
 
 ## Questions
 
