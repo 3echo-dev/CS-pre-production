@@ -16,13 +16,13 @@ metadata:
 
 ## Read the request
 
-The whole message arrives as `$ARGUMENTS`. The client is the first word matching a folder under the workspace root (`list-jobs.js --json` lists them), case-insensitively. The rest names the folder: a path on this computer or a Google Drive folder link. Never guess a client not on disk: it silently starts a second workspace.
+The whole message arrives as `$ARGUMENTS`. The client is the first word matching a folder under the workspace root (`list-jobs.js --json` lists them), case-insensitively. The rest names the folder: a path on this computer or a Google Drive folder link. Never guess a client not on disk.
 
 ## Steps
 
 1. **Resolve the client.** None named: list the folders under `workspaces/` and ask which. None exist: onboard first (the `1-22` skill says how).
 
-2. **Get the folder.** If the message does not name it, ask on the board and in chat: "Where is the folder with the brief, concept and client assets? A path on this computer or a Google Drive folder link." Check `<root>/inputs/{client}/` silently first: a folder already pulled is not pulled again. Then `set-root.js` (no argument) prints where the work lives; say it beside the folder to pull before creating anything. If the pull is or holds that root, `set-root.js <folder>` from outside the client's folder first; the pull is refused otherwise, and so is scaffolding (exit 3) when the root is the client's.
+2. **Get the folder.** If the message does not name it, ask on the board and in chat: "Where is the folder with the brief, concept and client assets? A path on this computer or a Google Drive folder link." A folder already under `<root>/inputs/{client}/` is not pulled again. Then `set-root.js` (no argument) prints where the work lives; say it beside the folder to pull before creating anything. If the pull is or holds that root, `set-root.js <folder>` from outside the client's folder first; the pull is refused otherwise, and so is scaffolding (exit 3) when the root is the client's.
 
 3. **Derive a slug**, lowercase and hyphenated, three words at most:
 
@@ -32,7 +32,7 @@ The whole message arrives as `$ARGUMENTS`. The client is the first word matching
 
    Exit 3 means no `workspace.json`: onboard first. Exit 1 means the id exists: ask whether to resume or start a separate project.
 
-   The job id is the board's project id: open its page at once with `pane.js "{job-id}" "{title}"` (`${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md`); never print the web address. The title is client and film in plain words, "HTF, Night Shift".
+   The job id is the board's project id: open its page at once with `pane.js "{job-id}" "{title}"` (`${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md`); never print the web address, then watch it (SHARED-RULES, "Watching the board"). The title is client and film in plain words, "HTF, Night Shift".
 
 4. **Pull the folder** with `drive-pull` into `inputs/{client}/{job-id}/`; for a link, the connector steps it lists. Nothing else reads Drive.
 

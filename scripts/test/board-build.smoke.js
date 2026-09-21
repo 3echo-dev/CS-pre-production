@@ -37,4 +37,12 @@ assert.ok(addRowFn.includes('signalPipeline('), 'starting a register rings the b
 assert.ok(src.includes("r.status==='waiting'") && src.includes('function waitingGenerate()'), 'a landed request that waits on a question is shown as waiting');
 assert.ok(src.includes('function shownStatus(') && src.includes('pill ${shownStatus(it)}'), 'a card with an open question of its own reads Your input');
 assert.ok(src.includes('p.activity'), 'the slate card carries what the run is doing');
-console.log('ok   the shipped board is the build of its source, panels keep their ratio, a decision rings the bell, and waiting and working are visible');
+// Run 3 and the external trial, R2: approving the sample, approving an item, marking one not
+// applicable, asking for a change or a redo wrote the database and rang nothing, so the person
+// pressed again and then typed it in chat. Every decision a person makes on the page rings.
+for (const [fn, next] of [['approve(', 'async function markNA('], ['markNA(', 'async function requestChange('], ['requestChange(', 'async function lockGate('], ['approvePanel(', 'async function redoPanel('], ['redoPanel(', 'function panelsHtml(']]) {
+  const start = src.indexOf('async function ' + fn); const end = src.indexOf(next, start);
+  assert.ok(start > 0 && end > start, fn + ' is found');
+  assert.ok(src.slice(start, end).includes('signalPipeline('), fn + ' rings the bell');
+}
+console.log('ok   the shipped board is the build of its source, panels keep their ratio, every decision rings the bell, and waiting and working are visible');

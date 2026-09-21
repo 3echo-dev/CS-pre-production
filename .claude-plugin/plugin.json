@@ -2,7 +2,7 @@
   "name": "cs-pre-production",
   "displayName": "CS Pre-production",
   "description": "Runs the studio's 1-22 pre-production pipeline end to end: a client folder, local or on Google Drive, becomes a project, an orchestrator walks the 1-22 stage table spawning ten director agents that wrap the client's skills, every XX item waits on a human, three gates (A Creative lock, B Logistics lock, C Documents released) are decided on the 1-22 Control board, and the release package is the concept breakdown plus one call sheet per shoot day in the client's templates.",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "keywords": [
     "pre-production",
     "call sheet",

@@ -426,9 +426,9 @@ async function setItem(id, patch, note){
 async function approve(id){
   const it=itemOf(id); if(['approved','na'].includes(it.status)) return;
   await setItem(id,{status:'approved', approvedBy:me, approvedAt:now(), approvedVersion:it.version||0}, `${it.name} v${it.version||0} approved.`);
-  toast(`${it.name} v${it.version||0} approved`, 'ok');
+  toast(`${it.name} v${it.version||0} approved`, 'ok'); signalPipeline(`${it.name} v${it.version||0} approved`);
 }
-async function markNA(id){ const it=itemOf(id); await setItem(id,{status:'na', naBy:me, naAt:now()}, `${it.name} marked not applicable for this job.`); toast(`${it.name} marked not applicable`, 'ok'); }
+async function markNA(id){ const it=itemOf(id); await setItem(id,{status:'na', naBy:me, naAt:now()}, `${it.name} marked not applicable for this job.`); toast(`${it.name} marked not applicable`, 'ok'); signalPipeline(`${it.name} marked not applicable`); }
 async function requestChange(id, note){
   const it=itemOf(id); if(note==null||!note.trim()) return;
   const base='projects/'+project.id;
@@ -438,7 +438,7 @@ async function requestChange(id, note){
   const g=gateOfItem(id); if(g && gates[g] && gates[g].status==='passed') await write(base+'/gates/'+g,{...gates[g],status:'reopened',reopenedAt:now(),reopenedBy:me,reason:'Change on '+it.name});
   await write(base+'/inbox/'+Date.now().toString(36),{type:'change',item:id,text:note.trim(),from:me,status:'open',createdAt:now()});
   await log(`Change requested on ${it.name}: ${note.trim()}${deps.length?` (${deps.length} dependent item${deps.length>1?'s':''} sent back for review)`:''}`, id);
-  toast(`Change sent to ${seatLabel(it.seat)}`, 'ok');
+  toast(`Change sent to ${seatLabel(it.seat)}`, 'ok'); signalPipeline(`Change requested on ${it.name}`);
 }
 async function lockGate(g){
   if(!gateReady(g)) return; const base='projects/'+project.id;
@@ -454,7 +454,7 @@ async function lockGate(g){
 // starts no turn, so on the first test run three decisions sat unread until a person landed
 // them by hand. A comment sent to Claude does start a turn in the sessions watching this
 // artifact, so that is tried first, from the viewer's own gesture (the lock, the request, the
-// answer); the republish stays as the fallback, and the page holds its own pristine source
+// answer, an approval, a change, a redo: every decision a person makes here); the republish stays as the fallback, and the page holds its own pristine source
 // (base64) so it can republish itself with a fresh copy embedded.
 function pristineSource(){ const el=document.getElementById('__src'); if(!el) return null; try{ const bin=atob(el.textContent.trim()); const bytes=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i); return new TextDecoder().decode(bytes); }catch(e){ return null; } }
 function embedSource(src){ const bytes=new TextEncoder().encode(src); let bin=''; for(let i=0;i<bytes.length;i++) bin+=String.fromCharCode(bytes[i]); return '<script type="text/plain" id="__src">'+btoa(bin)+'</scr'+'ipt>'; }
@@ -500,12 +500,12 @@ async function approvePanel(id){
   const p=panels.find(x=>x.id===id); if(!p||!p.thumb) return;
   await write('projects/'+project.id+'/panels/'+id,{...p, approvedBy:me, approvedAt:now()});
   await log(`Sample panel ${id} approved; the batch may be generated.`, 'storyboard');
-  toast('Sample '+id+' approved', 'ok');
+  toast('Sample '+id+' approved', 'ok'); signalPipeline('Sample panel '+id+' approved');
 }
 async function redoPanel(id, note){
   await write('projects/'+project.id+'/inbox/'+('r-'+Date.now().toString(36)),{type:'change',item:'storyboard',panel:id,text:'Redo '+id+': '+note,from:me,status:'open',createdAt:now()});
   await log(`Redo asked for panel ${id}: ${note}`, 'storyboard');
-  toast('Redo note sent for '+id, 'ok');
+  toast('Redo note sent for '+id, 'ok'); signalPipeline('Redo asked for panel '+id);
 }
 function panelsHtml(it){
   const ps=panelList(); const total=ps.length; const drawn=ps.filter(p=>p.thumb).length; const sample=ps.find(p=>p.sample);

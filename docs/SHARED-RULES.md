@@ -138,7 +138,17 @@ Only you reach the board's database, through the artifact database tool; the scr
 
 If `land` is refused by the harness or a guard, the decision still lands through the script that owns it: a gate verdict with `record-approval.js {client} {job-id} {gate} approve --by "{name from the gate record}" --channel board --decided-at "{time from the gate record}" {the files the gate covers}`; a typed site with `sites-check.js --add`; a change note as `revisions/{n}.json`. A register row has no other path: say it waits on `land`, never type it.
 
-**How the run learns the board moved.** A republish of the board delivers a new version and starts no turn, so a decision made on the board reaches nobody until a turn lands it. The board's own way to ring the bell is a comment sent to Claude: the page sends one on every gate lock, generate request and answer, and the session that watches the board gets a turn headed `[Artifact comment sent to Claude]`. The session that runs jobs is the one that watches the board, because it published it or because it watches it with the ArtifactComments tool at the start of the job. On such a turn: land first, act, then reply in that thread in one line. Whatever the bell does, the floor holds: every resume lands before reading state, and a turn that ends waiting on the board restates every open question, numbered, as its last lines, and says when the run will look again.
+**How the run learns the board moved.** A republish of the board delivers a new version and starts no turn, so a decision made on the board reaches nobody until a turn lands it. The board's own way to ring the bell is a comment sent to Claude: the page sends one on every decision a person makes on it, a gate lock, a generate or export request, an answer, a register row, an approval, a change or a redo, and the session that watches the board gets a turn headed `[Artifact comment sent to Claude]`. On such a turn: land first, act, then reply in that thread in one line. Whatever the bell does, the floor holds: every resume lands before reading state, and a turn that ends waiting on the board restates every open question, numbered, as its last lines, and says when the run will look again.
+
+### Watching the board
+
+The bell reaches only a session that watches the board with comment replies armed. Arming happens in two ways only: this session published the board (`board-setup`), or the person pasted the board's link in their own message. So the first step of every new project and every resume, before the first row runs:
+
+1. `set-board.js --show` prints the address; pass it, and nothing else, to `ArtifactComments` with `action: "watch"`. This is the one tool besides `Artifact` and `preview_start` that receives the address.
+2. `ArtifactComments` with `action: "watch"` and no `url` lists this session's watches. The board's row must say the watch is connected and auto-replies armed. Quote that line, without the address.
+3. If the row is missing or not armed, say so once in plain words: "The board cannot wake this run. Either run board-setup from this session, or paste the board link here and I will watch it." Then carry on; every decision must be said in chat until it is armed. Never claim to be watching unless that listing said so.
+
+A subagent never holds a watch; the orchestrator does, in the main session, and a director never asks the board for anything itself.
 
 ## Where a project really is
 

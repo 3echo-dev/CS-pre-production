@@ -37,7 +37,7 @@ user-invocable: true
 
 4. **Prove the session can write it.** One `ArtifactData` set on the new artifact, collection `meta`, document `board`, data `{"installedBy": "cs-pre-production", "pluginVersion": "{version from plugin.json}", "installedAt": "{now}"}`. The first write asks the person for consent once; a refusal means the board cannot be driven from this session, say that and stop.
 
-5. **Say who is watching.** A decision on the board reaches the run as a comment sent to Claude, which reaches only sessions watching the artifact. If this session watches it, say the session running jobs must be this one, or must watch the board with the ArtifactComments tool at the start of every job. If not, say plainly that every decision on the board must also be said in chat until one does.
+5. **Say who is watching.** A decision reaches the run as a comment sent to Claude, only in a session watching the artifact with replies armed; publishing from this session arms it. `ArtifactComments` `action: "watch"` with no `url` lists the watches: if the board's row is connected and armed, the session running jobs must be this one, or must watch it as "Watching the board" in SHARED-RULES says. Otherwise say plainly that every decision on the board must also be said in chat.
 
 6. **Open it** the usual way, `pane.js "home" "1-22"`, and say one line: the board is published, private to this account, and every project in this workspace opens on it. The publish result already showed the link; do not repeat the address.
 
