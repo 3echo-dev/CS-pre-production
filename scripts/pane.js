@@ -2,7 +2,7 @@
 // Prepare the workspace page for Claude Code's internal Preview pane.
 //   node pane.js <key> [title]
 //
-// The key is `home` or a job id. The page is the 1-22 Control board, at the slate or at that
+// The key is `home` or a job id. The page is the Pre-production board, at the slate or at that
 // project. This writes the local embedded fallback through pane-file.js and returns both as JSON.
 // Claude calls preview_start with previewUrl. It only shows fallbackFile to the person.
 const path = require('path');

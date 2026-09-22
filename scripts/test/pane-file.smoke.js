@@ -36,7 +36,7 @@ assert.ok(/<iframe\b/.test(html), 'it embeds the interactive page');
 assert.ok(!/http-equiv="refresh"/.test(html), 'it has no meta refresh out of Preview');
 assert.ok(!html.includes('location.replace'), 'it does not navigate Preview to the web address');
 assert.ok(html.includes('job-20260913-1030-night-shift'), 'the url is in the page');
-assert.ok(html.includes('1-22 Control board'), 'the embedded page has an accessible title');
+assert.ok(html.includes('Pre-production board'), 'the embedded page has an accessible title');
 
 // Bad input is refused rather than writing a page that redirects nowhere.
 const bad = spawnSync(process.execPath, [SCRIPT, 'home', 'not-a-url', '--root', tmp], { encoding: 'utf8' });

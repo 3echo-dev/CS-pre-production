@@ -9,7 +9,7 @@
       "name": "cs-pre-production",
       "displayName": "CS Pre-production",
       "source": "./",
-      "description": "Drive folder in, call sheets out. the studio's pre-production pipeline: ten director agents, six XX items a human fills, three gates decided on the 1-22 Control board.",
+      "description": "Drive folder in, call sheets out. the studio's pre-production pipeline: ten director agents, six XX items a human fills, three gates decided on the Pre-production board.",
       "version": "0.1.24",
       "author": {
         "name": "3echo"

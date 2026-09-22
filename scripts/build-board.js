@@ -1,21 +1,21 @@
 #!/usr/bin/env node
 // Build the shipped board page from its source, or check that the shipped page is that build.
 //
-//   node build-board.js            board/src/1-22-control.html -> board/1-22-control.html
+//   node build-board.js            board/src/pre-production.html -> board/pre-production.html
 //   node build-board.js --check    exit 1 when the shipped page is not the build of the source
 //
 // The page carries its own source as base64 in a #__src tag, so a gate lock can republish
 // itself from a pristine copy. That made the shipped file "built", and until this script the
 // source of truth lived outside the repository: nobody working from the repo could fix the
-// page. Edit board/src/1-22-control.html, run this, commit both files. The test suite runs
+// page. Edit board/src/pre-production.html, run this, commit both files. The test suite runs
 // --check, so a hand-edit of the built page fails the build.
 //
 // Exit 0 ok · 1 the check failed · 3 a file is missing
 const fs = require('fs');
 const path = require('path');
 
-const SRC = path.join(__dirname, '..', 'board', 'src', '1-22-control.html');
-const OUT = path.join(__dirname, '..', 'board', '1-22-control.html');
+const SRC = path.join(__dirname, '..', 'board', 'src', 'pre-production.html');
+const OUT = path.join(__dirname, '..', 'board', 'pre-production.html');
 const OPEN = '<script type="text/plain" id="__src">';
 const lf = s => String(s).replace(/\r\n/g, '\n');
 
@@ -39,12 +39,12 @@ if (require.main === module) {
   if (argv.includes('--check')) {
     const page = fs.existsSync(OUT) ? lf(fs.readFileSync(OUT, 'utf8')) : '';
     if (page !== built) {
-      console.error('board/1-22-control.html is not the build of board/src/1-22-control.html. Run build-board.js and commit both files; never hand-edit the built page.');
+      console.error('board/pre-production.html is not the build of board/src/pre-production.html. Run build-board.js and commit both files; never hand-edit the built page.');
       process.exit(1);
     }
     console.log('ok: the shipped board is the build of its source (' + src.length + ' bytes).');
     process.exit(0);
   }
   fs.writeFileSync(OUT, built);
-  console.log('Built board/1-22-control.html from board/src (' + src.length + ' bytes of source, ' + built.length + ' built).');
+  console.log('Built board/pre-production.html from board/src (' + src.length + ' bytes of source, ' + built.length + ' built).');
 }

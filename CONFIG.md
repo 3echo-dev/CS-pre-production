@@ -14,7 +14,7 @@ These are yours. Everything below them is machinery.
 | `require_gate_*_human_approval` | Which gates stop and wait for a person on the board. Turning one off means that stage passes without anyone locking it. | all on |
 | `timezone` | The zone every timestamp in a workspace carries, unless `workspace.json` says otherwise. | Asia/Singapore |
 | Where the work is kept | Not in this file. Run `set-root.js <folder>`, or pass `--root`, or set `CREATIVE_STUDIO_ROOT`. | the current folder |
-| The board | Not in this file. `CREATIVE_STUDIO_BOARD_URL`, or `boardUrl` in `.creative-studio-pipeline/config.json`, written by `scripts/set-board.js` after the `board-setup` skill publishes this account's copy of `board/1-22-control.html`. No default: a board is private to the account that published it. | this account's 1-22 Control artifact |
+| The board | Not in this file. `CREATIVE_STUDIO_BOARD_URL`, or `boardUrl` in `.creative-studio-pipeline/config.json`, written by `scripts/set-board.js` after the `board-setup` skill publishes this account's copy of `board/pre-production.html`. No default: a board is private to the account that published it. | this account's Pre-production artifact |
 
 The gate flags are the reason this thing exists rather than a script that writes call sheets on its own.
 Claude will not change them on request, will not behave as though they were changed, and the write guard refuses to write this file at all.
@@ -77,7 +77,7 @@ File length is not a setting. `scripts/test/size.smoke.js` enforces 900 words pe
 
 ## The board
 
-Gates, XX registers and questions are decided on the 1-22 Control board, an artifact whose database only the orchestrator reaches through the Artifact tool. Scripts queue what they have to say in `.board/outbox.jsonl`; the orchestrator pushes it as one batch after every row and lands what the person did before every decision. `docs/SHARED-RULES.md` has the procedure; the `board-sync` skill has the exact calls.
+Gates, XX registers and questions are decided on the Pre-production board, an artifact whose database only the orchestrator reaches through the Artifact tool. Scripts queue what they have to say in `.board/outbox.jsonl`; the orchestrator pushes it as one batch after every row and lands what the person did before every decision. `docs/SHARED-RULES.md` has the procedure; the `board-sync` skill has the exact calls.
 
 In the desktop app's Code tab the board opens in the pane beside the chat: `pane.js` returns the address, `preview_start` opens it, and the address never appears in the chat. Without the pane the fallback file is the way in. In Cowork and the CLI the board is still the decision surface; the person opens it themselves.
 

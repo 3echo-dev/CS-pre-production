@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-// Record which 1-22 Control board this workspace talks to.
+// Record which Pre-production board this workspace talks to.
 //
 //   node set-board.js <artifact url>     writes boardUrl into <root>/.creative-studio-pipeline/config.json
 //   node set-board.js --show             prints the board in use and where it came from, exit 3 when none
 //
-// The board page ships with the plugin at board/1-22-control.html. Every account publishes its
+// The board page ships with the plugin at board/pre-production.html. Every account publishes its
 // own copy (the `board-setup` skill does it with the Artifact tool, capabilities db and
 // artifact) and records the address here, so the pipeline never points at somebody else's
 // private board. CREATIVE_STUDIO_BOARD_URL in the environment wins over the config file.
@@ -45,7 +45,7 @@ if (!url) {
   process.exit(2);
 }
 if (!ARTIFACT.test(url.replace(/[?#].*$/, ''))) {
-  console.error('Not a claude.ai artifact address: ' + url + '. The board is an artifact published from board/1-22-control.html.');
+  console.error('Not a claude.ai artifact address: ' + url + '. The board is an artifact published from board/pre-production.html.');
   process.exit(2);
 }
 // The client's folder is what gets pulled, never where the board's address lives: R1 from the

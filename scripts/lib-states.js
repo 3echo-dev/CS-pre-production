@@ -87,7 +87,7 @@ const APPROVED_STATE = { A: 'GATE_A_PASSED', B: 'GATE_B_PASSED', C: 'RELEASED' }
 const AWAITING_STATE = Object.fromEntries(STATES.filter(s => s.gate).map(s => [s.gate, s.id]));
 
 // The board's own word for where a project is, keyed by state. `projects/{id}.status` on the
-// 1-22 Control board takes exactly these values.
+// Pre-production board takes exactly these values.
 const BOARD_STATUS = {
   INTAKE_PENDING: 'intake', PLANNED: 'intake',
   BRIEF_READY: 'stage1', REFERENCES_READY: 'stage1', SCRIPT_DRAFTED: 'stage1', STORYBOARD_DRAFTED: 'stage1',

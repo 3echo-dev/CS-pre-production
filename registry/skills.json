@@ -20,7 +20,7 @@
         "user",
         "orchestrator"
       ],
-      "description": "Publishes this account's own copy of the 1-22 Control board page from board/1-22-control.html (capabilities db and artifact) and records its address with set-board.js. Once per account or workspace."
+      "description": "Publishes this account's own copy of the Pre-production board page from board/pre-production.html (capabilities db and artifact) and records its address with set-board.js. Once per account or workspace."
     },
     {
       "skillId": "new-project",

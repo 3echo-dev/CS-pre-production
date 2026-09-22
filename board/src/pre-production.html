@@ -1,4 +1,4 @@
-<title>1-22 Control</title>
+<title>Pre-production</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap">
 <style>
 :root{
@@ -741,7 +741,7 @@ const LOGO='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAr4AAAFjCAYAAADbzwgZAA
 function topbar(){
   const p=route().page==='project'&&project&&!project.missing?` / <b>${esc(project.title)}</b>`:'';
   return `<div class="top">
-    <div class="brand"><a href="#/"><img src="${LOGO}" alt="3echo"><span class="sep" aria-hidden="true"></span><h1>1-22 Control</h1></a><span class="sub">Pre-production${p}</span></div>
+    <div class="brand"><a href="#/"><img src="${LOGO}" alt="3echo"><span class="sep" aria-hidden="true"></span><h1>Pre-production</h1></a><span class="sub">Board${p}</span></div>
     <div class="who">
       <span class="conn ${dbState==='on'?'on':''}"><i></i>${dbState==='on'?'Board connected':dbState==='connecting'?'Connecting to the board…':'Model view only'}</span>
       <button class="ghost" data-faces title="Faces on the cards: static by default, animated where something is happening">${facesOn()?'Faces on':'Faces off'}</button>

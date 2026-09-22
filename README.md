@@ -111,7 +111,7 @@ Claude invokes these itself. Four are for you.
 | `/review` | Landing a gate decision, or recording one typed in chat |
 | `project-intake` | The folder into `job.json`; four questions, once |
 | `drive-pull` | Copying the named folder into `inputs/`, never searching for it |
-| `/board-setup` | Publishing this account's own copy of the board page (`board/1-22-control.html`) once, and recording its address |
+| `/board-setup` | Publishing this account's own copy of the board page (`board/pre-production.html`) once, and recording its address |
 | `board-sync` | Pushing the outbox to the board; landing gates, answers and registers back |
 | `register-forms` | How an XX item is asked for and landed; unknown versus not applicable |
 | `client-skill-wrap` | How a director uses one of the client's skills without copying it |
@@ -286,7 +286,7 @@ walk through a gate you did not lock.
 
 ### The board
 
-The 1-22 Control artifact is the decision surface: stage cards, XX registers, the three gates,
+The Pre-production artifact is the decision surface: stage cards, XX registers, the three gates,
 the inbox, the council log, and every director's prompt, output and trace. Scripts queue what
 they have to say; the orchestrator pushes it after every row and lands what you did before every
 decision. `docs/SHARED-RULES.md` has the procedure.

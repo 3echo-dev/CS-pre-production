@@ -1,8 +1,8 @@
 ---
 name: board-setup
 description: >
-  Publishes this account's own copy of the 1-22 Control board, the page that ships with the
-  plugin at board/1-22-control.html, as a claude.ai artifact with the db, artifact and
+  Publishes this account's own copy of the Pre-production board, the page that ships with the
+  plugin at board/pre-production.html, as a claude.ai artifact with the db, artifact and
   comments capabilities, and records its address for the workspace. Use once per account or workspace,
   when set-board.js --show says no board is set, or when the user asks for a fresh board.
 argument-hint: "[--new]"
@@ -25,7 +25,7 @@ user-invocable: true
 
    Exit 0 prints the board in use and where the setting came from: say so in one line and stop, unless the user asked for a new one (`--new`). Exit 3: continue.
 
-2. **Publish the page** with the Artifact tool, `file_path` set to `${CLAUDE_PLUGIN_ROOT}/board/1-22-control.html`, `title` "1-22 Control", `favicon` "🎬", `capabilities` `{"db": {}, "artifact": {}, "comments": {}}`, and a one-line description ("Pre-production board: gates, registers, storyboard, inbox"). Publish it as it is: never edit the page, never strip the base64 copy at its end, never pass `contract`. The artifact starts private; `comments` keeps it inside the organization, which a board is anyway. The publish result says whether this session now watches the board: note the answer for step 5.
+2. **Publish the page** with the Artifact tool, `file_path` set to `${CLAUDE_PLUGIN_ROOT}/board/pre-production.html`, `title` "Pre-production", `favicon` "🎬", `capabilities` `{"db": {}, "artifact": {}, "comments": {}}`, and a one-line description ("Pre-production board: gates, registers, storyboard, inbox"). Publish it as it is: never edit the page, never strip the base64 copy at its end, never pass `contract`. The artifact starts private; `comments` keeps it inside the organization, which a board is anyway. The publish result says whether this session now watches the board: note the answer for step 5.
 
 3. **Record the address** the publish result returned:
 

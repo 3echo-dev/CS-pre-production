@@ -143,7 +143,7 @@ refuses on anything but 0. Gate C is one record per day sheet.
 
 ## The board
 
-The 1-22 Control artifact keeps a database only the orchestrator can reach, through the
+The Pre-production artifact keeps a database only the orchestrator can reach, through the
 Artifact tool. Scripts cannot. So `lib-board.js` gives every script the same `call()` the
 gate-app client had, and appends to `.board/outbox.jsonl` instead of posting. After every row
 the orchestrator runs `board-sync.js push`, hands the printed batch to the board, and

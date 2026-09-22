@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// The bridge between the files and the 1-22 Control board.
+// The bridge between the files and the Pre-production board.
 //
 //   node board-sync.js open <client> <job-id>                 queue the project and its 13 items
 //   node board-sync.js push <client> <job-id> [--json] [--ack] fold the outbox into write batches

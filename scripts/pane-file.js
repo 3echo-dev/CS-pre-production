@@ -32,7 +32,7 @@ fs.writeFileSync(file, `<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>1-22 Control</title>
+<title>Pre-production</title>
 <style>
 html, body { height: 100%; margin: 0; background: #f7f7f5; }
 body { display: grid; font: 14px system-ui, sans-serif; color: #30302e; }
@@ -42,7 +42,7 @@ iframe { width: 100%; height: 100%; border: 0; background: #fff; }
 </style>
 </head>
 <body>
-<iframe src="${attr}" title="1-22 Control board" allow="clipboard-read; clipboard-write"></iframe>
+<iframe src="${attr}" title="Pre-production board" allow="clipboard-read; clipboard-write"></iframe>
 <noscript>
   <div class="fallback" style="display:grid">
     <p>The board needs JavaScript.</p>

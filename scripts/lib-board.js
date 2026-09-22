@@ -16,7 +16,7 @@ const fs = require('fs');
 const path = require('path');
 const ws = require('./lib-workspace.js');
 
-// There is no default board. Each account publishes its own copy of board/1-22-control.html
+// There is no default board. Each account publishes its own copy of board/pre-production.html
 // (the board-setup skill) and records it with set-board.js; a private artifact of one account
 // is unreachable from another, so a baked-in address would only ever work for its author.
 

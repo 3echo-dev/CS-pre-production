@@ -1,7 +1,7 @@
 ---
 name: board-sync
 description: >
-  How the orchestrator keeps the 1-22 Control board and the job folder agreeing: push the
+  How the orchestrator keeps the Pre-production board and the job folder agreeing: push the
   outbox as one write batch after every row, and land gate records, answers, change notes and
   register rows back on disk at every gate and every resume. Use after any row that recorded a
   version or a run, at every gate, and first thing on every resume.
