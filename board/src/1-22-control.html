@@ -89,8 +89,30 @@ svg.i{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stro
 .gchip.passed{color:var(--ink);background:var(--go);border-color:var(--go)}
 .gchip.ready{color:var(--tape-ink);background:var(--tape);border-color:var(--tape)}
 .gchip.reopened{color:var(--hold);border-color:var(--hold)}
-.newp{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end;margin-top:14px;padding:14px 16px;border:1px dashed var(--line2);border-radius:var(--r3)}
-.newp label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--dim)}
+.newp{display:flex;flex-direction:column;gap:16px;margin-top:14px;padding:18px 20px 16px;background:linear-gradient(180deg,var(--panel),var(--ink));border:1px solid var(--line2);border-radius:var(--r3);box-shadow:var(--shadow)}
+.np-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.np-head h3{font-size:17px;margin-bottom:3px}
+.np-head p{margin:0;font-size:12.5px;color:var(--dim);max-width:62ch}
+.np-step{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--wait);background:rgba(132,168,255,.12);border:1px solid rgba(132,168,255,.35);border-radius:999px;padding:4px 10px;white-space:nowrap}
+.np-fields{display:grid;grid-template-columns:1fr 1fr 2fr;gap:12px}
+.np-fields label,.np-choices legend{display:flex;flex-direction:column;gap:6px;font-size:11.5px;font-weight:700;color:var(--dim);letter-spacing:.02em}
+.np-fields input{background:var(--ink);border-color:var(--line2);min-height:38px;padding:8px 11px;font-weight:600}
+.np-fields input:focus-visible{outline:0;border-color:var(--wait);box-shadow:0 0 0 3px rgba(132,168,255,.22)}
+.np-choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.np-choices fieldset{margin:0;padding:0;border:0;min-width:0}
+.np-choices legend{padding:0;margin-bottom:7px}
+.np-choices .seg{display:flex;flex-wrap:wrap;gap:6px}
+.chip{position:relative;display:inline-flex}
+.chip input{position:absolute;inset:0;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+.chip span{display:inline-flex;align-items:center;min-height:34px;padding:6px 13px;border:1px solid var(--line2);border-radius:999px;font-size:13px;font-weight:600;color:var(--dim);background:var(--ink);transition:border-color 150ms ease,background-color 150ms ease,color 150ms ease,transform 160ms var(--ease-out);pointer-events:none}
+.chip:hover span{border-color:var(--dim);color:var(--paper)}
+.chip:active span{transform:scale(.97)}
+.chip input:checked+span{background:var(--tape);border-color:var(--tape);color:var(--tape-ink);font-weight:800}
+.chip input:focus-visible+span{outline:2px solid var(--wait);outline-offset:2px}
+.np-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--line)}
+.np-foot .np-note{font-size:12px;color:var(--faint)}
+.np-foot button{min-height:38px;padding:7px 16px}
+@media(max-width:720px){.np-fields,.np-choices{grid-template-columns:1fr}}
 
 /* gate strip */
 .gates{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0 12px}
@@ -673,7 +695,7 @@ async function addRow(kind, form){
 async function createProject(form){
   const title=form.querySelector('[name=title]').value.trim(); if(!title){ toast('Give the project a title'); form.querySelector('[name=title]').focus(); return; }
   const id=slug(title)+'-'+Date.now().toString(36).slice(-4); const base='projects/'+id;
-  const doc={title, client:form.querySelector('[name=client]').value.trim(), driveFolder:form.querySelector('[name=drive]').value.trim(), scriptFormat:form.querySelector('[name=format]').value, storyboardStyle:form.querySelector('[name=style]').value, status:'intake', createdAt:now(), createdBy:me};
+  const doc={title, client:form.querySelector('[name=client]').value.trim(), driveFolder:form.querySelector('[name=drive]').value.trim(), scriptFormat:form.elements.format.value, storyboardStyle:form.elements.style.value, status:'intake', createdAt:now(), createdBy:me};
   // The bell rings first, on the press itself: a send to Claude is allowed only from a recent
   // viewer gesture, and the fourteen writes below take seconds, which is why every Open project
   // press used to fall back while Signal pipeline, sent at once, went through.
@@ -747,12 +769,17 @@ function slatePage(){
   return `<div class="sect"><h2>Slate</h2><span class="meta">${live.length} project${live.length===1?'':'s'}</span></div>
   <div class="slate">${cards}</div>
   <form class="newp" id="newp">
-    <label>Project title<input name="title" id="np-title" placeholder="HTF Night Shift" required autocomplete="off"></label>
-    <label>Client<input name="client" id="np-client" placeholder="HTF"></label>
-    <label>Drive folder<input name="drive" id="np-drive" placeholder="Client / Projects / …"></label>
-    <label>Script format<select name="format" id="np-format"><option>Screenplay</option><option>AV script</option></select></label>
-    <label>Storyboard style<select name="style" id="np-style"><option>Sketches</option><option>Live pictures</option><option>Cartoon / animation</option></select></label>
-    <button class="primary" type="submit">Open project</button>
+    <div class="np-head"><div><h3>Open a project</h3><p>Name it, point at the folder, and choose the two things every director needs to know. The run pulls the folder, routes it and plans the rows from here.</p></div><span class="np-step">Stage 0</span></div>
+    <div class="np-fields">
+      <label>Project title<input name="title" id="np-title" placeholder="Night Shift" required autocomplete="off"></label>
+      <label>Client<input name="client" id="np-client" placeholder="Client short name"></label>
+      <label>Drive folder<input name="drive" id="np-drive" placeholder="Client / Projects / … or a Drive link"></label>
+    </div>
+    <div class="np-choices">
+      <fieldset id="np-format"><legend>Script format</legend><div class="seg"><label class="chip"><input type="radio" name="format" value="Screenplay" checked><span>Screenplay</span></label><label class="chip"><input type="radio" name="format" value="AV script"><span>AV script</span></label></div></fieldset>
+      <fieldset id="np-style"><legend>Storyboard style</legend><div class="seg"><label class="chip"><input type="radio" name="style" value="Sketches" checked><span>Sketches</span></label><label class="chip"><input type="radio" name="style" value="Live pictures"><span>Live pictures</span></label><label class="chip"><input type="radio" name="style" value="Cartoon / animation"><span>Cartoon / animation</span></label></div></fieldset>
+    </div>
+    <div class="np-foot"><span class="np-note">One style per storyboard. Shoot days, trailer and aspect ratio are asked once the folder is read.</span><button class="primary" type="submit">Open project</button></div>
   </form>
   ${modelPreview()}`;
 }
