@@ -208,7 +208,7 @@ Declared in `.mcp.json` (the 3echo server at agentc.3echo.ai), so a fresh instal
 ### 4. Pick a folder to work in
 
 ```bash
-node scripts/set-root.js "D:/onedash"
+node scripts/set-root.js "D:/studio"
 ```
 
 Or pass `--root`, or set `CREATIVE_STUDIO_ROOT`, or run in the folder you want. The first run makes

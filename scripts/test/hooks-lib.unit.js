@@ -41,7 +41,7 @@ const stages = require('../lib-stages.js');
   assert.ok(/12/.test(lib.spendVerdict(img, ctx.jobId + '/v2/P08', ctx, safeBatch, 12).deny), 'the panel that would cross the ceiling is refused, naming the ceiling');
 
   // Write guard.
-  const root = 'C:/onedash';
+  const root = 'C:/studio';
   const plugin = 'C:/Users/x/.claude/plugins/cs-pre-production';
   const job = root + '/workspaces/htf/jobs/job-1/';
   const deny = (p) => { const v = lib.classifyWrite(p, root, plugin); assert.strictEqual(v.action, 'deny', p + ' should be refused'); return v.reason; };
