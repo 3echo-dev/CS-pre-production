@@ -58,10 +58,10 @@ svg.i{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stro
 .brand img{height:26px;width:auto;display:block}
 .brand .sep{width:1px;height:20px;background:var(--line2);display:inline-block}
 .brand h1{font-size:19px;line-height:1;letter-spacing:-.01em}
-.rail{position:relative;height:3px;margin:0 calc(-1 * clamp(16px,2.5vw,32px));background:linear-gradient(90deg,var(--indigo),var(--spend) 55%,var(--tape));box-shadow:0 0 6px rgba(255,149,0,.7),0 0 14px rgba(255,149,0,.35)}
-.rail .zap{position:absolute;inset:0;width:28%;background:linear-gradient(90deg,transparent,var(--spend),transparent);box-shadow:0 0 10px var(--spend),0 0 24px rgba(255,149,0,.8),0 0 48px rgba(255,149,0,.4);transform:translateX(-120%);animation:zap 1.6s var(--ease-drawer) .3s 1 forwards}
-.rail .zap::after{content:"";position:absolute;inset:0;left:36%;width:28%;background:linear-gradient(90deg,transparent,#fff3d6,transparent)}
-@keyframes zap{to{transform:translateX(360%)}}
+.rail{position:relative;height:2px;margin:0 calc(-1 * clamp(16px,2.5vw,32px));background:rgba(132,168,255,.28);box-shadow:0 0 6px rgba(132,168,255,.55),0 0 14px rgba(62,75,225,.35);overflow:hidden}
+.rail .zap{position:absolute;inset:0;width:28%;background:linear-gradient(90deg,transparent,var(--wait),transparent);box-shadow:0 0 10px var(--wait),0 0 24px rgba(132,168,255,.85),0 0 48px rgba(62,75,225,.5);transform:translateX(-120%);animation:zap 9s var(--ease-drawer) .3s infinite}
+.rail .zap::after{content:"";position:absolute;inset:0;left:36%;width:28%;background:linear-gradient(90deg,transparent,#eef3ff,transparent)}
+@keyframes zap{0%{transform:translateX(-120%)}18%,100%{transform:translateX(360%)}}
 .brand .sub{color:var(--dim);font-size:13px}
 .brand .sub b{color:var(--paper);font-weight:500}
 .who{display:flex;align-items:center;gap:14px;font-size:13px;color:var(--dim);flex-wrap:wrap}
