@@ -130,6 +130,8 @@ Once the board is open, every question is asked in both places at once: as a car
 node "${CLAUDE_PLUGIN_ROOT}/scripts/board-sync.js" ask {client} {job-id} --item {item} --text "..." --options "a|b|c"
 ```
 
+Before a job exists, when a project opened on the slate has a client that is not onboarded, matches no workspace, or a folder the form left blank, there is no job to queue under; ask with `board-sync.js ask --slate {slate id} --text "..." --options "a|b|c"` and hand the write it prints to the board database at once (ArtifactData batch). The question then sits under Pending response on that card; a reply in the comment thread alone is not an ask. Read `projects/{slate id}/inbox` on the next turn.
+
 Copy the numbered text it prints into your next message, unchanged, then push. A question already open is never asked again; land first. A blank answer is an answer: the item stays needs input and the run says so once. A quote is a yes or no question like any other, and the spend guard reads the answer that lands under it.
 
 ## The chat and the board are one place

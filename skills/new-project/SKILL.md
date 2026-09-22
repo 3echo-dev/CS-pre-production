@@ -20,7 +20,7 @@ metadata:
 
 ## Steps
 
-1. **Resolve the client.** None named: list the folders under `workspaces/` and ask which. None exist: onboard first (the `1-22` skill says how). Opened on the slate: its card gives the fields, adopt it (SHARED-RULES, "A project opened on the slate"). Its client is a typed word: match it to a workspace folder or `workspace.json` name, case-insensitively, as a prefix ("HTF" is `htf26`). No match while workspaces exist: ask which, existing ones first, "a new client" last. Never scaffold blank from the slate: no sites, no templates.
+1. **Resolve the client.** None named: list `workspaces/` and ask which. Opened on the slate: its card gives the fields; adopt it (SHARED-RULES, "A project opened on the slate"). Match its typed client to a workspace folder or `workspace.json` name, case-insensitively, as a prefix ("HTF" is `htf26`). No match, or no workspace at all: ask with `board-sync.js ask --slate {slate id}`, written to the board at once and in chat, existing clients first, "onboard a new client" last. Never scaffold blank from the slate: no sites, no templates.
 
 2. **Get the folder.** If the message does not name it, ask on the board and in chat: "Where is the folder with the brief, concept and client assets? A path on this computer or a Google Drive folder link." A folder already under `<root>/inputs/{client}/` is not pulled again. Then `set-root.js` (no argument) prints where the work lives; say it beside the folder to pull before creating anything. If the pull is or holds that root, `set-root.js <folder>` from outside the client's folder first; the pull is refused otherwise, and so is scaffolding (exit 3) when the root is the client's.
 

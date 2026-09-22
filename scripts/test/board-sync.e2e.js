@@ -26,10 +26,25 @@ try {
   const jobId = (made.stdout.match(/^job-id:\s*(\S+)$/m) || [])[1];
   const dir = path.join(tmp, 'workspaces', 'htf', 'jobs', jobId);
   const outbox = path.join(tmp, '.board', 'outbox.jsonl');
+  let r;
   const drain = () => fs.existsSync(outbox) ? fs.readFileSync(outbox, 'utf8').split(/\r?\n/).filter(Boolean).map(l => JSON.parse(l)) : [];
 
+  // 0. A question before any job exists: the slate project's inbox, written directly.
+  const bare = fs.mkdtempSync(path.join(os.tmpdir(), 'od-bare-'));
+  r = run('board-sync.js', ['ask', '--slate', 'htf-2026-test', '--text', 'Which client is this for?', '--options', 'htf|a new client', '--json'], bare);
+  assert.strictEqual(r.status, 0, r.stderr);
+  const sa = JSON.parse(r.stdout);
+  assert.strictEqual(sa.project, 'htf-2026-test');
+  assert.strictEqual(sa.writes.length, 1);
+  assert.strictEqual(sa.writes[0].collection, 'projects/htf-2026-test/inbox');
+  assert.strictEqual(sa.writes[0].data.type, 'question');
+  assert.strictEqual(sa.writes[0].data.status, 'open');
+  assert.deepStrictEqual(sa.writes[0].data.options, ['htf', 'a new client']);
+  assert.ok(!fs.existsSync(path.join(bare, 'workspaces')), 'a slate ask scaffolds nothing');
+  console.log('ok   a slate project with no job gets its question on the board, not only in chat');
+
   // 1. Opening a project queues it and its thirteen items.
-  let r = run('board-sync.js', ['open', 'htf', jobId], tmp);
+  r = run('board-sync.js', ['open', 'htf', jobId], tmp);
   assert.strictEqual(r.status, 0, r.stderr);
   let q = drain();
   assert.strictEqual(q.filter(x => x.kind === 'project').length, 1);

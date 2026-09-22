@@ -36,10 +36,16 @@ const rest = argv.slice(argv.indexOf(cmd) + 1);
 const json = argv.includes('--json');
 const opt = name => { const i = argv.indexOf(name); return i >= 0 && argv[i + 1] ? argv[i + 1] : null; };
 const usage = () => {
-  console.error('usage: board-sync.js open|push|land|pull|ask|answer|adopt <client> <job-id> [args] [--from <slate project id>] [--json] [--ack] [--gate A|B|C|sample] [--item X --text "..." --options "a|b|c" [--blocks <request id>]] [--id <inbox id> --text "..." [--by <who>]]');
+  console.error('usage: board-sync.js open|push|land|pull|ask|answer|adopt <client> <job-id> [args] | ask --slate <slate id> --text "..." [--options "a|b|c"] [--from <slate project id>] [--json] [--ack] [--gate A|B|C|sample] [--item X --text "..." --options "a|b|c" [--blocks <request id>]] [--id <inbox id> --text "..." [--by <who>]]');
   process.exit(2);
 };
 if (!['open', 'push', 'land', 'pull', 'ask', 'answer', 'adopt'].includes(cmd)) usage();
+// A question before any job exists: a project a person opened on the slate whose client is not
+// onboarded, or matches nothing, or whose folder was left blank. There is no job outbox to queue
+// into, so the write is printed for the orchestrator to hand to the board database at once, and
+// the card shows it under Pending response like any other question.
+const slate = cmd === 'ask' ? opt('--slate') : null;
+if (slate) { slateAsk(slate); process.exit(0); }
 const { brand: client, jobId, dir, rest: more } = ws.resolveJobArgs(rest, argv);
 if (!client || !jobId) usage();
 if (!fs.existsSync(dir)) { console.error('No project at ' + ws.fwd(dir) + '.'); process.exit(3); }
@@ -305,6 +311,22 @@ function land() {
   });
   if (json) console.log(JSON.stringify({ project: jobId, landed: changed }, null, 2));
   else console.log('Landed: ' + changed.join('; ') + '.');
+}
+
+function slateAsk(slateId) {
+  const text = opt('--text');
+  if (!text) { console.error('ask --slate <slate id> needs --text "the question" [--options "a|b|c"] [--from <seat>]'); process.exit(2); }
+  const options = (opt('--options') || '').split('|').map(o => o.trim()).filter(Boolean);
+  const id = 'q-' + Date.now().toString(36);
+  const write = { op: 'set', collection: 'projects/' + slateId + '/inbox', doc_id: id,
+    data: { type: 'question', item: null, text, options, from: opt('--from') || 'orchestrator', status: 'open', createdAt: new Date().toISOString() } };
+  let url = null; try { url = board.boardUrl(argv); } catch { url = null; }
+  if (json) { console.log(JSON.stringify({ id, project: slateId, text, options, url, writes: [write] })); return; }
+  console.log(text);
+  options.forEach((o, i) => console.log('  ' + (i + 1) + '. ' + o));
+  if (options.length) console.log('  ' + (options.length + 1) + '. Something else (say what)');
+  console.log('Write this to the board now (ArtifactData batch), then end the turn; read projects/' + slateId + '/inbox next turn:');
+  console.log(JSON.stringify({ url, writes: [write] }));
 }
 
 // A decision only a person can make. Queued for the board inbox as a question, and printed
