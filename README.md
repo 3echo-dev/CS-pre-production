@@ -183,7 +183,7 @@ board; `preflight-media.js` confirms one asset reaches disk.
 ```
 
 ```bash
-/plugin install cs-pre-production@3echo
+/plugin install cs-pre-production@3echo-studio
 ```
 
 Or try it without installing:
