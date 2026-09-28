@@ -25,7 +25,7 @@ user-invocable: true
 
    Exit 0 prints the board in use and where the setting came from: say so in one line and stop, unless the user asked for a new one (`--new`). Exit 3: continue.
 
-2. **Publish the page** with the Artifact tool, `file_path` set to `${CLAUDE_PLUGIN_ROOT}/board/pre-production.html`, `title` "Pre-production", `favicon` "🎬", `capabilities` `{"db": {}, "artifact": {}, "comments": {}}`, and a one-line description ("Pre-production board: gates, registers, storyboard, inbox"). Publish it as it is: never edit the page, never strip the base64 copy at its end, never pass `contract`. The artifact starts private; `comments` keeps it inside the organization, which a board is anyway. The publish result says whether this session now watches the board: note the answer for step 5.
+2. **Publish the page** with the Artifact tool, `file_path` set to `${CLAUDE_PLUGIN_ROOT}/board/pre-production.html`, `title` "Pre-production", `favicon` "🎬", `capabilities` `{"db": {}, "artifact": {}, "comments": {}, "downloads": true}`, and a one-line description ("Pre-production board: gates, registers, storyboard, inbox"). Publish it as it is: never edit the page, never strip the base64 copy at its end, never pass `contract`. The artifact starts private; `comments` keeps it inside the organization, which a board is anyway. The publish result says whether this session now watches the board: note the answer for step 5.
 
 3. **Record the address** the publish result returned:
 
@@ -52,7 +52,7 @@ The shared rules in `${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md` apply.
 
 ## Output contract
 
-A private artifact of the board page with capabilities db, artifact and comments; `boardUrl` and `boardSetAt` in `<root>/.creative-studio-pipeline/config.json`; the `meta/board` document on the artifact's database.
+A private artifact of the board page with capabilities db, artifact, comments and downloads; `boardUrl` and `boardSetAt` in `<root>/.creative-studio-pipeline/config.json`; the `meta/board` document on the artifact's database.
 
 ## Boundary
 
@@ -62,6 +62,6 @@ Does not push projects (`board-sync`), share the artifact, or edit the page.
 
 | Failure | Fix |
 |---|---|
-| Publish refused for the capabilities | Say which; the page needs `db`, `artifact` and `comments` |
+| Publish refused for the capabilities | Say which; the page needs `db`, `artifact`, `comments` and `downloads` (the Download buttons) |
 | A decision on the board wakes nobody | The page was never allowed to message a session: press Signal pipeline and approve |
 | The consent for the first write is declined | Stop; the board stays published but unused until a session with consent writes it |

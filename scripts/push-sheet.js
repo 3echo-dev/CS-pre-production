@@ -49,6 +49,10 @@ if (argv.includes('--drive')) {
     key: jobId, item, columns: out.columns, rows: out.rows, rowCount: out.rowCount,
     template: out.template, exportPath: ws.fwd(out.export), ...(out.days ? { days: out.days.map(d => ({ day: d.day, exportPath: ws.fwd(d.export), rows: d.rows })) } : {}), driveCopy: driveCopy ? ws.fwd(driveCopy) : null, ...(link ? { link, linkedAt: at } : {}), updatedAt: at,
   }, { argv });
+  // The file itself, so the board's Download button hands over the client-template export.
+  const { pushExport } = require('./push-export.js');
+  if (out.days) for (const d of out.days) await pushExport({ jobId, dir, item, file: d.export, day: d.day, argv });
+  else await pushExport({ jobId, dir, item, file: out.export, argv });
   const req = flag('--request');
   if (req) await board.call('export-done', { key: jobId, id: req, item, exportPath: ws.fwd(out.export), driveCopy: driveCopy ? ws.fwd(driveCopy) : null, link: link || null }, { argv });
   console.log('Queued ' + item + ' for the board: ' + out.rowCount + ' rows, ' + out.columns.length + ' columns' + (out.template ? ' in the client template' : '') + '. Excel at ' + ws.fwd(out.export) + (driveCopy ? ' and ' + ws.fwd(driveCopy) : '') + '. Run board-sync.js push next.');

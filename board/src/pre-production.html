@@ -254,6 +254,9 @@ svg.i{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stro
 .tabs button{border:none;border-radius:var(--r1);padding:4px 10px;min-height:28px;font-family:var(--cond);text-transform:uppercase;letter-spacing:.06em;font-size:13px;font-weight:600;color:var(--dim)}
 .tabs button:hover{background:var(--panel3);color:var(--paper)}
 .tabs button.on{background:var(--paper);color:var(--ink)}
+.dlstrip{display:flex;flex-direction:column;gap:6px;padding:10px 12px;margin-bottom:10px;border:1px solid var(--line2);border-radius:var(--r2);background:var(--panel)}
+.dlrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--dim)}
+.dlrow .mono{color:var(--paper)}
 .tabs .cnt{font-family:var(--mono);font-size:10px;opacity:.7}
 .sheet-wrap{overflow:auto;max-height:56vh;border:1px solid var(--line);border-radius:var(--r2);background:var(--ink)}
 .sheet{border-collapse:collapse;font-size:12px;min-width:100%}
@@ -444,6 +447,7 @@ function blob(name, mood, size, live){
   }
   return s;
 }
+let exportsDl = {}; // id -> the downloadable export push-export.js put on the board
 let sheets = {}; // item id -> {columns, rows, exportPath, driveCopy, template}
 let lightbox = null; // panel id shown large
 let redoFor = null; // panel id whose redo note is open
@@ -474,7 +478,7 @@ async function boot(){
 }
 function bindProject(){
   unsubs.forEach(u=>{try{u()}catch(e){}}); unsubs=[];
-  items={}; gates={}; inbox=[]; messages=[]; regs={talents:[],props:[],locations:[]}; versions={}; runs={}; project=null; panels=[]; lightbox=null; redoFor=null; sheets={}; refs=[]; refsel={};
+  items={}; gates={}; inbox=[]; messages=[]; regs={talents:[],props:[],locations:[]}; versions={}; runs={}; project=null; panels=[]; lightbox=null; redoFor=null; sheets={}; exportsDl={}; refs=[]; refsel={};
   const r=route(); if(r.page!=='project'||!db) return;
   const base='projects/'+r.id;
   unsubs.push(db.doc(base).onSnapshot(s=>{ project=s.exists?{id:s.id,...s.data()}:{id:r.id,missing:true}; render(); }));
@@ -485,6 +489,7 @@ function bindProject(){
   for(const k of Object.keys(REG_FIELDS)) unsubs.push(db.collection(base+'/'+k).onSnapshot(q=>{ regs[k]=q.docs.map(d=>({id:d.id,...d.data()})); render(); }));
   unsubs.push(db.collection(base+'/versions').orderBy('at','desc').limit(100).onSnapshot(q=>{ versions={}; q.docs.forEach(d=>{const v=d.data(); (versions[v.item]=versions[v.item]||[]).push({id:d.id,...v});}); render(); }));
   unsubs.push(db.collection(base+'/sheets').onSnapshot(q=>{ sheets={}; q.docs.forEach(d=>sheets[d.id]=d.data()); render(); }));
+  unsubs.push(db.collection(base+'/exports').onSnapshot(q=>{ exportsDl={}; q.docs.forEach(d=>exportsDl[d.id]={id:d.id,...d.data()}); render(); }));
   unsubs.push(db.collection(base+'/panels').onSnapshot(q=>{ panels=q.docs.map(d=>({id:d.id,...d.data()})); render(); }));
   unsubs.push(db.collection(base+'/references').onSnapshot(q=>{ refs=q.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.n||0)-(b.n||0)); render(); }));
   unsubs.push(db.collection(base+'/refsel').onSnapshot(q=>{ refsel={}; q.docs.forEach(d=>refsel[d.id]=d.data()); render(); }));
@@ -686,7 +691,7 @@ function panelsHtml(it){
   const grid = total ? `<div class="sb-grid" style="--panel-ar:${panelRatio()}">${ps.map(p=>`<div class="sb-card ${p.sample?'sample':''}">${p.thumb?`<button class="sb-thumb" style="background-image:url(${p.thumb});background-size:contain;background-repeat:no-repeat;background-position:center" data-lightbox="${esc(p.id)}" aria-label="Enlarge ${esc(p.id)}"></button>`:`<div class="sb-ph"><span>${esc(p.id)}</span><span>${p.status==='rejected'?'rejected':'not drawn'}</span></div>`}<div class="sb-cap"><span><b>${esc(p.id)}</b> · ${esc(p.scene||'')}${p.storyOrder?` · #${p.storyOrder}`:''} ${p.sample?'<span class="sb-tag">sample</span>':''}${p.approvedBy?' <span class="sb-tag" style="background:var(--go);color:#03140d">approved</span>':''}</span><span>${esc((p.caption||'').slice(0,90))}</span>${p.thumb?`<span class="row">${p.sample&&!p.approvedBy?`<button class="primary" data-approve-panel="${esc(p.id)}">${ic('check')} Approve sample</button>`:''}<button class="ghost" data-redo="${esc(p.id)}">Redo</button></span>`:''}${redoFor===p.id?`<form data-redo-form="${esc(p.id)}" class="note"><textarea name="text" id="redo-${esc(p.id)}" aria-label="What to change on ${esc(p.id)}" placeholder="What should change on ${esc(p.id)}? One credit."></textarea><div class="row"><button type="button" class="ghost" data-redo-cancel>Cancel</button><button type="submit" class="primary">Send</button></div></form>`:''}</div></div>`).join('')}</div>` : '';
   return `<div class="sb-head"><span class="num">${drawn}/${total} panels drawn${sample?` · sample ${esc(sample.id)}${sampleApproved?' approved':''}`:''}${it.style?` · ${esc(it.style)}`:''}</span>${cta}</div>${grid}`;
 }
-const SHEET_ITEMS = ['shot_list','budget_sheet','timeline','concept_breakdown'];
+const SHEET_ITEMS = ['shot_list','budget_sheet','timeline','concept_breakdown','call_sheet','audio'];
 function sheetTsv(sh){ const cell=v=>String(v==null?'':v).replace(/\t/g,' ').replace(/\r?\n/g,' '); return [sh.columns||[]].concat(sh.rows||[]).map(r=>r.map(cell).join(String.fromCharCode(9))).join(String.fromCharCode(10)); }
 async function copySheet(id){ const sh=sheets[id]; if(!sh) return; const text=sheetTsv(sh);
   try { await navigator.clipboard.writeText(text); toast('Copied '+(sh.rows||[]).length+' rows. Paste into Excel or Sheets.', 'ok'); }
@@ -697,6 +702,43 @@ async function requestExport(id){ const it=itemOf(id); const rid='x-'+Date.now()
   await write('projects/'+project.id+'/inbox/'+rid,{type:'export',item:id,text:'Export '+it.name+' v'+(it.version||0)+' to Excel in the client template',from:me,status:'open',createdAt:now()});
   await log(`Excel export requested for ${it.name} v${it.version||0}.`, id);
   await signalPipeline('Export requested'); }
+// Downloads. The pipeline writes each export in the client's template (push-sheet.js,
+// push-export.js) and puts the file on the board in parts; Download joins them and hands the
+// file over through the downloads capability. Download current (CSV) builds a plain file from
+// what the board shows now, for when the board is newer than the last export.
+function exportsFor(id){ return Object.values(exportsDl).filter(x=>x.item===id).sort((a,b)=>(a.day||0)-(b.day||0)); }
+function kindOfFile(f){ return /\.pptx$/i.test(f)?'Slides':/\.xlsx$/i.test(f)?'Excel':'file'; }
+function csvRowsFor(id){
+  if(REG_FIELDS[id]){ const f=REG_FIELDS[id]; return [f.map(x=>x[0].toUpperCase()+x.slice(1))].concat((regs[id]||[]).map(r=>f.map(k=>r[k]==null?'':String(r[k])))); }
+  const sh=sheets[id]; if(sh&&(sh.rows||[]).length) return [(sh.columns||[])].concat(sh.rows);
+  return null;
+}
+function dlStrip(it){
+  const xs=exportsFor(it.id); const csv=csvRowsFor(it.id);
+  if(!xs.length && !csv) return '';
+  const stale = x => it.updatedAt && x.at && new Date(it.updatedAt) > new Date(x.at);
+  const rows = xs.map(x=>`<div class="dlrow"><button class="primary" data-dl="${esc(x.id)}" ${busy.has('dl'+x.id)?'disabled':''}>${ic('open')} Download ${x.day?'day '+x.day:kindOfFile(x.filename)}</button><span class="mono">${esc(x.filename)}</span><span class="num">${Math.max(1,Math.round((x.bytes||0)/1024))} KB · ${fmt(x.at)}${stale(x)?' · <span style="color:var(--tape)">the board changed since</span>':''}</span></div>`).join('');
+  const plain = csv ? `<div class="dlrow"><button class="ghost" data-dl-csv="${esc(it.id)}">${ic('copy')} Download current (CSV)</button><span class="num">What the board shows now, as a plain table, not in the client template.</span></div>` : '';
+  return `<div class="dlstrip">${rows||'<p class="empty" style="margin:0">No export in the client template yet; the pipeline writes one when it delivers this item.</p>'}${plain}</div>`;
+}
+async function downloadExport(id){
+  const x=exportsDl[id]; if(!x||!db) return;
+  const dl=await claude.use('downloads'); if(!dl){ toast('Downloads are not available in this view'); return; }
+  try{
+    const parts=[]; for(let k=0;k<(x.chunks||1);k++){ const s=await db.doc('projects/'+project.id+'/exportchunks/'+id+'-'+k).get(); if(!s.exists){ toast('Part '+(k+1)+' of '+x.filename+' is missing; ask the pipeline to export it again'); return; } parts.push(s.data().data||''); }
+    const bin=atob(parts.join('')); const bytes=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+    await dl.save({filename:x.filename, data:new Blob([bytes])});
+    toast('Saved '+x.filename, 'ok');
+  }catch(e){ const c=e&&e.code; if(c==='declined') return; toast(c==='rate_limited'?'A save is already open':c==='rejected_extension'||c==='extension_not_enabled'?'This file type cannot be saved here':'Could not save: '+((e&&e.message)||c||e)); }
+}
+async function downloadCsv(id){
+  const rows=csvRowsFor(id); if(!rows) return;
+  const dl=await claude.use('downloads'); if(!dl){ toast('Downloads are not available in this view'); return; }
+  const cell=v=>{ const t=String(v==null?'':v); return /[",\n]/.test(t)?'"'+t.replace(/"/g,'""')+'"':t; };
+  const text='﻿'+rows.map(r=>r.map(cell).join(',')).join('\r\n');
+  try{ await dl.save({filename:(project&&project.title?project.title.replace(/[^\w\- ]+/g,'').trim()+' - ':'')+itemOf(id).name+' (board).csv', data:text}); toast('Saved', 'ok'); }
+  catch(e){ if(!(e&&e.code==='declined')) toast('Could not save: '+((e&&e.message)||(e&&e.code)||e)); }
+}
 function sheetHtml(it){ const sh=sheets[it.id]; const pend=openExport(it.id); const done=lastExport(it.id);
   const head=`<div class="sb-head"><span class="num">${sh?`${(sh.rows||[]).length} rows · ${(sh.columns||[]).length} columns${sh.template?' · client template':''}${sh.updatedAt?' · '+fmt(sh.updatedAt):''}`:'Nothing pushed in the client format yet.'}</span><span class="row" style="display:flex;gap:6px;flex-wrap:wrap">${sh?`<button class="ghost" data-copy-sheet="${it.id}">${ic('copy')} Copy for Excel</button>`:''}${pend?`<button disabled>${ic('send')} Exporting to Google Sheets…</button>`:`<button data-export="${it.id}" ${busy.has('x'+it.id)?'disabled':''}>${ic('send')} ${sh&&sh.link?'Re-export':'Export to Google Sheets'}</button>`}</span></div>`;
   const link=(sh&&sh.link)||(done&&done.link)||null;
@@ -922,6 +964,7 @@ function itemCard(it){
       ${it.id==='scraper'?`<button data-open-item="scraper" data-open-tab="references">${ic('open')} References${refs.length?` <span class="cnt">${chosenCount()}/${refs.length}</span>`:''}</button>`:''}
       ${it.id==='storyboard'?`<button data-open-item="storyboard" data-open-tab="panels">${ic('gate')} Storyboard${panels.length?` <span class="cnt">${panels.filter(p=>p.thumb).length}/${panels.length}</span>`:''}</button>`:''}
       ${st!=='pending'?`<button data-open-item="${it.id}" data-open-tab="files">${ic('copy')} Files${filesOf(it).length?` <span class="cnt">${filesOf(it).length}</span>`:''}</button>`:''}
+      ${(()=>{ const xs=exportsFor(it.id); if(!xs.length) return ''; return xs.length===1?`<button data-dl="${esc(xs[0].id)}">${ic('open')} ${kindOfFile(xs[0].filename)}</button>`:`<button data-open-item="${it.id}" data-open-tab="${SHEET_ITEMS.includes(it.id)?'sheet':'files'}">${ic('open')} ${xs.length} files</button>`; })()}
       ${canApprove?`<button data-approve="${it.id}" ${busy.has('ap'+it.id)?'disabled':''}>${ic('check')} Approve v${it.version||0}</button>`:''}
       ${st!=='pending'?`<button class="ghost" data-change="${it.id}">${ic('change')} Change</button>`:''}
       ${naAllowed?(isArmed('na'+it.id)?`<button class="primary" data-na="${it.id}">Confirm N/A</button>`:`<button class="ghost" data-na="${it.id}">N/A</button>`):''}
@@ -1000,13 +1043,13 @@ function drawerHtml(){
   } else if(tab==='trace'){
     body = run && (run.trace||[]).length ? `<div class="trace">${run.trace.map(s=>`<div class="tr"><span class="mono">${esc(s.t||'')}</span><span class="mono" style="color:var(--wait)">${esc(s.tool||'')}</span><span>${esc(s.note||'')}</span></div>`).join('')}</div>` : '<p class="empty">No tool trace recorded for this run.</p>';
   } else if(tab==='register'){
-    body = regHtml(it.id);
+    body = dlStrip(it) + regHtml(it.id);
   } else if(tab==='panels'){
-    body = panelsHtml(it);
+    body = dlStrip(it) + panelsHtml(it);
   } else if(tab==='references'){
     body = referencesHtml(it);
   } else if(tab==='sheet'){
-    body = sheetHtml(it);
+    body = dlStrip(it) + sheetHtml(it);
   }
   return `${lightboxHtml()}<div class="scrim" data-close></div><aside class="drawer" role="dialog" aria-modal="true" aria-label="${esc(it.name)}">
     <div class="dh"><div style="display:flex;align-items:center;gap:12px">${blob(it.seat, BLOB_MOOD[shownStatus(it)]||'idle', 44, true)}<div><h2>${esc(it.name)} <span class="mono" style="font-size:13px;color:var(--faint)">v${it.version||0}</span></h2><div class="meta">Stage ${it.stage} · ${esc(seatLabel(it.seat))}${it.xx?' · <span class="xx">XX</span>':''} · <span class="pill ${shownStatus(it)}">${STATUS_LABEL[shownStatus(it)]}</span></div></div></div><button class="ghost" data-close aria-label="Close">${ic('x')}</button></div>
@@ -1046,8 +1089,10 @@ function footer(){ return `<div class="foot-note"><span>1-22 · 3echo Creative S
 function wire(){
   const app=$('#app');
   app.onclick = async e=>{
-    const t=e.target.closest('[data-open],[data-open-item],[data-open-run],[data-tab],[data-approve],[data-change],[data-na],[data-lock],[data-answer],[data-answer-text],[data-close],[data-gate],[data-copy],[data-signal],[data-change-cancel],[data-gen],[data-approve-panel],[data-ref-toggle],[data-faces],[data-redo],[data-redo-cancel],[data-lightbox],[data-lightbox-close],[data-copy-sheet],[data-export],[data-copy-path],[data-home]');
+    const t=e.target.closest('[data-open],[data-open-item],[data-open-run],[data-tab],[data-approve],[data-change],[data-na],[data-lock],[data-answer],[data-answer-text],[data-close],[data-gate],[data-copy],[data-signal],[data-change-cancel],[data-gen],[data-approve-panel],[data-ref-toggle],[data-faces],[data-redo],[data-redo-cancel],[data-lightbox],[data-lightbox-close],[data-copy-sheet],[data-export],[data-copy-path],[data-home],[data-dl],[data-dl-csv]');
     if(!t) return;
+    if(t.dataset.dl){ await guarded('dl'+t.dataset.dl, ()=>downloadExport(t.dataset.dl)); return; }
+    if(t.dataset.dlCsv){ await downloadCsv(t.dataset.dlCsv); return; }
     if(t.dataset.home!=null){ e.preventDefault(); drawer=null; changeFor=null; gateOpen=null; location.hash='#/'; return; }
     if(t.dataset.copyPath!=null){ try { await navigator.clipboard.writeText(t.dataset.copyPath); toast(t.dataset.copyPath.includes('\n')?'Paths copied':'Path copied', 'ok'); } catch { toast('Could not copy. Select the path and copy it by hand.'); } return; }
     if(t.dataset.gate && !e.target.closest('[data-lock]')){ gateOpen = gateOpen===t.dataset.gate ? null : t.dataset.gate; render(); const d=document.querySelector('[data-gate-detail]'); if(d) d.scrollIntoView({block:'nearest',behavior:'smooth'}); return; }

@@ -144,6 +144,13 @@ function toWrite(rec) {
       // answered. The inbox used to know only open and answered, so a landed request stayed a
       // button: the person pressed it again and again while the real blocker sat unanswered.
       return { op: 'update', collection: base + '/inbox', doc_id: p.id, data: { status: 'waiting', waitingOn: p.on || null, waitingText: p.text || '', waitingSince: at } };
+    case 'export-file': {
+      // push-export.js: one downloadable file (the client-template export) and its chunk count.
+      const data = { ...p }; delete data.key;
+      return { op: 'set', collection: base + '/exports', doc_id: p.id, data };
+    }
+    case 'export-chunk':
+      return { op: 'set', collection: base + '/exportchunks', doc_id: p.id + '-' + p.k, data: { id: p.id, k: p.k, data: p.data } };
     case 'cost': {
       // tally-cost.js: tokens and turns per item from the runs, credits from status.md. Merged
       // into the project document so the slate card can show it without reading every run.
