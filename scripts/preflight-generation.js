@@ -101,6 +101,21 @@ const sample = items.find(it => it && it.sample === true);
 if (!sample) fail('no manifest item is marked "sample": true; one hero panel is generated and looked at before the batch');
 if (!sampleApproval) note('no sample approval yet: only the sample panel may be generated');
 
+// 3b. The subjects. Every character, location and prop the board needs has a picture, or a
+// person decided what to do without one (subject-check.js), before a panel is drawn: a face the
+// model invents is otherwise found only after the credits are spent. A board whose sample was
+// approved before the check existed is let through with a note.
+const subjectsFile = path.join(boardRoot, 'v' + latest, 'subjects.json');
+let subjects = null;
+try { subjects = readJson(subjectsFile); } catch { subjects = null; }
+const blocking = subjects && Array.isArray(subjects.subjects) ? subjects.subjects.filter(s => s.status !== 'ready' && (!s.decision || s.decision === 'wait' || (s.decision === 'generate' && !(s.look && s.look.approvedBy)))) : [];
+if (!subjects) {
+  if (sampleApproval) note('no subject check on board v' + latest + ' (the sample was approved before it existed)');
+  else fail('the subject check has not run on board v' + latest + ': run subject-check.js scan, so every character, location and prop has a picture or a decision before a panel is drawn');
+} else if (blocking.length) {
+  fail(blocking.length + ' subject' + (blocking.length === 1 ? '' : 's') + ' still need a person before any panel is drawn: ' + blocking.slice(0, 4).map(s => s.name).join(', ') + (blocking.length > 4 ? '…' : '') + ' (subject-check.js scan lists why)');
+} else note(subjects.subjects.length + ' subjects checked: ' + subjects.subjects.filter(s => s.status === 'ready').length + ' with a picture, the rest left to the prompt by choice');
+
 // 4. The ceiling. Disk is the truth about what has been spent: a panel whose file exists is
 // generated, whatever word its manifest item carries.
 const boardDir = path.join(boardRoot, 'v' + latest);

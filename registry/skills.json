@@ -123,6 +123,20 @@
       "description": "Panel table with permanent ids in one style; text only until the sample is approved."
     },
     {
+      "skillId": "subject-check",
+      "risk": "generation",
+      "cost": "credits",
+      "adapterIds": [
+        "3echo-mcp"
+      ],
+      "userInvocable": false,
+      "preloadedBy": [],
+      "invokedBy": [
+        "orchestrator"
+      ],
+      "description": "Every character, location and prop has a client picture or a person's decision (generate a look, wait, leave to the prompt) before any panel is drawn."
+    },
+    {
       "skillId": "make-image",
       "risk": "generation",
       "cost": "credits",

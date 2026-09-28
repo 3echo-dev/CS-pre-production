@@ -40,6 +40,16 @@ const stages = require('../lib-stages.js');
   assert.strictEqual(lib.spendVerdict(img, ctx.jobId + '/v2/P07', ctx, safeBatch, 11), null, 'the batch is allowed under the ceiling');
   assert.ok(/12/.test(lib.spendVerdict(img, ctx.jobId + '/v2/P08', ctx, safeBatch, 12).deny), 'the panel that would cross the ceiling is refused, naming the ceiling');
 
+  // Looks: their own key, allowed only for a subject a person chose to generate, one per yes.
+  const lookKey = ctx.jobId + '/look/characters-the-girl/r1';
+  assert.deepStrictEqual(lib.parseLookKey(lookKey), { jobId: ctx.jobId, subject: 'characters-the-girl', attempt: 1 });
+  assert.strictEqual(lib.parseKey(lookKey), null, 'a look key is never read as a panel');
+  assert.strictEqual(lib.spendVerdict(img, lookKey, ctx, null, 0, { allowed: true, attempt: 1 }), null, 'a chosen look is allowed');
+  assert.ok(lib.spendVerdict(img, lookKey, ctx, null, 0, { allowed: false, reason: 'nobody chose to generate a look' }).deny, 'an unchosen look is refused');
+  assert.ok(lib.spendVerdict(img, lookKey, ctx, null, 0, null).deny, 'a check that could not run refuses');
+  assert.ok(/r2/.test(lib.spendVerdict(img, lookKey, ctx, null, 0, { allowed: true, attempt: 2 }).deny), 'a replayed attempt number is refused, naming the right one');
+  assert.ok(lib.spendVerdict(img, 'job-other/look/characters-the-girl/r1', ctx, null, 0, { allowed: true, attempt: 1 }).deny, 'another project\'s look refuses');
+
   // Write guard.
   const root = 'C:/studio';
   const plugin = 'C:/Users/x/.claude/plugins/cs-pre-production';

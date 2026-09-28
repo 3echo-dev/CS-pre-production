@@ -70,6 +70,15 @@ const PNG = Buffer.from('89504e470d0a1a0a0000000d4948445200000001000000010806000
   const jobFile = path.join(dir, 'job.json');
   fs.writeFileSync(jobFile, JSON.stringify({ ...JSON.parse(fs.readFileSync(jobFile, 'utf8')), aspectRatio: '16:9' }, null, 2));
 
+  // No panel is drawn before the subject check: every character, location and prop has a
+  // picture or a person's decision first.
+  r = run('preflight-generation.js', ['htf', jobId, '--json']);
+  out = JSON.parse(r.stdout);
+  assert.strictEqual(out.valid, false, 'no subject check, no sample: ' + r.stdout);
+  assert.ok(out.problems.some(p => /subject check/.test(p)), 'and it says to run it');
+  r = run('subject-check.js', ['scan', 'htf', jobId]);
+  assert.strictEqual(r.status, 0, 'a board with no recurring subjects has nothing to decide: ' + r.stdout + r.stderr);
+
   // Before any approval: the sample only, and the per-job ceiling from CONFIG.md applies to what remains.
   r = run('preflight-generation.js', ['htf', jobId, '--json']);
   out = JSON.parse(r.stdout);

@@ -17,11 +17,11 @@ user-invocable: false
 
 ## Steps
 
-1. `preflight-generation.js {client} {job-id}`. Exit 3: no panel table; exit 1: faults; exit 0 is the only permission to quote.
+1. `subject-check` first. Then `preflight-generation.js {client} {job-id}`. Exit 3: no panel table; exit 1: faults; exit 0 is the only permission to quote.
 2. Quote `count x 1 credit` for items with no file on disk. Over `credit_ceiling_per_job` (`CONFIG.md`) stop and ask what to cut.
 3. State the assumptions in one line: style, ratio, sample panel, reference assets, ceiling. `push-panels.js` puts a placeholder per panel on the board's Storyboard tab, whose Generate button files a `generate` request (landed as `generate[]`, scope sample or batch); that request, or the answer to `board-sync.js ask ... --item storyboard`, is the yes. **Wait for it.** The spend guard refuses without it. A landed request still needing an answer: `ask --blocks {request id}`.
 4. `list_workspaces` for id and balance, `check-3echo.js {client} {job-id} --credits {balance}` (or `--unreachable`), then `get_asset` and `preflight-media.js "<media-url>"`. Exit 0 from both is the permission to generate.
-5. Upload the client assets the manifest names (`upload_asset` or `import_asset_from_url`); record the ids in `manifest.referenceAssets` and each item's `assetIds`.
+5. Upload the manifest's client assets and every ready subject (`upload_asset`); ids go in `manifest.referenceAssets` and each item's `assetIds`.
 6. **The sample panel only**: `create_image_job` (`workspaceId`, `prompt`, `aspectRatio`, `assetIds`, `idempotencyKey` spelled `{job-id}/v{n}/P{id}`), `wait_for_job`, `get_job_result`. Land it under rules 5 to 8. Record the version (`record-version.js {client} {job-id} --item storyboard --n {n} --file "storyboard/v{n}" --note "sample P{id}"`), `push-panels.js --only P{id}`, push, end the turn. The person approves the sample on the board; `board-sync.js pull --gate sample` writes `approvals/sample-{n}.json` with the batch ceiling (panels still to draw) from the generate request.
 7. Next turn, once the sample approval is on disk: the batch, same key format, preamble, continuity and negative list. Land each as `storyboard/v{n}/P{id}.png` by panel id, never display number; set `status` and `file`.
 8. `push-panels.js`, then `python "${CLAUDE_PLUGIN_ROOT}/scripts/contact-sheet.py" "storyboard/v{n}" --cols 4`. A panel it excludes is `rejected`: re-fetch or regenerate, and update the tally.
@@ -35,7 +35,7 @@ The shared rules in `${CLAUDE_PLUGIN_ROOT}/docs/SHARED-RULES.md` apply.
 1. Prompt order: subject, setting, style, lighting, composition, technical. State the ratio in the prompt and the parameter.
 2. Prompts under 200 words, each repeating the board's Not in frame list verbatim.
 3. Never request legible text, logos or UI.
-4. Landing routes: `get_asset` then an HTTP fetch of the media URL, or `fetch_asset_bytes` `variant: "thumbnail"` into `save-asset-bytes.py storyboard/v{n}/P{id}.png`; the `media` variant is too large.
+4. Landing routes: `get_asset` then an HTTP fetch of the media URL, or `fetch_asset_bytes` `variant: "thumbnail"` into `save-asset-bytes.py storyboard/v{n}/P{id}.png`; `media` is too large.
 5. Thumbnails are review quality only.
 6. Validate every file: opens with Pillow, 200 px or more short side.
 7. Look at every panel: another brand, a wrong location, an uncast face.

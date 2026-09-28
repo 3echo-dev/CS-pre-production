@@ -75,14 +75,21 @@ export const register = (on) => {
         const ctx = await context($);
         let preflight = null;
         let panelsOnDisk = 0;
-        if (lib.SPENDER.test(tool) && ctx && ctx.jobId) {
+        let lookCheck = null;
+        const look = lib.parseLookKey(args.idempotencyKey);
+        if (lib.SPENDER.test(tool) && ctx && ctx.jobId && look) {
+          const run = await $.process.run(
+            ['node', $.plugin.root + '/scripts/subject-check.js', 'may-generate', ctx.client || ctx.brand, ctx.jobId, '--subject', look.subject, '--json'],
+            { timeoutMs: PREFLIGHT_MS });
+          lookCheck = lib.readJson(run.stdout);
+        } else if (lib.SPENDER.test(tool) && ctx && ctx.jobId) {
           const run = await $.process.run(
             ['node', $.plugin.root + '/scripts/preflight-generation.js', ctx.client || ctx.brand, ctx.jobId, '--json'],
             { timeoutMs: PREFLIGHT_MS });
           preflight = lib.readJson(run.stdout);
           if (preflight && Number.isFinite(Number(preflight.generated))) panelsOnDisk = Number(preflight.generated);
         }
-        verdict = lib.spendVerdict(tool, args.idempotencyKey, ctx, preflight, panelsOnDisk);
+        verdict = lib.spendVerdict(tool, args.idempotencyKey, ctx, preflight, panelsOnDisk, lookCheck);
       } catch {
         verdict = { deny: lib.DENY.preflightBroke };
       }

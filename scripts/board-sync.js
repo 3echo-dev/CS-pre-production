@@ -156,7 +156,7 @@ function toWrite(rec) {
       return { op: 'update', collection: 'projects', doc_id: p.from, data: { status: 'moved', movedTo: jobId, movedAt: at } };
     case 'question':
       return { op: 'set', collection: base + '/inbox', doc_id: p.id || ('q-' + Date.parse(at).toString(36)),
-        data: { type: 'question', item: p.item || null, text: p.text, options: p.options || [], from: p.from || 'orchestrator', status: 'open', createdAt: at } };
+        data: { type: 'question', item: p.item || null, text: p.text, options: p.options || [], from: p.from || 'orchestrator', status: 'open', createdAt: at, ...(p.thumb ? { thumb: p.thumb } : {}) } };
     case 'message':
       return { op: 'set', collection: base + '/messages', doc_id: p.id || ('m-' + Date.parse(at).toString(36)),
         data: { by: p.by || 'pipeline', text: p.text, item: p.item || null, at } };

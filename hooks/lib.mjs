@@ -42,12 +42,22 @@ export const DENY = {
   sampleFirst: 'One sample panel is generated and approved before the batch. Generate the panel the manifest marks as the sample, put it on the board, and record the sample approval with record-approval.js sample approve --max-credits N.',
   overCeiling: (spent, ceiling) => 'Generating this panel would take the board to ' + (spent + 1) + ' panels on disk, over the ' + ceiling + ' the sample approval allows (the panels on disk when it was recorded plus the batch agreed).',
   preflightBroke: 'The pre-spend gate could not be run, so the spend is refused. Run preflight-generation.js by hand and read what it says.',
+  lookNotChosen: 'A look is generated only for a subject a person chose to generate on the board (subject-check.js), one per yes.',
+  lookAttempt: (n) => 'This look is attempt ' + n + ': spell the key as job-.../look/{subject id}/r' + n + '.',
 };
 
 // ---------------------------------------------------------------------------------------
 // The idempotency key ties a generation call to a panel the approved plan covers.
 // ---------------------------------------------------------------------------------------
 const KEY = /^([^/\s]+)\/(v\d+)\/(P\d{2,})$/i;
+// A look for a subject (subject-check.js): job-.../look/characters-the-girl/r1. Its own key, so a
+// look is never counted as a panel and a regenerated look is a new request, not a replay.
+const LOOK_KEY = /^([^/\s]+)\/look\/([a-z0-9-]+)\/r(\d+)$/i;
+export function parseLookKey(key) {
+  const hit = LOOK_KEY.exec(String(key || '').trim());
+  return hit ? { jobId: hit[1], subject: hit[2].toLowerCase(), attempt: Number(hit[3]) } : null;
+}
+
 export function parseKey(key) {
   const hit = KEY.exec(String(key || '').trim());
   return hit ? { jobId: hit[1], version: hit[2].toLowerCase(), panel: hit[3].toUpperCase() } : null;
@@ -62,11 +72,19 @@ export function readJson(stdout) {
  * The spend verdict, from what preflight-generation.js --json said and which panel is asked
  * for. Pure: every fact was read by the caller through an op.
  */
-export function spendVerdict(tool, key, ctx, preflight, panelsOnDisk) {
+export function spendVerdict(tool, key, ctx, preflight, panelsOnDisk, lookCheck) {
   if (STUDIO.test(tool)) return { deny: DENY.studio };
   if (VIDEO.test(tool)) return { deny: DENY.video };
   if (!SPENDER.test(tool)) return null;
   if (!ctx || !ctx.jobId) return { deny: DENY.noProject };
+  const look = parseLookKey(key);
+  if (look) {
+    if (look.jobId !== ctx.jobId) return { deny: DENY.wrongJob };
+    if (!lookCheck) return { deny: DENY.preflightBroke };
+    if (lookCheck.allowed !== true) return { deny: DENY.lookNotChosen + ' ' + (lookCheck.reason || '') };
+    if (Number(lookCheck.attempt) !== look.attempt) return { deny: DENY.lookAttempt(lookCheck.attempt) };
+    return null;
+  }
   const k = parseKey(key);
   if (!k) return { deny: DENY.noKey };
   if (k.jobId !== ctx.jobId) return { deny: DENY.wrongJob };

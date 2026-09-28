@@ -22,7 +22,7 @@ user-invocable: false
 3. Front matter `style` preamble: treatment, light, colour, casting, setting, in the job's style. Every prompt opens with it and repeats the Continuity block verbatim: 3 to 6 disambiguating attributes per recurring subject, setting and light.
 4. One row per panel on `templates/storyboard.md`: `panel` as `P{nn}`, `scene`, `story_order`, `shoot_order` blank, `frame` (what the camera sees, size, setting), `camera`, `on_screen_text`, `notes`.
 5. Write Not in frame: no readable text, no logos but the client's, no other brands, no extra people.
-6. `generation-manifest.json`: one `kind: image` item per panel, prompts as preamble plus continuity plus panel plus negative, `sample: true` on the one panel that best tests the style, no video items.
+6. `generation-manifest.json`: one `kind: image` item per panel, naming who and what it shows in `characters`, `location`, `props` (the continuity labels, as written), prompts as preamble plus continuity plus panel plus negative, `sample: true` on the one panel that best tests the style, no video items.
 7. Revision log line, report the path, the panel count and the sample id.
 
 ## Rules

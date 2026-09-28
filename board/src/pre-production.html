@@ -170,6 +170,8 @@ svg.i{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stro
 .pq form.qf input{flex:1;min-width:200px}
 .pq.waiting .qt{color:var(--wait)}
 .pq .qa{font-size:12px;color:var(--go)}
+.pq .qthumb{padding:0;border:1px solid var(--line2);border-radius:var(--r2);overflow:hidden;width:fit-content;max-width:100%;background:var(--ink)}
+.pq .qthumb img{display:block;max-height:260px;max-width:100%}
 .pending .hist{font-size:12px;color:var(--faint);border-top:1px dashed var(--line);padding-top:8px;display:flex;flex-direction:column;gap:3px}
 .pending .hist b{color:var(--dim);font-weight:500}
 .item{background:var(--panel);border:1px solid var(--line);border-radius:var(--r3);padding:11px 12px 10px;display:flex;flex-direction:column;gap:7px;min-width:0;transition:border-color 150ms ease,opacity 200ms ease,background-color 150ms ease}
@@ -936,7 +938,7 @@ function pendingHtml(){
   const q=open.map(r=>{
     const opts=(r.options||[]).map((o,i)=>`<button data-answer="${esc(r.id)}" data-value="${esc(o)}" class="${i===0?'first':''}">${esc(o)}</button>`).join('');
     const tail = r.status==='waiting' ? `<div class="qa">Picked up by the run · waiting on: ${esc(r.waitingText||'this answer')}</div>` : '';
-    return `<div class="pq ${r.status==='waiting'?'waiting':''}"><div class="qm"><span>${r.item?esc(itemOf(r.item).name):'Project'}</span><span>asked by ${esc(humanName(r.from))}</span><span>${fmt(r.createdAt)}</span></div><div class="qt">${esc(r.text)}</div>${opts?`<div class="qo">${opts}</div>`:''}<form class="qf" data-answer-form="${esc(r.id)}"><input name="text" id="ans-${esc(r.id)}" aria-label="Your answer" placeholder="${opts?'Something else: say what':'Your answer'}"><button type="submit" class="primary">${ic('send')} Answer</button></form>${tail}</div>`;
+    return `<div class="pq ${r.status==='waiting'?'waiting':''}"><div class="qm"><span>${r.item?esc(itemOf(r.item).name):'Project'}</span><span>asked by ${esc(humanName(r.from))}</span><span>${fmt(r.createdAt)}</span></div><div class="qt">${esc(r.text)}</div>${r.thumb&&/^data:image\/(png|jpe?g|webp);base64,/.test(r.thumb)?`<div class="qthumb"><img src="${esc(r.thumb)}" alt="${esc(r.text)}"></div>`:''}${opts?`<div class="qo">${opts}</div>`:''}<form class="qf" data-answer-form="${esc(r.id)}"><input name="text" id="ans-${esc(r.id)}" aria-label="Your answer" placeholder="${opts?'Something else: say what':'Your answer'}"><button type="submit" class="primary">${ic('send')} Answer</button></form>${tail}</div>`;
   }).join('');
   const hist = done.length ? `<div class="hist">${done.map(r=>`<div><b>${esc(r.text)}</b> → ${esc(r.answer||'')} · ${esc(humanName(r.answeredBy))} ${fmt(r.answeredAt)}</div>`).join('')}</div>` : '';
   const pend = others.length ? `<div class="hist">${others.map(r=>`<div>${esc(r.type)} · ${esc(r.text)}${r.status==='waiting'?' · waiting on '+esc(r.waitingText||'a question'):r.status==='quoted'?' · quoted '+esc(r.credits||'?')+' credits':''}</div>`).join('')}</div>` : '';
