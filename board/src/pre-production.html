@@ -183,6 +183,14 @@ svg.i{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stro
 .item.nr{border-color:var(--hold-dim)}
 .item.hl{border-color:var(--paper);background:var(--panel2)}
 .item.dimmed{opacity:.35}
+.item.blocked{padding:0;background:transparent;border-style:dashed;border-color:var(--line)}
+.item.blocked .bl{width:100%;border:0;min-height:36px;padding:7px 12px;display:flex;align-items:center;gap:8px;color:var(--faint);text-align:left;border-radius:var(--r3)}
+.item.blocked .bl b{color:var(--dim);font-weight:600;font-size:13.5px}
+.item.blocked .bl .on{margin-left:auto;font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.item.blocked .bl:hover{background:var(--panel);color:var(--dim)}
+.item.blocked .xx{transform:none;font-size:10px}
+.stage.shut .shutnote{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--faint);padding:2px 2px 0}
+.stage.shut .item.blocked .on{display:none}
 .pill{display:inline-flex;align-items:center;gap:5px;font-family:var(--cond);text-transform:uppercase;letter-spacing:.06em;font-size:12px;font-weight:600;padding:2px 7px;border-radius:var(--r1);border:1px solid var(--line2);color:var(--dim);white-space:nowrap;line-height:1.3}
 .pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.9}
 .pill.approved{color:var(--go);border-color:var(--go-dim)}
@@ -489,6 +497,24 @@ function itemOf(id){ const def=ITEMS.find(i=>i.id===id); return Object.assign({s
 // without the pipeline having to write a status it would then have to unwrite.
 function shownStatus(it){ if(['pending','running'].includes(it.status) && inbox.some(r=>r.type==='question'&&r.status==='open'&&r.item===it.id)) return 'needs_input'; return it.status; }
 function gateReady(g){ return GATES[g].items.every(id=>['approved','na'].includes(itemOf(id).status)); }
+// A step that has not started and cannot yet: its stage sits behind a gate that has not passed,
+// or a step it reads from is not approved. The board shows it as one quiet line instead of a
+// full card with buttons that do nothing.
+const STAGE_GATE = {2:'A', 3:'B'};
+function stageOpen(n){ const g=STAGE_GATE[n]; return !g || (gates[g]&&gates[g].status==='passed'); }
+function blockedBy(it){
+  if(it.status!=='pending' || shownStatus(it)!=='pending') return null;
+  if(!stageOpen(it.stage)) return {gate:STAGE_GATE[it.stage], deps:[]};
+  const deps=it.deps.filter(d=>!['approved','na'].includes(itemOf(d).status));
+  return deps.length ? {gate:null, deps} : null;
+}
+function blockedCard(it, why){
+  const gl = gateOpen ? (GATES[gateOpen].items.includes(it.id)?'hl':'dimmed') : '';
+  const on = why.gate ? 'Gate '+why.gate : why.deps.map(d=>itemOf(d).name).join(', ');
+  return `<div class="item blocked ${gl}" data-item="${it.id}">
+    <button class="bl" data-open-item="${it.id}" data-open-tab="about" title="What ${esc(it.name)} produces and what it needs">${ic('gate')}<b>${esc(it.name)}</b>${it.xx?'<span class="xx">XX</span>':''}<span class="on">Waiting on ${esc(on)}</span></button>
+  </div>`;
+}
 function gateView(g){ const rec=gates[g]||{}; const ready=gateReady(g); const st = rec.status==='passed'?'passed': rec.status==='reopened'?'reopened': ready?'ready':'locked'; return {...rec, st, ready}; }
 function dependents(id){ const out=new Set(); const walk=x=>ITEMS.filter(i=>i.deps.includes(x)).forEach(i=>{ if(!out.has(i.id)){out.add(i.id); walk(i.id);} }); walk(id); return [...out]; }
 function gateOfItem(id){ return Object.keys(GATES).find(g=>GATES[g].items.includes(id)) || null; }
@@ -841,7 +867,7 @@ function projectPage(id){
   <div class="board">
     <div>
       ${pendingHtml()}
-      <div class="stages">${STAGES.map(s=>{ const ids=ITEMS.filter(i=>i.stage===s.n); const ok=ids.filter(i=>['approved','na'].includes(itemOf(i.id).status)).length; return `<div class="stage"><div class="head"><h2>${s.name} <span>${s.sub}</span></h2><span class="cnt">${ok}/${ids.length} · Gate ${s.gate}</span></div>${s.n===1?itemCard(itemOf('intake')):''}${ids.map(i=>itemCard(itemOf(i.id))).join('')}</div>`; }).join('')}</div>
+      <div class="stages">${STAGES.map(s=>{ const ids=ITEMS.filter(i=>i.stage===s.n); const ok=ids.filter(i=>['approved','na'].includes(itemOf(i.id).status)).length; const shut=!stageOpen(s.n) && ids.every(i=>itemOf(i.id).status==='pending'); return `<div class="stage${shut?' shut':''}"><div class="head"><h2>${s.name} <span>${s.sub}</span></h2><span class="cnt">${ok}/${ids.length} · Gate ${s.gate}</span></div>${shut?`<div class="shutnote">${ic('gate')} Opens after Gate ${STAGE_GATE[s.n]}</div>`:''}${s.n===1?itemCard(itemOf('intake')):''}${ids.map(i=>itemCard(itemOf(i.id))).join('')}</div>`; }).join('')}</div>
     </div>
     <div class="side">
       <div class="box"><h2>Pipeline <span>hand-off to the Claude session</span></h2>
@@ -874,9 +900,10 @@ function gateCard(g){
   return `<div class="gate ${v.st} ${gateOpen===g?'sel':''}" data-gate="${g}" role="button" tabindex="0" aria-expanded="${gateOpen===g}"><span class="letter">${g}</span><span class="name">${G.name}<span style="display:inline-flex;gap:6px;align-items:center">${right}<span class="chev">${ic('chev')}</span></span></span><span class="cond">${esc(G.cond)}</span><span class="approver">${foot}</span></div>`;
 }
 function itemCard(it){
+  const why=blockedBy(it); if(why) return blockedCard(it, why);
   const st=it.status; const isReg=!!REG_FIELDS[it.id];
   const regNote = isReg ? `<div class="s num">${regs[it.id].length} row${regs[it.id].length===1?'':'s'}${regUnknowns(it.id)?` · <span style="color:var(--tape)">${regUnknowns(it.id)} with blanks</span>`:''}</div>`:'';
-  const canApprove = !['approved','na'].includes(st) && !(it.id==='intake' && st==='pending');
+  const canApprove = !['approved','na','pending'].includes(st) && Number(it.version||0)>0;
   const sitesNote = it.id==='scraper' ? sitesLine(it) : '';
   const naAllowed = it.stage===2 && it.xx && st!=='approved';
   const gl = gateOpen ? (GATES[gateOpen].items.includes(it.id)?'hl':'dimmed') : '';
