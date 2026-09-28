@@ -202,7 +202,7 @@ svg.i{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stro
 .actions button{padding:3px 9px;font-size:12px;min-height:28px}
 
 /* rail */
-.rail{display:flex;flex-direction:column;gap:12px;min-width:0}
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
 .box{background:var(--panel);border:1px solid var(--line);border-radius:var(--r3);padding:12px 14px;display:flex;flex-direction:column;gap:8px}
 .box h2{font-size:16px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .box h2 span{font-family:var(--sans);font-size:11px;color:var(--faint);text-transform:none;letter-spacing:0;font-weight:400}
@@ -806,7 +806,7 @@ function gateDetail(g){
 }
 function projectPage(id){
   if(dbState==='off') return `<p class="empty" style="margin-top:20px">The board database is not reachable from this view. <a href="#/">Back to the slate</a>.</p>`;
-  if(!project) return `<div class="gates" aria-busy="true">${[0,1,2].map(()=>'<div class="skel" style="height:104px"></div>').join('')}</div><div class="board"><div class="stages">${[0,1,2].map(()=>'<div class="stage"><div class="skel" style="height:34px"></div><div class="skel" style="height:120px"></div><div class="skel" style="height:120px"></div></div>').join('')}</div><div class="rail"><div class="skel" style="height:180px"></div><div class="skel" style="height:220px"></div></div></div>`;
+  if(!project) return `<div class="gates" aria-busy="true">${[0,1,2].map(()=>'<div class="skel" style="height:104px"></div>').join('')}</div><div class="board"><div class="stages">${[0,1,2].map(()=>'<div class="stage"><div class="skel" style="height:34px"></div><div class="skel" style="height:120px"></div><div class="skel" style="height:120px"></div></div>').join('')}</div><div class="side"><div class="skel" style="height:180px"></div><div class="skel" style="height:220px"></div></div></div>`;
   if(project.missing) return `<p class="empty" style="margin-top:20px">No project called ${esc(id)}. <a href="#/">Back to the slate</a>.</p>`;
   const openReqs=inbox.filter(r=>r.status==='open' && r.type==='question');
   return `<div class="gates">${['A','B','C'].map(gateCard).join('')}</div>
@@ -816,7 +816,7 @@ function projectPage(id){
       ${pendingHtml()}
       <div class="stages">${STAGES.map(s=>{ const ids=ITEMS.filter(i=>i.stage===s.n); const ok=ids.filter(i=>['approved','na'].includes(itemOf(i.id).status)).length; return `<div class="stage"><div class="head"><h2>${s.name} <span>${s.sub}</span></h2><span class="cnt">${ok}/${ids.length} · Gate ${s.gate}</span></div>${s.n===1?itemCard(itemOf('intake')):''}${ids.map(i=>itemCard(itemOf(i.id))).join('')}</div>`; }).join('')}</div>
     </div>
-    <div class="rail">
+    <div class="side">
       <div class="box"><h2>Pipeline <span>hand-off to the Claude session</span></h2>
         <div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="ghost" data-copy title="Copy a plain-text summary of this board to paste into a Claude chat">${ic('copy')} Copy board for chat</button><button type="button" class="ghost" data-signal title="Wake the pipeline now, for example after answering questions">${ic('send')} Signal pipeline</button></div>
       </div>
