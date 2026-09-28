@@ -38,6 +38,7 @@ node "${CLAUDE_PLUGIN_ROOT}/scripts/set-state.js" {client} {job-id} <STATE> --by
 node "${CLAUDE_PLUGIN_ROOT}/scripts/board-sync.js" push {client} {job-id}
 ```
 
+
 Exit 0 from `collect-artifacts.js` marks the row `verified`; exit 1 re-delegates once, a second miss stops the run. Version before state.
 
 ## XX rows

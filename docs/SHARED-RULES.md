@@ -13,6 +13,8 @@ In the Code tab the board already shows the artifact, so send a file only when i
 
 When a row delivers, the chat line says what was produced in the item's own terms, "11 references, 2 sites unreachable: X and Y", never a path or a byte count; the path is for `record-version.js`, not the person. The board shows the content itself: `record-run.js` carries the recorded version's text into the drawer's Output tab on its own (version first, then run); `--output-file` is only for a run that wrote something other than the item's file, and a finished run with nothing to show is refused.
 
+The board's Files tab lists what `record-version.js` found: the file, or every file inside a folder version. When a row also wrote files outside that path (screenshots, an export, a sidecar), name each with `--also <path relative to the job>` so the person sees every output and where it sits on this computer.
+
 ## What the board may say
 
 The board is read by the client, not by the person who built the pipeline.

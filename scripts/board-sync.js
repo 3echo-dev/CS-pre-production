@@ -108,7 +108,8 @@ function toWrite(rec) {
     }
     case 'version':
       return { op: 'set', collection: base + '/versions', doc_id: 'v-' + p.item + '-' + p.n,
-        data: { item: p.item, n: p.n, note: p.note || '', path: p.path || '', hash: p.hash || '', seat: p.seat || null, at: p.at || at } };
+        data: { item: p.item, n: p.n, note: p.note || '', path: p.path || '', hash: p.hash || '', seat: p.seat || null, at: p.at || at,
+          ...(p.files ? { files: p.files } : {}), ...(p.filesMore ? { filesMore: p.filesMore } : {}), ...(p.jobDir ? { jobDir: p.jobDir } : {}) } };
     case 'run': {
       const data = { ...p }; delete data.key;
       return { op: 'set', collection: base + '/runs', doc_id: p.item + '-v' + p.version, data };

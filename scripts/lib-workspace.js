@@ -90,7 +90,7 @@ function listJobs(brand, argv) {
 // Flags that take a value. Filtering only on the leading `--` leaves the value behind as a
 // positional, which is how `scaffold-client.js acme --root C:/tmp/x` came to write the flag
 // and its path into the brand's display name, producing a workspace.json that would not parse.
-const VALUE_FLAGS = ['--root', '--out', '--job', '--by', '--comment', '--note', '--credits',
+const VALUE_FLAGS = ['--root', '--also', '--out', '--job', '--by', '--comment', '--note', '--credits',
   '--max-credits', '--captions', '--state', '--since', '--until', '--rating', '--ack',
   // Every one of these carries a value. A flag missing from this list makes its value look
   // like a positional, which is how a title once turned into part of a file path.
