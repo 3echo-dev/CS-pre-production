@@ -870,8 +870,9 @@ function projectPage(id){
       <div class="stages">${STAGES.map(s=>{ const ids=ITEMS.filter(i=>i.stage===s.n); const ok=ids.filter(i=>['approved','na'].includes(itemOf(i.id).status)).length; const shut=!stageOpen(s.n) && ids.every(i=>itemOf(i.id).status==='pending'); return `<div class="stage${shut?' shut':''}"><div class="head"><h2>${s.name} <span>${s.sub}</span></h2><span class="cnt">${ok}/${ids.length} · Gate ${s.gate}</span></div>${shut?`<div class="shutnote">${ic('gate')} Opens after Gate ${STAGE_GATE[s.n]}</div>`:''}${s.n===1?itemCard(itemOf('intake')):''}${ids.map(i=>itemCard(itemOf(i.id))).join('')}</div>`; }).join('')}</div>
     </div>
     <div class="side">
-      <div class="box"><h2>Pipeline <span>hand-off to the Claude session</span></h2>
-        <div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="ghost" data-copy title="Copy a plain-text summary of this board to paste into a Claude chat">${ic('copy')} Copy board for chat</button><button type="button" class="ghost" data-signal title="Wake the pipeline now, for example after answering questions">${ic('send')} Signal pipeline</button></div>
+      <div class="box"><h2>Message the pipeline <span>it wakes and reads it</span></h2>
+        <form id="msgf"><textarea name="text" id="msg-text" aria-label="Message to the pipeline" placeholder="A note, a ruling, a heads-up. It goes to the Claude session running this project."></textarea><div style="display:flex;justify-content:space-between;gap:6px;margin-top:6px;flex-wrap:wrap"><span style="display:flex;gap:4px;flex-wrap:wrap"><button type="button" class="ghost" data-copy title="Copy a plain-text summary of this board to paste into a Claude chat">${ic('copy')} Copy board</button><button type="button" class="ghost" data-signal title="Wake the pipeline now, for example after answering questions">${ic('send')} Signal</button></span><button class="primary" type="submit">${ic('send')} Send</button></div></form>
+        ${messages.slice(0,5).map(m=>`<div class="msg"><div class="by"><span>${esc(humanName(m.by))}${m.item?` · ${esc(itemOf(m.item).name)}`:''}</span><span>${fmt(m.at)}</span></div>${esc(m.text)}</div>`).join('')}
       </div>
       ${costBox()}
       <div class="box"><h2>Seats <span>what each one last did</span></h2><div class="seats">${SEATS.filter(s=>s.kind!=='human').map(s=>{ const r=lastRunOfSeat(s.id); const it=ITEMS.find(i=>i.seat===s.id); return `<button class="seat-row" ${r?`data-open-run="${esc(r.item)}" data-run="${esc(r.id)}"`:'disabled'}><span class="mono">${s.n}</span><span style="display:flex;align-items:center;gap:8px;min-width:0">${blob(s.id, r?(r.status==='running'?'thinking':'happy'):'idle', 22)}<span><b>${esc(s.label)}</b>${r?` · ${esc(itemOf(r.item).name)} v${r.version}`:it?` · ${esc(it.name)}`:''}</span><span class="st ${r?(r.status==='running'?'working':'done'):'new'}">${r?(r.status==='running'?'working':'done'):'idle'}</span></button>`; }).join('')}</div></div>
@@ -1078,7 +1079,7 @@ function wire(){
   app.onsubmit = async e=>{
     e.preventDefault(); const f=e.target;
     if(f.id==='newp') return createProject(f);
-    if(f.id==='msgf'){ const v=f.text.value.trim(); if(!v) return; await log(v); f.reset(); toast('Posted to the council', 'ok'); return; }
+    if(f.id==='msgf'){ const v=f.text.value.trim(); if(!v) return; await signalPipeline('Message from '+humanName(me)+': '+v.slice(0,80), 'Message on the board from '+humanName(me)+': '+v+'. Read it, act on it if it asks for something, and reply in chat.'); await log(v); f.reset(); toast('Sent to the pipeline', 'ok'); return; }
     if(f.dataset.reg) return addRow(f.dataset.reg, f);
     if(f.dataset.redoForm){ const v=f.text.value.trim(); if(!v) return; redoFor=null; await redoPanel(f.dataset.redoForm, v); return; }
     if(f.id==='changef'){ const v=f.text.value.trim(); if(!v) return; changeFor=null; await requestChange(f.dataset.item, v); return; }
