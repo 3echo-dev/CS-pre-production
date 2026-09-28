@@ -144,6 +144,12 @@ function toWrite(rec) {
       // answered. The inbox used to know only open and answered, so a landed request stayed a
       // button: the person pressed it again and again while the real blocker sat unanswered.
       return { op: 'update', collection: base + '/inbox', doc_id: p.id, data: { status: 'waiting', waitingOn: p.on || null, waitingText: p.text || '', waitingSince: at } };
+    case 'cost': {
+      // tally-cost.js: tokens and turns per item from the runs, credits from status.md. Merged
+      // into the project document so the slate card can show it without reading every run.
+      const data = { ...p }; delete data.key;
+      return { op: 'update', collection: 'projects', doc_id: jobId, data: { cost: { ...data, at } } };
+    }
     case 'moved':
       // A project a person opened on the slate, now scaffolded on disk under its job id. The card
       // they made points at the job and hides; the job's own page carries on.

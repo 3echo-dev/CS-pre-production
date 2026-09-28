@@ -757,6 +757,30 @@ function topbar(){
     <span><b>The client's templates, never invented.</b></span>
   </div>`;
 }
+// Tokens as people read them: 287k, 1.2M.
+function tok(n){ n=Number(n)||0; return n>=1e6?(n/1e6).toFixed(n>=1e7?0:1)+'M':n>=1e3?Math.round(n/1e3)+'k':String(n); }
+function costLine(c){
+  if(!c) return '';
+  const parts=[];
+  if(c.runs) parts.push(tok(c.tokens)+' tokens');
+  if(c.creditsSpent!=null) parts.push(c.creditsSpent+' credit'+(c.creditsSpent===1?'':'s'));
+  return parts.join(' · ');
+}
+// The project's cost from the runs this page already reads (so it is right even before the
+// pipeline has pushed a tally), with credits from the tally tally-cost.js pushed.
+function costBox(){
+  const rows=ITEMS.map(i=>{ const rs=runs[i.id]||[]; if(!rs.length) return null;
+    let t=0,u=0,untr=0; const models=[]; rs.forEach(r=>{ if(r.tokens!=null) t+=Number(r.tokens)||0; else untr++; if(r.turns!=null) u+=Number(r.turns)||0; if(r.model&&!models.includes(r.model)) models.push(r.model); });
+    return {id:i.id,name:i.name,t,u,n:rs.length,untr,models}; }).filter(Boolean);
+  const total=rows.reduce((a,r)=>a+r.t,0), turns=rows.reduce((a,r)=>a+r.u,0), n=rows.reduce((a,r)=>a+r.n,0), untr=rows.reduce((a,r)=>a+r.untr,0);
+  const c=project&&project.cost||{};
+  const credits=c.creditsSpent!=null?`<div class="seat-row" style="grid-template-columns:1fr auto;cursor:default"><span>3echo credits</span><b class="num">${c.creditsSpent} of ${c.creditsCeiling??'?'}</b></div>`:'';
+  return `<div class="box"><h2>Cost <span>directors' runs; the orchestrator is not counted</span></h2>
+    ${n?`<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><b style="font-size:24px" class="num">${total.toLocaleString('en-US')}</b><span class="meta">tokens · ${n} run${n===1?'':'s'} · ${turns} turns${untr?` · ${untr} without a count`:''}</span></div>`:'<p class="empty">No runs recorded yet.</p>'}
+    ${credits}
+    ${rows.length?`<div class="seats">${rows.map(r=>`<button class="seat-row" style="grid-template-columns:1fr auto" data-open-item="${r.id}" data-open-tab="output" title="${esc(r.models.join(', '))} · ${r.u} turns"><span><b>${esc(r.name)}</b>${r.n>1?` · ${r.n} runs`:''}</span><span class="num">${tok(r.t)}${total?` · ${Math.round(r.t*100/total)}%`:''}</span></button>`).join('')}</div>`:''}
+  </div>`;
+}
 function statusWord(s){ return {intake:'Intake',stage1:'Stage 1',gate_a:'At Gate A',stage2:'Stage 2',gate_b:'At Gate B',stage3:'Stage 3',gate_c:'At Gate C',released:'Released',killed:'Killed'}[s]||s||''; }
 function slatePage(){
   const live=projects.filter(p=>p.status!=='moved'); const cards = live.length ? live.map(p=>{
@@ -765,6 +789,7 @@ function slatePage(){
       <div class="row"><span style="display:flex;align-items:center;gap:10px;min-width:0">${blob(p.id, BLOB_MOOD[p.status]||'idle', 40)}<h3>${esc(p.title)}</h3></span><span class="pill ${p.status==='released'?'approved':'plain'}">${esc(statusWord(p.status))}</span></div>
       <div class="row meta"><span>${esc(p.client||'')}${p.client&&(p.scriptFormat||p.storyboardStyle)?' · ':''}${esc(p.scriptFormat||'')}${p.scriptFormat&&p.storyboardStyle?' · ':''}${esc(p.storyboardStyle||'')}</span><span class="gchips" aria-label="Gates">${['A','B','C'].map(x=>`<span class="gchip ${gateChipState(p,x)}">${x}</span>`).join('')}</span></div>
       <div class="meta">Opened ${fmt(p.createdAt)} by ${esc(humanName(p.createdBy))}${p.example?' · example data':''}</div>
+      ${costLine(p.cost)?`<div class="meta num">Cost so far: <b style="color:var(--paper)">${esc(costLine(p.cost))}</b></div>`:''}
       ${p.activity&&!['released','killed'].includes(p.status)?`<div class="meta"><span class="pill running">Working</span> ${esc(p.activity)}${p.heartbeatAt?' · '+fmt(p.heartbeatAt):''}</div>`:''}
     </button>`; }).join('')
     : `<p class="empty">${dbState==='on'?'No projects on the board yet. Open one below, or let the pipeline open it when a Drive folder lands.':dbState==='connecting'?'Connecting to the board…':'This is the pipeline model. Open the page in claude.ai to connect the board.'}</p>`;
@@ -822,6 +847,7 @@ function projectPage(id){
       <div class="box"><h2>Pipeline <span>hand-off to the Claude session</span></h2>
         <div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="ghost" data-copy title="Copy a plain-text summary of this board to paste into a Claude chat">${ic('copy')} Copy board for chat</button><button type="button" class="ghost" data-signal title="Wake the pipeline now, for example after answering questions">${ic('send')} Signal pipeline</button></div>
       </div>
+      ${costBox()}
       <div class="box"><h2>Seats <span>what each one last did</span></h2><div class="seats">${SEATS.filter(s=>s.kind!=='human').map(s=>{ const r=lastRunOfSeat(s.id); const it=ITEMS.find(i=>i.seat===s.id); return `<button class="seat-row" ${r?`data-open-run="${esc(r.item)}" data-run="${esc(r.id)}"`:'disabled'}><span class="mono">${s.n}</span><span style="display:flex;align-items:center;gap:8px;min-width:0">${blob(s.id, r?(r.status==='running'?'thinking':'happy'):'idle', 22)}<span><b>${esc(s.label)}</b>${r?` · ${esc(itemOf(r.item).name)} v${r.version}`:it?` · ${esc(it.name)}`:''}</span><span class="st ${r?(r.status==='running'?'working':'done'):'new'}">${r?(r.status==='running'?'working':'done'):'idle'}</span></button>`; }).join('')}</div></div>
       <div class="box"><h2>Project</h2><dl class="kv">
         <dt>Client</dt><dd>${esc(project.client||'')}</dd>

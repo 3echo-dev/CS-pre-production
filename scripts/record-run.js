@@ -88,5 +88,7 @@ fs.writeFileSync(out, JSON.stringify(rec, null, 2) + '\n');
 
 (async () => {
   await board.call('run', { key: jobId, ...rec }, { argv });
+  // The project's running cost, so the slate card and the Cost box never lag a run.
+  await require('./tally-cost.js').queue(board, jobId, dir, argv);
   console.log('Run recorded: ' + ws.fwd(out) + '. Queued for the board.');
 })();
