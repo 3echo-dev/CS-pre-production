@@ -30,12 +30,18 @@ try {
   assert.strictEqual(wsCfg.templates.shotList, 'client/templates/shot-list.xlsx', 'the fifth template is in the workspace map');
   assert.match(fs.readFileSync(path.join(tdir, 'README.md'), 'utf8'), /shot-list\.xlsx, budget\.xlsx/, 'and the README names it');
 
-  // 1. Nothing dropped in yet: every template is missing, and the message says where they go.
+  // 1. A new client starts with the generic house shot list, budget, timeline and storyboard
+  //    slides; the breakdown and call sheet have no house version, so those two are missing, and
+  //    the message says where they go.
+  for (const f of ['shot-list.xlsx', 'budget.xlsx', 'timeline.xlsx', 'storyboard.pptx']) {
+    assert.ok(fs.existsSync(path.join(tdir, f)), 'house ' + f + ' installed');
+    assert.strictEqual(JSON.parse(fs.readFileSync(path.join(tdir, f + '.source.json'), 'utf8')).source, 'house', f + ' is marked as the house default');
+  }
   let r = run('template-check.js', ['acme']);
   assert.strictEqual(r.status, 3, r.stdout + r.stderr);
-  assert.match(r.stderr, /Missing: shot-list\.xlsx, budget\.xlsx, timeline\.xlsx, breakdown\.xlsx, call-sheet\.xlsx\./);
+  assert.match(r.stderr, /Missing: breakdown\.xlsx, call-sheet\.xlsx\./);
   assert.match(r.stderr, /workspaces\/acme\/client\/templates\/; they never come from the pulled folder/);
-  console.log('ok   a missing template is named with the folder it belongs in');
+  console.log('ok   a new client gets the house templates; the two with no house version are named with the folder they belong in');
 
   // 2. A finished workbook: a stray number on row 1, band labels on row 2, the real header on row 3,
   //    seventeen rows of data with a phone number in them, and two more sheets.

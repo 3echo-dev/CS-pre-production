@@ -60,7 +60,9 @@ fs.writeFileSync(path.join(dest, 'client', 'sites.md'), [
 ].join('\n'));
 fs.writeFileSync(path.join(dest, 'client', 'templates', 'README.md'), [
   '# Templates for ' + name, '',
-  "Drop the client's blank files here, named exactly: shot-list.xlsx, budget.xlsx, timeline.xlsx, breakdown.xlsx, call-sheet.xlsx.",
+  "Drop the client's blank files here, named exactly: shot-list.xlsx, budget.xlsx, timeline.xlsx, breakdown.xlsx, call-sheet.xlsx, storyboard.pptx.",
+  'shot-list, budget, timeline and storyboard start as the generic house templates (house-templates.js --list says which);',
+  "a file the client sends replaces its house copy. breakdown.xlsx and call-sheet.xlsx have no house version.",
   "Blank means the header block only. A finished job's workbook is not a template: it is the answers, and a",
   'filled call sheet carries phone numbers into every job. Strip one with',
   '  python "${CLAUDE_PLUGIN_ROOT}/scripts/strip-template.py" <workbook> --out <template> --sheet <name> --header <row>',
@@ -70,6 +72,9 @@ fs.writeFileSync(path.join(dest, 'client', 'templates', 'README.md'), [
   'The planners and builders refuse to invent a template; a missing one is a question on the board.', '',
 ].join('\n'));
 
+// The generic house templates (shot list, budget, twelve-month timeline, storyboard slides), so a
+// new client can run before sending their own; any file they send replaces its house copy.
+require('child_process').spawnSync(process.execPath, [path.join(__dirname, 'house-templates.js'), slug, ...(argv.includes('--root') ? ['--root', argv[argv.indexOf('--root') + 1]] : [])], { stdio: 'ignore' });
 console.log('ready: ' + ws.fwd(dest) + '/  (workspace.json, client/sites.md, client/templates/, jobs/)');
 console.log('inputs: ' + ws.fwd(ws.inputsDir(slug, argv)) + '/  Drive pulls land here, one folder per project');
 
