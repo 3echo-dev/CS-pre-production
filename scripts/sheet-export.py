@@ -10,6 +10,13 @@ Sources, per item:
                        <job>/budget.csv          fallback: a plain workbook
     timeline           <job>/timeline.xlsx | timeline.csv
     concept_breakdown  <job>/breakdown.xlsx | breakdown.csv
+    call_sheet         <job>/call-sheets/day-{d}.xlsx, each day its own export (already in the client layout)
+    talents|props|locations  <job>/registers/<item>.json, the rows people entered on the board
+    audio              <job>/audio.md, one row per scene requirement (VO, BGM, SFX)
+
+A client template wins; without one, the plugin's generic house template (templates/house/) is
+used where there is one (shot list). Registers and audio have no template: they are written as a
+clean sheet in the house style (the header row styled like the shot-list template's header).
 
 When <client-dir>/templates/<name>.xlsx exists and the source is a CSV, the export is that
 template with the rows written under its header row, so the client gets their own sheet with
@@ -21,7 +28,7 @@ import openpyxl
 
 ap = argparse.ArgumentParser()
 ap.add_argument('job')
-ap.add_argument('--item', required=True, choices=['shot_list', 'budget_sheet', 'timeline', 'concept_breakdown'])
+ap.add_argument('--item', required=True, choices=['shot_list', 'budget_sheet', 'timeline', 'concept_breakdown', 'call_sheet', 'talents', 'props', 'locations', 'audio'])
 ap.add_argument('--client-dir', default=None)
 ap.add_argument('--out', default=None)
 ap.add_argument('--json', action='store_true')
@@ -34,13 +41,109 @@ SOURCES = {
     'concept_breakdown': ('breakdown', ['breakdown.xlsx', 'breakdown.csv']),
 }
 PIPELINE_COLS = {'shot_id', 'label', 'scene', 'panel', 'est_duration_s'}
+HOUSE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'templates', 'house')
+client_dir = a.client_dir or os.path.join(os.path.dirname(os.path.dirname(a.job)), 'client')
+
+def house_style_from():
+    for d in (os.path.join(client_dir, 'templates'), HOUSE):
+        f = os.path.join(d, 'shot-list.xlsx')
+        if os.path.exists(f):
+            return openpyxl.load_workbook(f).active.cell(1, 1)
+    return None
+
+def clean_sheet(title, columns, rows, out):
+    # A tidy workbook in the house style: the header styled like the shot-list template's, the
+    # header row frozen, columns sized to their content. Blank stays the word unknown.
+    from copy import copy
+    wb = openpyxl.Workbook(); ws = wb.active; ws.title = title[:31]
+    ws.append(columns)
+    optional = {i for i, c in enumerate(columns) if c.strip().lower() in ('notes', 'note', 'source')}
+    for r in rows:
+        ws.append([v if str(v).strip() != '' or i in optional else 'unknown' for i, v in enumerate(r)])
+    ref = house_style_from()
+    for c in ws[1]:
+        if ref is not None:
+            f = copy(ref.font); f.b = True
+            c.font = f; c.fill = copy(ref.fill); c.border = copy(ref.border); c.alignment = copy(ref.alignment)
+        else:
+            c.font = openpyxl.styles.Font(bold=True)
+    for i, col in enumerate(columns, start=1):
+        width = max([len(str(col))] + [len(str(r[i - 1])) for r in rows if i - 1 < len(r)] + [8])
+        ws.column_dimensions[openpyxl.utils.get_column_letter(i)].width = min(width + 2, 60)
+    ws.freeze_panes = 'A2'
+    wb.save(out)
+
+def emit(result):
+    if a.json:
+        print(json.dumps(result))
+    else:
+        print('Exported ' + a.item + ': ' + str(result['rowCount']) + ' rows' + (' in the client template' if result['template'] else ' in the house style') + ' -> ' + result['export'])
+    sys.exit(0)
+
+REG_FIELDS = {'talents': ['name', 'picture', 'age', 'availability', 'cost', 'loading'], 'props': ['name', 'scene', 'source', 'have'], 'locations': ['name', 'address', 'availability', 'contact']}
+if a.item in REG_FIELDS:
+    src = os.path.join(a.job, 'registers', a.item + '.json')
+    if not os.path.exists(src):
+        print('no source on disk for ' + a.item + ' (registers/' + a.item + '.json: nothing landed from the board yet)', file=sys.stderr); sys.exit(1)
+    reg = json.load(open(src, encoding='utf-8'))
+    fields = reg.get('fields') or REG_FIELDS[a.item]
+    columns = [f.replace('_', ' ').capitalize() for f in fields] + ['Notes']
+    rows = [[str(r.get(f, '') if r.get(f) is not None else '') for f in fields] + [str(r.get('notes') or '')] for r in reg.get('rows', []) if any(str(r.get(f) or '').strip() for f in fields)]
+    if reg.get('na'):
+        rows = [['not applicable (decided by ' + str(reg.get('naBy') or 'a person') + ')'] + [''] * (len(columns) - 1)]
+    out = a.out or os.path.join(a.job, 'exports', a.item + '.xlsx')
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    clean_sheet(a.item.capitalize(), columns, rows, out)
+    emit({'item': a.item, 'source': src.replace(os.sep, '/'), 'export': out.replace(os.sep, '/'), 'template': False, 'columns': columns, 'rows': rows[:400], 'rowCount': len(rows)})
+
+if a.item == 'audio':
+    src = os.path.join(a.job, 'audio.md')
+    if not os.path.exists(src):
+        print('no source on disk for audio (audio.md)', file=sys.stderr); sys.exit(1)
+    columns, rows, scene = ['Scene', 'Type', 'Requirement', 'Source', 'Note'], [], ''
+    for line in open(src, encoding='utf-8'):
+        t = line.strip()
+        if t.startswith('# ') and not t.lower().startswith('# questions'):
+            scene = t[2:].strip()
+        elif t.startswith('|') and not set(t) <= set('|-: '):
+            cells = [c.strip() for c in t.strip('|').split('|')]
+            if cells and cells[0].lower() in ('row', 'type'):
+                continue
+            if scene and len(cells) >= 2:
+                rows.append([scene] + (cells + [''] * 4)[:4])
+    out = a.out or os.path.join(a.job, 'exports', 'audio.xlsx')
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    clean_sheet('Audio', columns, rows, out)
+    emit({'item': 'audio', 'source': src.replace(os.sep, '/'), 'export': out.replace(os.sep, '/'), 'template': False, 'columns': columns, 'rows': rows[:400], 'rowCount': len(rows)})
+
+if a.item == 'call_sheet':
+    import glob, re
+    days = sorted(glob.glob(os.path.join(a.job, 'call-sheets', 'day-*.xlsx')), key=lambda f: int(re.search(r'day-(\d+)', f).group(1)))
+    if not days:
+        print('no source on disk for call_sheet (call-sheets/day-{d}.xlsx)', file=sys.stderr); sys.exit(1)
+    exp = os.path.join(a.job, 'exports'); os.makedirs(exp, exist_ok=True)
+    outs = []
+    for f in days:
+        d = int(re.search(r'day-(\d+)', f).group(1))
+        o = os.path.join(exp, 'call-sheet-day-%d.xlsx' % d)
+        shutil.copyfile(f, o)
+        ws = openpyxl.load_workbook(o).active
+        grid = [['' if c.value is None else str(c.value) for c in r] for r in ws.iter_rows(max_row=min(ws.max_row, 200))]
+        grid = [r for r in grid if any(v.strip() for v in r)]
+        outs.append({'day': d, 'export': o.replace(os.sep, '/'), 'rows': grid[:200]})
+    first = outs[0]
+    width = max(len(r) for r in first['rows']) if first['rows'] else 0
+    emit({'item': 'call_sheet', 'source': ', '.join(os.path.relpath(f, a.job).replace(os.sep, '/') for f in days), 'export': first['export'], 'exports': [o['export'] for o in outs], 'days': outs,
+          'template': True, 'columns': ['' for _ in range(width)], 'rows': first['rows'], 'rowCount': sum(len(o['rows']) for o in outs)})
+
 name, candidates = SOURCES[a.item]
 src = next((os.path.join(a.job, c) for c in candidates if os.path.exists(os.path.join(a.job, c))), None)
 if not src:
     print('no source on disk for ' + a.item + ' (' + ', '.join(candidates) + ')', file=sys.stderr)
     sys.exit(1)
-client_dir = a.client_dir or os.path.join(os.path.dirname(os.path.dirname(a.job)), 'client')
 template = os.path.join(client_dir, 'templates', name + '.xlsx')
+if not os.path.exists(template) and os.path.exists(os.path.join(HOUSE, name + '.xlsx')):
+    template = os.path.join(HOUSE, name + '.xlsx')
 out = a.out or os.path.join(a.job, 'exports', name + '.xlsx')
 os.makedirs(os.path.dirname(out), exist_ok=True)
 
