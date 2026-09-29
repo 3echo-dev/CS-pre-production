@@ -2,6 +2,8 @@
 // SessionStart hook. Anything written to stdout becomes context Claude can act on.
 // Three jobs: say where the work is being saved, report missing dependencies, and orient a
 // first-time user. Probes are cached for a day so a resume does not spawn five processes.
+//   node check-deps.js --json   probes afresh, refreshes the cache and prints every check as JSON
+//                                (the install skill reads it before and after it installs)
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -16,10 +18,12 @@ const where = exe => ok((win ? 'where ' : 'which ') + exe);
 const PY = ok('python3 --version') ? 'python3' : (ok('python --version') ? 'python' : null);
 const install = (winCmd, macCmd, linuxCmd) =>
   win ? winCmd : (process.platform === 'darwin' ? macCmd : linuxCmd);
+// winget without these flags stops on a licence prompt the agent's shell cannot answer.
+const winget = id => 'winget install -e --id ' + id + ' --accept-package-agreements --accept-source-agreements';
 
 const checks = [
   ['python', () => PY !== null,
-    install('winget install Python.Python.3.12', 'brew install python', 'sudo apt install python3'),
+    install(winget('Python.Python.3.12'), 'brew install python', 'sudo apt install python3'),
     'contact sheets of storyboard panels and reading reference videos', true],
   ['Pillow', () => PY !== null && ok(PY + ' -c "import PIL"'),
     (PY || 'python3') + ' -m pip install Pillow',
@@ -28,10 +32,10 @@ const checks = [
     (PY || 'python3') + ' -m pip install openpyxl',
     'reading the client\'s Excel templates and exporting the sheets the board shows', true],
   ['ffmpeg', () => where('ffmpeg'),
-    install('winget install Gyan.FFmpeg', 'brew install ffmpeg', 'sudo apt install ffmpeg'),
+    install(winget('Gyan.FFmpeg'), 'brew install ffmpeg', 'sudo apt install ffmpeg'),
     'sampling frames from a reference video (without it the reference is read from its captions and text only)', false],
   ['ffprobe', () => where('ffprobe'),
-    install('winget install Gyan.FFmpeg', 'brew install ffmpeg', 'sudo apt install ffmpeg'),
+    install(winget('Gyan.FFmpeg'), 'brew install ffmpeg', 'sudo apt install ffmpeg'),
     'reading a reference video\'s length', false],
   ['yt-dlp', () => where('yt-dlp'),
     (PY || 'python3') + ' -m pip install yt-dlp',
@@ -40,9 +44,9 @@ const checks = [
 
 const CACHE_HOURS = 24;
 const cachePath = path.join(process.cwd(), ws.CONFIG_DIR, 'deps.json');
-function probeAll() {
+function probeAll(fresh) {
   let cached = null;
-  try {
+  if (!fresh) try {
     const c = JSON.parse(fs.readFileSync(cachePath, 'utf8'));
     if (Date.now() - c.at < CACHE_HOURS * 3600e3 && c.platform === process.platform) cached = c;
   } catch { /* no cache yet */ }
@@ -54,6 +58,17 @@ function probeAll() {
     fs.writeFileSync(cachePath, JSON.stringify({ at: Date.now(), platform: process.platform, present }));
   } catch { /* a read-only cwd must not break the hook */ }
   return checks.filter(c => !present.includes(c[0]));
+}
+
+if (process.argv.includes('--json')) {
+  const gone = probeAll(true).map(c => c[0]);
+  const items = checks.map(([name, , cmd, why, required]) =>
+    ({ name, present: !gone.includes(name), required, why, install: cmd }));
+  process.stdout.write(JSON.stringify({
+    platform: process.platform, node: process.version, python: PY,
+    ready: items.every(i => i.present || !i.required), items,
+  }, null, 2) + '\n');
+  process.exit(0);
 }
 
 const missing = probeAll();
@@ -98,8 +113,8 @@ if (missing.length) {
     out += '- ' + name + (req ? ' (required)' : ' (optional)') + ' - needed for ' + why + '\n    ' + cmd + '\n';
   }
   out += '\n' + (missing.some(m => m[4])
-    ? 'The storyboard image steps will fail until the required ones are installed. Tell the user, with the commands above.\n'
-    : 'Everything runs. Say which step is degraded rather than claiming it ran.\n');
+    ? 'The storyboard image steps will fail until the required ones are installed. In your first reply, tell the user what is missing and offer to install it for them: the /cs-pre-production:install skill asks which ones, runs the commands and checks them. Install nothing before they say yes.\n'
+    : 'Everything runs. Say which step is degraded rather than claiming it ran. If they want the optional tools, /cs-pre-production:install installs them.\n');
 }
 // The guards in hooks/hooks.mjs can refuse a wrong step outright, but only when function hooks
 // are switched on. In a folder that is already the pipeline's, arming them is not a decision

@@ -23,6 +23,16 @@
       "description": "Publishes this account's own copy of the Pre-production board page from board/pre-production.html (capabilities db and artifact) and records its address with set-board.js. Once per account or workspace."
     },
     {
+      "skillId": "install",
+      "risk": "generation",
+      "userInvocable": true,
+      "preloadedBy": [],
+      "invokedBy": [
+        "user"
+      ],
+      "description": "Checks the tools this plugin needs on this computer, asks which missing ones to install, runs the installs and checks again; says how to connect AgentC."
+    },
+    {
       "skillId": "new-project",
       "risk": "read_only",
       "userInvocable": true,
