@@ -191,8 +191,29 @@ function refuseIntakeRoot(argv) {
     'set-root.js <folder> from outside it, --root <folder>, or CREATIVE_STUDIO_ROOT. Nothing was created.';
 }
 
+// A sibling studio/social plugin's ownership marker sitting in the same folder tree. When one
+// of these `config.json` files is found on the way up from cwd before our own, this folder is
+// theirs: our hooks and session-start scripts yield rather than queueing a board line, refusing
+// a stop, or writing our config dir into somebody else's project. This is the reverse of the
+// sibling guard social-pipeline added in 0.12.11 (its lib.mjs `siblingStudioRoot`): every studio
+// plugin steps aside in a folder another one owns. Our own config always wins, so a folder we
+// were set up in stays ours even if a sibling marker is lying around.
+const SIBLING_MARKERS = ['.social-pipeline', '.creative-studio-post'];
+function foreignOwner(start = process.cwd()) {
+  let dir = path.resolve(start);
+  for (;;) {
+    if (fs.existsSync(path.join(dir, CONFIG_DIR, CONFIG_FILE))) return null; // ours wins
+    for (const marker of SIBLING_MARKERS) {
+      try { if (fs.existsSync(path.join(dir, marker, CONFIG_FILE))) return marker; } catch { /* unreadable is not owned */ }
+    }
+    const up = path.dirname(dir);
+    if (up === dir) return null;
+    dir = up;
+  }
+}
+
 module.exports = {
-  intakeMarks, refuseIntakeRoot,
+  intakeMarks, refuseIntakeRoot, foreignOwner, SIBLING_MARKERS,
   root, rootWithSource, brandsDir, clientsDir, wsDir, jobsDir, jobDir, inputsDir, listClients,
   listBrands, listJobs, positionals, resolveJobArgs, workspaceConfig, now, fwd,
   CONFIG_DIR, CONFIG_FILE,

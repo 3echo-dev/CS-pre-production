@@ -10,6 +10,13 @@ const path = require('path');
 const ws = require('./lib-workspace.js');
 const guards = require('./lib-guards.js');
 
+// Another studio/social plugin owns this folder: say nothing and arm nothing. Its workspaces/
+// tree would otherwise read as ours and this hook would print getting-started guidance, and even
+// turn on our guards, in somebody else's project. The install skill's --setup/--json still run.
+if (ws.foreignOwner() && !process.argv.includes('--setup') && !process.argv.includes('--json')) {
+  process.exit(0);
+}
+
 const win = process.platform === 'win32';
 const ok = c => { try { execSync(c, { stdio: 'ignore' }); return true; } catch { return false; } };
 const where = exe => ok((win ? 'where ' : 'which ') + exe);

@@ -26,6 +26,10 @@ function boardDir(argv) { return path.join(ws.root(argv), '.board'); }
 // queued heartbeats into somebody's unrelated project would be a menace. The board is
 // present once the root has been chosen, a client scaffolded, or an outbox started.
 function configured(argv) {
+  // A folder another studio/social plugin owns is never ours, however much its layout looks like
+  // ours (both keep a workspaces/ tree and a .board). Yield before the generic signals below can
+  // false-positive on a sibling's project and queue a board line or refuse its turn.
+  if (ws.foreignOwner()) return false;
   const r = ws.root(argv);
   return fs.existsSync(path.join(r, ws.CONFIG_DIR)) || fs.existsSync(path.join(r, '.board')) || ws.listClients(argv).length > 0;
 }

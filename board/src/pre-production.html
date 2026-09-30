@@ -579,6 +579,20 @@ async function requestChange(id, note){
   await log(`Change requested on ${it.name}: ${note.trim()}${deps.length?` (${deps.length} dependent item${deps.length>1?'s':''} sent back for review)`:''}`, id);
   toast(`Change sent to ${seatLabel(it.seat)}`, 'ok'); signalPipeline(`Change requested on ${it.name}`);
 }
+// Ask the scout to look harder. A wider search is a change note carrying the depth: the pipeline
+// lands it as a revision, re-runs the Scraper at that depth, and adds rows without dropping any the
+// person already ticked. "wide" also searches the open web, marking those finds unvetted to pick.
+async function searchWider(mode){
+  const it=itemOf('scraper'); const base='projects/'+project.id;
+  const label = mode==='wide'
+    ? 'Also search the wider web (results outside your sites, marked unvetted for you to pick)'
+    : 'Dig deeper into your sites (more searches on the same sites)';
+  await setItem('scraper',{status:'needs_review', changeNote:label});
+  await write(base+'/inbox/'+Date.now().toString(36),{type:'change',item:'scraper',mode:mode,text:label,from:me,status:'open',createdAt:now()});
+  await log('Wider search requested on the Scraper: '+label, 'scraper');
+  toast('The scout will look again. This takes a little longer.', 'ok');
+  signalPipeline('Wider search requested on the Scraper');
+}
 async function lockGate(g){
   if(!gateReady(g)) return; const base='projects/'+project.id;
   const stamp={status:'passed', decidedBy:me, decidedAt:now(), items:Object.fromEntries(GATES[g].items.map(id=>[id,{status:itemOf(id).status,version:itemOf(id).version||0}]))};
@@ -675,7 +689,8 @@ function referencesHtml(it){
   if(!refs.length) return sites + '<p class="empty">The scout has not pushed its references yet. They appear here, one row each, once the scraper row has run.</p>';
   const n=chosenCount();
   const list = refs.map(r=>{ const on=!!(refsel[r.id]&&refsel[r.id].selected); return `<div class="ref ${on?'on':''}"><button class="tick" data-ref-toggle="${esc(r.id)}" aria-pressed="${on}" aria-label="${on?'Unchoose':'Choose'} ${esc(r.title)}" ${busy.has('rf'+r.id)?'disabled':''}>${ic('check')}</button><div class="rt">${r.n?'#'+r.n+' ':''}${r.url?`<a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title||r.url)}</a>`:esc(r.title)}</div><div class="rm"><span>${esc(r.site||'')}</span><span>${esc(r.retrieved||'')}</span>${on?`<span style="color:var(--go)">chosen by ${esc(humanName(refsel[r.id].by))}</span>`:''}</div><div class="rw">${esc(r.why||'')}</div></div>`; }).join('');
-  return `${sites}<div class="sb-head"><span class="num">${refs.length} reference${refs.length===1?'':'s'} · ${n} chosen</span><span class="num">${it.status==='approved'?'Approved: the script is written from the chosen ones.':'Tick the ones to build from, then Approve the Scraper card.'}</span></div><div class="reflist">${list}</div>`;
+  const wider = it.status==='approved' ? '' : `<div class="row" style="gap:6px;margin:6px 0"><span class="num">Not enough here?</span><button class="ghost" data-wider="trusted-deep">${ic('change')} Dig deeper into your sites</button><button class="ghost" data-wider="wide">${ic('change')} Also search the wider web</button></div>`;
+  return `${sites}<div class="sb-head"><span class="num">${refs.length} reference${refs.length===1?'':'s'} · ${n} chosen</span><span class="num">${it.status==='approved'?'Approved: the script is written from the chosen ones.':'Tick the ones to build from, then Approve the Scraper card.'}</span></div>${wider}<div class="reflist">${list}</div>`;
 }
 function panelsHtml(it){
   const ps=panelList(); const total=ps.length; const drawn=ps.filter(p=>p.thumb).length; const sample=ps.find(p=>p.sample);
@@ -1089,8 +1104,9 @@ function footer(){ return `<div class="foot-note"><span>1-22 · 3echo Creative S
 function wire(){
   const app=$('#app');
   app.onclick = async e=>{
-    const t=e.target.closest('[data-open],[data-open-item],[data-open-run],[data-tab],[data-approve],[data-change],[data-na],[data-lock],[data-answer],[data-answer-text],[data-close],[data-gate],[data-copy],[data-signal],[data-change-cancel],[data-gen],[data-approve-panel],[data-ref-toggle],[data-faces],[data-redo],[data-redo-cancel],[data-lightbox],[data-lightbox-close],[data-copy-sheet],[data-export],[data-copy-path],[data-home],[data-dl],[data-dl-csv]');
+    const t=e.target.closest('[data-open],[data-open-item],[data-open-run],[data-tab],[data-approve],[data-change],[data-na],[data-lock],[data-answer],[data-answer-text],[data-close],[data-gate],[data-copy],[data-signal],[data-change-cancel],[data-gen],[data-approve-panel],[data-ref-toggle],[data-wider],[data-faces],[data-redo],[data-redo-cancel],[data-lightbox],[data-lightbox-close],[data-copy-sheet],[data-export],[data-copy-path],[data-home],[data-dl],[data-dl-csv]');
     if(!t) return;
+    if(t.dataset.wider){ e.preventDefault(); await guarded('wider', ()=>searchWider(t.dataset.wider)); return; }
     if(t.dataset.dl){ await guarded('dl'+t.dataset.dl, ()=>downloadExport(t.dataset.dl)); return; }
     if(t.dataset.dlCsv){ await downloadCsv(t.dataset.dlCsv); return; }
     if(t.dataset.home!=null){ e.preventDefault(); drawer=null; changeFor=null; gateOpen=null; location.hash='#/'; return; }

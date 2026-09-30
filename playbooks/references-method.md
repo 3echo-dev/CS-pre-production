@@ -2,6 +2,22 @@
 
 Read by `reference-scout` at row 1a. Output: `references/board.md` on `templates/references.md`, raw captures under `references/raw/{date}/`. This is an XX item: the creative director ticks the references that count. The scout's job is a shortlist a person can choose from, with the reason for each one written down.
 
+## 0. The depth mode
+
+The run has one of three depths, in the spawn prompt as `mode`, defaulting to `trusted`. A change request may raise it; that is how the board's "search wider" option arrives. A wider run adds rows and never deletes a selected one.
+
+- **trusted** (default): only the roster, two to four sites, twelve to twenty references. Fast. No open web.
+- **trusted-deep**: only the roster, but each site exhausted (up to six queries a site), up to about thirty references. Slower. Still no open web, so no new trust surface.
+- **wide**: the roster first, exactly as `trusted`, then a bounded open-web pass (section 2a). Slowest. The only mode that leaves the roster, and its finds are quarantined, never trusted references.
+
+Record `mode` in the front matter. Sections 1 to 7 run in every mode; section 2a runs only in `wide`.
+
+### Fetch discipline (every mode)
+
+- One host, one request every two to three seconds. Do not burst a site.
+- Per URL, one retry on a timeout or transient error; then reword the query and try one more candidate page; then record the gap. One pass, no loops.
+- Two requests to one host failing the same way (login wall, 403, refusal) end that host for the run: one Gaps row, then move on. Never eight tries on a host that blocked the first two.
+
 ## 1. Frame the search
 
 1. Read the brief's Intent lines, the audience blocks, the Limits and the open questions. Nothing else.
@@ -15,7 +31,18 @@ Read by `reference-scout` at row 1a. Output: `references/board.md` on `templates
 - Per site: search with the site filter, open the candidate page, read the title and maker from the page, save the raw capture under `references/raw/{date}/{site}-{n}.html` or `.md`, then write the row.
 - Two to four sites per run is enough for one brief. Prefer the sites whose medium matches the deliverable: a motion or animation brief goes to the motion sites first, a live-action commercial to the advertising sites first.
 - Twelve to twenty references across the run. Fewer than twelve is fine when the sites are exhausted and the Gaps table says so; more than twenty is a sweep, not a shortlist.
-- A site that refuses, needs a login, is paywalled or times out is a Gaps row: site, what was tried, when, reason. Never a reference, never a guess at what it would have shown.
+- A site that refuses, needs a login, is paywalled or times out runs the fetch ladder in section 0, then is a Gaps row: site, what was tried, when, reason. Never a reference, never a guess at what it would have shown.
+- In `trusted-deep`, keep to the same roster and exhaust it; the roster never grows to reach thirty. Fewer, well-matched references beat a padded list.
+
+## 2a. The wider web (wide mode only)
+
+Only after the roster pass is done, and only when `mode` is `wide`:
+
+- Run three to five `WebSearch` queries built from the same brief-specific phrases (section 1), not the client's category.
+- Open at most eight candidate pages, newest useful first; the same fetch ladder and rate limit apply. Read title and maker from the page, save the raw capture under `references/raw/{date}/web-{n}.{ext}`.
+- Every find goes under a separate `# Wider web` table with the same columns as `# References`, numbered on from the last reference so every id stays unique, with the `Source site` cell naming the actual host (e.g. `youtube.com`). It is an off-roster candidate the creative director may pick, never a roster reference.
+- Do not add a discovered host to `client/sites.md`. The roster is the client's; keeping a source is an explicit `sites-check.js --add {host}` a person runs, noted in the summary, never done here.
+- The provenance line (section 7) names the open-web pass and the count of unvetted candidates.
 
 ## 3. The row
 
@@ -48,8 +75,9 @@ After the shortlist, write three to five questions the creative director has to 
 
 ## 7. Provenance line
 
-The board's front matter carries `sites_searched` and one provenance line, exactly one of:
+The board's front matter carries `mode`, `sites_searched` and one provenance line, exactly one of:
 - `References: pulled from {sites}`
+- `References: pulled from {sites}; wider web searched, {n} unvetted candidates`
 - `References: none retrieved; gaps recorded`
 
 A row that was not fetched this run does not exist. Writing a reference from memory is the failure this playbook exists to stop.
@@ -61,11 +89,12 @@ A row that was not fetched this run does not exist. Writing a reference from mem
 ## Checklist before you deliver
 
 1. Three to five search phrases are written, each naming a technique or mood from the brief, none naming the client's category.
-2. Only sites from `client/sites.md` were searched, in order, and the front matter lists them.
+2. The front matter records `mode`. Only sites from `client/sites.md` were searched (in `trusted`/`trusted-deep`), in order, and the front matter lists them; any open-web pass ran only in `wide` mode.
 3. Every row has title and maker from the page, a page URL, today's date, the source site, and a Why line that cites an Intent number.
 4. Every Why line names at least two techniques in words the script can reuse.
 5. Twelve to twenty rows, or fewer with a Gaps row explaining each exhausted site.
-6. Every refused or unreachable site is a Gaps row, and no Gaps site appears as a reference.
+6. Every refused or unreachable site ran the fetch ladder, is a Gaps row, and no Gaps site appears as a reference; no host was tried past two like failures.
+6a. In `wide` mode, every open-web find sits under `# Wider web` with its host, numbered on from the references, and none is mixed into `# References`; no discovered host was written into `sites.md`.
 7. Any watched clip has frames read, timestamps cited, and a five-aspect block in the raw folder.
 8. Top five candidates carry a "what it would need" line.
 9. Three to five board questions, options first, recommended first.

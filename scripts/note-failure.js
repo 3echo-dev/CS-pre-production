@@ -5,6 +5,7 @@
 // Never throws: a hook that crashes is noise on top of a failure.
 const fs = require('fs');
 const path = require('path');
+const ws = require('./lib-workspace.js');
 
 const KNOWN = [
   { when: i => /agentc\.3echo\.ai/.test(i) && /\bcurl\b/.test(i),
@@ -41,6 +42,11 @@ if (process.stdin.isTTY || process.argv.length > 2) {
   console.error('To leave a note on a project: set-state.js <client> <job-id> <STATE> --by <you> --note "..."');
   process.exit(2);
 }
+
+// Never leave our config dir in a folder another studio/social plugin owns: a tool failing in
+// a sibling's project is that plugin's business, not ours, and writing .creative-studio-pipeline
+// there is exactly the cross-plugin contamination this guard exists to stop.
+if (ws.foreignOwner()) process.exit(0);
 
 let raw = '';
 try { raw = fs.readFileSync(0, 'utf8'); } catch { process.exit(0); }

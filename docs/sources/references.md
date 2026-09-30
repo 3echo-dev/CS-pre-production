@@ -12,3 +12,10 @@ Every number in `playbooks/` for this area has a row here. `house default` means
 | five aspects | references-method 4 | OpenMontage skills/meta/video-reference-analyst.md, pattern only | 2026-09-14 | pattern |
 | top five candidates get a needs line | references-method 5 | house default | 2026-09-14 | house default |
 | three to five board questions | references-method 6 | OpenMontage video-reference-analyst Step 3, pattern only; count is a house default | 2026-09-14 | house default |
+| up to six queries a site (trusted-deep) | references-method 0, 2 | house default | 2026-09-30 | house default |
+| up to about thirty references (trusted-deep) | references-method 0, 2 | house default | 2026-09-30 | house default |
+| three to five open-web queries (wide) | references-method 2a | social-media-pipeline research skill, 3 to 5 query variations per question, pattern only | 2026-09-30 | pattern |
+| at most eight open-web candidates (wide) | references-method 2a | house default | 2026-09-30 | house default |
+| one request every two to three seconds per host | references-method 0 | social-media-pipeline research skill, wait 2 to 3 seconds between requests to one host, pattern only | 2026-09-30 | pattern |
+| one retry per URL, one pass | references-method 0 | social-media-pipeline research skill retry chain, pattern only | 2026-09-30 | pattern |
+| two like failures end the host | references-method 0 | social-media-pipeline research skill, two failures on one host ends that host, pattern only | 2026-09-30 | pattern |

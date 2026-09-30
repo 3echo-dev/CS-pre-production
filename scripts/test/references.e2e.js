@@ -83,6 +83,35 @@ try {
   assert.deepStrictEqual(sel.numbers, [1, 3]);
   assert.strictEqual(sel.rows[1].by, 'creative-director');
   console.log('ok   land writes the chosen references to references/selected.json');
+
+  // Wide mode: the roster refs plus a Wider web table. Off-roster rows push as unvetted docs,
+  // the scraper card carries the mode and the unvetted count, and no web host joins the roster outcome.
+  write('references/board.md', [
+    '---', 'job: ' + jobId, 'client: htf', 'version: 2', 'status: draft', 'mode: wide', 'sites_searched: [Film-Grab, Vimeo Staff Picks, Shotdeck]', 'created: 2026-09-21', '---', '',
+    '# References', '', '| # | Title | URL | Retrieved | Source site | Why it fits (brief line) | Selected |', '|---|---|---|---|---|---|---|',
+    '| 1 | Ambulance | https://film-grab.com/ambulance/ | 2026-09-21 | Film-Grab | continuous aerial follow | |',
+    '| 2 | Blade Runner | https://film-grab.com/blade-runner/ | 2026-09-21 | Film-Grab | wet-street practical light | |', '',
+    '# Wider web', '', '| # | Title | URL | Retrieved | Source site | Why it fits (brief line) | Selected |', '|---|---|---|---|---|---|---|',
+    '| 3 | Corridor oner | https://youtube.com/watch?v=x | 2026-09-21 | youtube.com | single unbroken ward walk | |', '',
+    '# Gaps', '', '| Site | What was tried | When | Reason |', '|---|---|---|---|', '| Shotdeck | search page | 2026-09-21 | needs a login |', '',
+    '# Searches', '', '- Film-Grab: "night rain"', ''].join('\n'));
+
+  r = run('push-references.js', ['htf', jobId, '--print'], tmp);
+  assert.strictEqual(r.status, 0, r.stderr);
+  const wide = JSON.parse(r.stdout);
+  assert.strictEqual(wide.mode, 'wide');
+  assert.strictEqual(wide.references, 2, 'two roster references');
+  assert.strictEqual(wide.unvetted, 1, 'one unvetted web candidate');
+  assert.strictEqual(wide.documents.length, 3, 'all three rows become documents');
+  const web = wide.documents.find(d => d.id === 'r03');
+  assert.strictEqual(web.provenance, 'off-roster'); assert.strictEqual(web.unvetted, true); assert.strictEqual(web.site, 'youtube.com');
+  const roster = wide.documents.find(d => d.id === 'r01');
+  assert.strictEqual(roster.provenance, 'roster'); assert.strictEqual(roster.unvetted, false);
+  assert.strictEqual(wide.scraper.mode, 'wide');
+  assert.strictEqual(wide.scraper.refCount, 2, 'refCount counts only the roster');
+  assert.strictEqual(wide.scraper.unvettedCount, 1);
+  assert.ok(!wide.scraper.sites.some(s => /youtube/i.test(s.name)), 'no web host joins the roster outcome');
+  console.log('ok   wide mode flags off-roster candidates as unvetted and records the mode');
   console.log('references verification passed');
 } finally {
   fs.rmSync(tmp, { recursive: true, force: true });

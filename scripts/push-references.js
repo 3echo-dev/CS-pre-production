@@ -28,6 +28,7 @@ const text = fs.readFileSync(file, 'utf8');
 const fm = (text.match(/^---\r?\n([\s\S]*?)\r?\n---/) || [])[1] || '';
 const fmVal = k => ((fm.match(new RegExp('^' + k + ':\\s*(.*)$', 'm')) || [])[1] || '').trim();
 const version = Number(fmVal('version')) || 1;
+const mode = fmVal('mode') || 'trusted';
 const searched = fmVal('sites_searched').replace(/^\[|\]$/g, '').split(',').map(s => s.trim()).filter(Boolean);
 
 // A markdown table under a heading: the rows as arrays of cells, header and rule skipped.
@@ -41,6 +42,7 @@ function tableUnder(heading) {
     .filter(cells => cells.length > 1 && !cells.every(c => /^:?-+:?$/.test(c)));
 }
 const refRows = tableUnder('References').filter(c => /^\d+$/.test(c[0]));
+const widerRows = tableUnder('Wider web').filter(c => /^\d+$/.test(c[0]));
 const gapRows = tableUnder('Gaps').filter(c => c[0] && !/^Site$/i.test(c[0]));
 
 // The roster the person gave, so a site with nothing found is still listed.
@@ -52,7 +54,10 @@ try {
     .map(c => ({ name: c[0], url: c[1] || '' }));
 } catch { roster = []; }
 
-const refs = refRows.map(c => ({ n: Number(c[0]), title: c[1] || '', url: c[2] || '', retrieved: c[3] || '', site: c[4] || '', why: c[5] || '', selectedMark: c[6] || '' }));
+const toRef = c => ({ n: Number(c[0]), title: c[1] || '', url: c[2] || '', retrieved: c[3] || '', site: c[4] || '', why: c[5] || '', selectedMark: c[6] || '' });
+const refs = refRows.map(toRef);
+const wider = widerRows.map(toRef);
+// Off-roster hosts never fold into the client's roster-outcome list; only the roster refs and the client's sites do.
 const names = new Set([...roster.map(r => r.name), ...searched, ...refs.map(r => r.site), ...gapRows.map(g => g[0])].filter(Boolean));
 const sameSite = (a, b) => String(a).toLowerCase().replace(/[^a-z0-9]/g, '') === String(b).toLowerCase().replace(/[^a-z0-9]/g, '');
 const sites = [...names].map(name => {
@@ -65,15 +70,16 @@ const sites = [...names].map(name => {
 });
 
 const at = new Date().toISOString();
-const docs = refs.map(r => ({ key: jobId, id: 'r' + String(r.n).padStart(2, '0'), n: r.n, title: r.title, url: r.url, retrieved: r.retrieved, site: r.site, why: r.why, version, updatedAt: at }));
-const item = { key: jobId, sites, refCount: refs.length, refVersion: version, sitesAt: at };
+const toDoc = (r, provenance) => ({ key: jobId, id: 'r' + String(r.n).padStart(2, '0'), n: r.n, title: r.title, url: r.url, retrieved: r.retrieved, site: r.site, why: r.why, provenance, unvetted: provenance === 'off-roster', version, updatedAt: at });
+const docs = [...refs.map(r => toDoc(r, 'roster')), ...wider.map(r => toDoc(r, 'off-roster'))];
+const item = { key: jobId, sites, refCount: refs.length, unvettedCount: wider.length, mode, refVersion: version, sitesAt: at };
 
 (async () => {
   if (!print) {
     for (const d of docs) await board.call('reference', d, { argv });
     await board.call('scraper-sites', item, { argv });
   }
-  const out = { project: jobId, version, queued: print ? 0 : docs.length, references: docs.length, sites, ...(print ? { documents: docs, scraper: item } : {}) };
+  const out = { project: jobId, version, mode, queued: print ? 0 : docs.length, references: refs.length, unvetted: wider.length, sites, ...(print ? { documents: docs, scraper: item } : {}) };
   if (json || print) console.log(JSON.stringify(out, null, print ? 2 : 0));
-  else console.log('Queued ' + docs.length + ' reference' + (docs.length === 1 ? '' : 's') + ' and the site outcome (' + sites.map(s => s.name + ': ' + (s.status === 'found' ? s.count + ' found' : s.status)).join(', ') + ') for the board. Run board-sync.js push next.');
+  else console.log('Queued ' + refs.length + ' reference' + (refs.length === 1 ? '' : 's') + (wider.length ? ' and ' + wider.length + ' unvetted web candidate' + (wider.length === 1 ? '' : 's') : '') + ' and the site outcome (' + sites.map(s => s.name + ': ' + (s.status === 'found' ? s.count + ' found' : s.status)).join(', ') + ') for the board. Run board-sync.js push next.');
 })();

@@ -59,7 +59,7 @@ Gate A after Stage 1 (the creative director locks the creative), Gate B after St
 
 ## Change propagation
 
-A change note sends its item and its dependents back for review and reopens that item's gate (map in `workflows/1-22.md`). Re-enter the owning row with `revisions/{n}.json` as its only added input; nothing downstream regenerates before re-approval. A third identical reason code on a stage escalates.
+A change note sends its item and its dependents back for review and reopens that item's gate (map in `workflows/1-22.md`). Re-enter the owning row with `revisions/{n}.json` as its only added input, the scraper note's `mode` included; nothing downstream regenerates before re-approval. A third identical reason code escalates.
 
 ## Media: the only place money moves
 
